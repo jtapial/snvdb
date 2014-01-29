@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block header %}
+<!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container">
+        <h1>Search Results</h1>
+        <p>SNV is Single Nucleotide Variation (not to be confused with SNP, Single Nucleotide Polymorphism)<br>
+        This is a template for a simple  informational website. It includes a large callout called a jumbotron and three supporting pieces of content. </p>
+      </div>
+    </div>
+
+{% endblock %}    
+<!-- Contents -->
+{% block title %} <p>You searched for: <strong>{{ query }}</strong></p> {% endblock %}
+
+{% block content %}
+
+{% if uniprot %}
+    <p>Found {{ uniprot|length }} Uniprot{{ uniprot|pluralize }}.</p>
+    <ul class = "list-group">
+        {% for item in uniprot %}
+        <li class="list-group-item" > <a href="{% url "uniprot-view" pk=item.acc_number %}"> {{ item.acc_number}}</a> </li> 
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No item matched your search criteria.</p>
+{% endif %}
+
+{% endblock %}
+

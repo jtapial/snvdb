@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}{{ Uniprot.acc_number }} {% endblock %}
+{% block content %}
+<div class = "well">
+    <h3>Sequence :</h3>
+    <p>{{ Uniprot.sequence }}</p>
+</div>
+
+
+<a href="{% url "search-results" %}">Back to Results</a>
+{% endblock %}
