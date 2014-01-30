@@ -55,7 +55,10 @@ def search(request):
 		option = request.GET['search_select']
 		if option =='1':
 			uniprot = Uniprot.objects.filter(acc_number__icontains=q)
-			return render(request, 'Uniprot_search_results.html',
+			if uniprot.count() == 1:
+				return reverse('uniprot-view', kwargs={'pk': uniprot[0].acc_number})
+			else:
+				return render(request, 'Uniprot_search_results.html',
 		                    {'uniprot': uniprot, 'query': q})
 		elif option =='2':
 			snv = Snv.objects.filter(Q(ft_id__icontains=q)|Q(gene_code__icontains=q)|Q(db_snp__icontains=q))
