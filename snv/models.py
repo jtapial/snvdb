@@ -12,6 +12,28 @@ class Uniprot(models.Model):
 	def get_absolute_url(self):
 		return reverse('uniprot-view', kwargs={'pk': self.acc_number})
 
+class Snv(models.Model):
+	ft_id = models.CharField(max_length=10L, primary_key=True)
+	type = models.CharField(max_length=20L)
+	wt_aa = models.CharField(max_length=1L)
+	mutant_aa = models.CharField(max_length=1L)
+	uniprot_acc_number = models.CharField(max_length=6L)
+	uniprot_position = models.IntegerField()
+	gene_code = models.CharField(max_length=10L, blank=True)
+	db_snp = models.CharField(max_length=15L, blank=True)
+	class Meta:
+		db_table = 'snv'
+	def get_absolute_url(self):
+		return reverse('snv-view', kwargs={'pk': self.ft_id})
+
+class Disease(models.Model):
+	mim = models.IntegerField(primary_key=True)
+	name = models.CharField(max_length=255L, blank=True)
+	class Meta:
+		db_table = 'disease'
+	def get_absolute_url(self):
+		return reverse('disease-view', kwargs={'pk': self.mim})
+
 '''
 
 class Accessibility(models.Model):
@@ -52,11 +74,7 @@ class ChainResidue(models.Model):
 	class Meta:
 		db_table = 'chain_residue'
 
-class Disease(models.Model):
-	mim = models.IntegerField(primary_key=True)
-	name = models.CharField(max_length=255L, blank=True)
-	class Meta:
-		db_table = 'disease'
+
 
 class Interaction(models.Model):
 	id = models.IntegerField(primary_key=True)
@@ -87,17 +105,6 @@ class PositionMapping(models.Model):
 	class Meta:
 		db_table = 'position_mapping'
 
-class Snv(models.Model):
-	ft_id = models.CharField(max_length=10L, primary_key=True)
-	type = models.CharField(max_length=20L)
-	wt_aa = models.CharField(max_length=1L)
-	mutant_aa = models.CharField(max_length=1L)
-	uniprot_acc_number = models.CharField(max_length=6L)
-	uniprot_position = models.IntegerField()
-	gene_code = models.CharField(max_length=10L, blank=True)
-	db_snp = models.CharField(max_length=15L, blank=True)
-	class Meta:
-		db_table = 'snv'
 
 class SnvDisease(models.Model):
 	ft_id = models.CharField(max_length=10L)

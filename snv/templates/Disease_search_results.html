@@ -15,15 +15,15 @@
 
 {% block content %}
 
-{% if uniprot %}
-    <p>Found {{ uniprot|length }} Uniprot{{ uniprot|pluralize }}.</p>
+{% if diseases %}
+    <p>Found {{ diseases|length }} disease{{ diseases|pluralize }}.</p>
     <ul class = "list-group">
-        {% for item in uniprot %}
-        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}"> {{ item.acc_number}}</a> </li> 
+        {% for item in diseases %}
+        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}"> {{ item.mim}}  {{ item.name}}</a> </li> 
         {% endfor %}
     </ul>
 {% else %}
-    <p>No item matched your search criteria. <a href ='{% url 'home' %}'>Go back to the home page</a></p>
+    <p>No item matched your search criteria. <a href ='{% url 'home' %}'>Go back to the home page</a> </p>
 {% endif %}
 
 {% endblock %}

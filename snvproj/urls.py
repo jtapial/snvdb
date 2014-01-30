@@ -11,9 +11,9 @@ urlpatterns = patterns('',
 
         url(r'^$', snv.views.home.as_view(), name='home',),
         url(r'^listuniprot$', snv.views.UniprotList.as_view(), name='uniprot-list',),
-        url(r'^(?P<pk>\d+)/$', snv.views.UniprotView.as_view(), name='uniprot-view',),
-
-
+        url(r'^uniprot/(?P<pk>(\D+|\d+)+)/$', snv.views.UniprotView.as_view(), name='uniprot-view',),
+        url(r'^disease/(?P<pk>\d+)/$', snv.views.DiseaseView.as_view(), name='disease-view',),
+		url(r'^snv/(?P<pk>(\D+|\d+)+)/$', snv.views.SnvView.as_view(), name='snv-view',),
         url(r'^login/$', 'django.contrib.auth.views.login'),
         url(r'^logout/$', 'django.contrib.auth.views.logout'),
         url(r'^search-form/$', snv.views.search_form),

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %} Disease ID: {{disease.mim}}{% endblock %}
+{% block content %}
+<div class = "well">
+   <h3>Disease Name: {{disease.name}}</h3>
+	<p>Further information available soon :) </p> 
+</div>
+
+
+<a href="{% url 'search-results' %}">Back to Results</a>
+{% endblock %}

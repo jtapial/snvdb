@@ -15,11 +15,11 @@
 
 {% block content %}
 
-{% if uniprot %}
-    <p>Found {{ uniprot|length }} Uniprot{{ uniprot|pluralize }}.</p>
+{% if snves %}
+    <p>Found {{ snves|length }} SNV{{ snves|pluralize }}.</p>
     <ul class = "list-group">
-        {% for item in uniprot %}
-        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}"> {{ item.acc_number}}</a> </li> 
+        {% for item in snves %}
+        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}">FT ID: {{ item.ft_id}} | GENE CODE: {{ item.gene_code}} | UNIPROT ACC NUMBER: {{ item.uniprot_acc_number}} | DB SNP ID: {{ item.db_snp}}</a> </li> 
         {% endfor %}
     </ul>
 {% else %}
@@ -27,4 +27,3 @@
 {% endif %}
 
 {% endblock %}
-
