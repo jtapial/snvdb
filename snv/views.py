@@ -56,17 +56,23 @@ def search(request):
 		if option =='1':
 			uniprot = Uniprot.objects.filter(acc_number__icontains=q)
 			if uniprot.count() == 1:
-				return reverse('uniprot-view', kwargs={'pk': uniprot[0].acc_number})
+				return HttpResponseRedirect(reverse('uniprot-view', kwargs={'pk': uniprot[0].acc_number})) 
 			else:
 				return render(request, 'Uniprot_search_results.html',
 		                    {'uniprot': uniprot, 'query': q})
 		elif option =='2':
 			snv = Snv.objects.filter(Q(ft_id__icontains=q)|Q(gene_code__icontains=q)|Q(db_snp__icontains=q))
-			return render(request, 'Snv_search_results.html',
+			if snv.count() == 1:
+				return HttpResponseRedirect(reverse('snv-view', kwargs={'pk': snv[0].ft_id})) 
+			else:
+				return render(request, 'Snv_search_results.html',
 		                    {'snves': snv, 'query': q})
 		else:
 			disease = Disease.objects.filter(Q(name__icontains=q)|Q(mim__icontains=q))
-			return render(request, 'Disease_search_results.html',
+			if disease.count() == 1:
+				return HttpResponseRedirect(reverse('disease-view', kwargs={'pk': disease[0].mim})) 
+			else:			
+				return render(request, 'Disease_search_results.html',
 		                    {'diseases': disease, 'query': q})
 	else:
 		return TemplateResponse(request, 'home.html', {'error': 'Please input your query'})
