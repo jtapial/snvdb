@@ -1,7 +1,36 @@
 {% extends "base.html" %}
 
-{% block title %}{{ uniprot.acc_number }} {% endblock %}
+{% block title %}Uniprot ID: {{ uniprot.acc_number }} {% endblock %}
 {% block content %}
+<div class = "well">
+	<h3>Chains found for the protein {{uniprot.acc_number}}:</h3>
+		<ul>
+			{% for item in uniprot.get_chains %}
+				<li>{{item.id}}</li>
+			{% endfor %}
+		</ul>
+</div>
+
+<div class = "well">
+	<h3>Interacting partners of the protein {{uniprot.acc_number}}:</h3>
+		<ul>
+			{% for item in uniprot.get_partners %}
+				<li>{{item.acc_number}}</li>
+			{% endfor %}
+
+		</ul>
+
+</div>
+
+<div class = "well">
+	<h3>Interaction entries for the protein {{uniprot.acc_number}}:</h3>
+	<ul>
+			{% for item in uniprot.get_interactions %}
+				<li>{{item.id}}</li>
+			{% endfor %}
+		</ul>
+</div>
+
 <div class = "well">
     <h3>Sequence :</h3>
     <p>{{ uniprot.sequence }}</p>
