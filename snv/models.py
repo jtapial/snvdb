@@ -130,8 +130,8 @@ class SnvType(models.Model):
 class Snv(models.Model):
     ft_id = models.CharField(max_length=10L, primary_key=True)
     type = models.ForeignKey(SnvType,db_column='type',related_name='snvs')
-    wt_aa = models.ForeignKey(AminoAcid,related_name="+")
-    mutant_aa = models.ForeignKey(AminoAcid,related_name="+")
+    wt_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="wt_aa")
+    mutant_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="mutant_aa")
     uniprot = models.ForeignKey(Uniprot,db_column="uniprot_acc_number",related_name="snvs")
     uniprot_position = models.IntegerField()
     gene_code = models.CharField(max_length=10L, blank=True)
