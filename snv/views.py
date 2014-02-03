@@ -2,13 +2,14 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
+from django.shortcuts import render
 
 # Class Import
-from snv.models import Uniprot, Snv, Disease
+from snv.models import *
 
 #View Import
 #for listing
-from django.views.generic import ListView
+from django.views.generic import ListView, View, DetailView
 #for creating
 from django.core.urlresolvers import reverse #for edit & create
 #from django.views.generic import CreateView
@@ -16,8 +17,7 @@ from django.core.urlresolvers import reverse #for edit & create
 #from django.views.generic import UpdateView
 #for deleting
 #from django.views.generic import DeleteView
-#for detail view
-from django.views.generic import DetailView
+
 
 
 class UniprotList(ListView):
@@ -30,16 +30,22 @@ class UniprotView(DetailView):
 
 class DiseaseView(DetailView):
 	model = Disease
-	template_name = 'Disease_view.html'
+	template_name = 'Disease_view.html'   
+
+	def get_context_data(self, **kwargs):
+		# Call the base implementation first to get a context
+		snv = super(DiseaseView, self).get_context_data(**kwargs)
+		# Add in a QuerySet of all the ralated snv
+		snv['snv_list']= self.object.get_Snv()
+		return snv
+
 
 class SnvView(DetailView):
 	model = Snv
 	template_name = 'Snv_view.html'
 
-class home(ListView):
-	#return render(request, 'home.html')
-	model = Uniprot
-	template_name = 'home.html'
+def home(request):
+	return render(request, 'home.html')
 
 #####################  SEARCH #####################################
 from django.template.response import TemplateResponse

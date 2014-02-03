@@ -1,12 +1,45 @@
 {% extends "base.html" %}
-
-{% block title %} Disease ID: {{disease.mim}}{% endblock %}
+{% block pagetitle %}{{disease.mim}}{% endblock %}
+{% block title %} {{disease.name}}{% endblock %}
 {% block content %}
 <div class = "well">
-   <h3>Disease Name: {{disease.name}}</h3>
-	<p>Further information available soon :) </p> 
+	<h4>Disease ID: {{disease.mim}} [<a href = "http://www.omim.org/entry/{{disease.mim}}" target = "_blank">Link</a>]</h4>
+   <h4>Disease Name: {{disease.name}}</h4>
 </div>
 
+<h3>Related SNVs</h3>
 
-<a href="{% url 'search-results' %}">Back to Results</a>
+	<p>{{ disease.get_absolute_url }}</p>
+
+	{% if snv_list %}
+	<table class="table table-condensed">
+		<tr>
+			<th>ID</th>
+			<th>Type</th>
+			<th>WT Amino Acid</th>
+			<th>Mutant Amino Acid</th>
+		</tr>
+  	{% for item in snv_list %}
+		<tr>
+			<td>{{item.ft_id}}</td>
+			<td>{{item.type}}</td>
+			<td>{{item.wt_aa}}</td>
+			<td>{{item.mutant_aa}}</td>
+		</tr>
+	{% endfor %}
+	</table>
+	{% endif %}
+
+
+<h3>Related Uniprots and Diseases</h3>
+
+	<table class="table table-condensed">
+
+	</table>
+
 {% endblock %}
+
+	<!-- ft_id = models.CharField(max_length=10L, primary_key=True) / type = models.CharField(max_length=20L) /wt_aa = models.CharField(max_length=1L)/ 	mutant_aa = models.CharField(max_length=1L)/ 	uniprot_acc_number = models.CharField(max_length=6L)
+	uniprot_position = models.IntegerField()
+	gene_code = models.CharField(max_length=10L, blank=True)
+	db_snp = models.CharField(max_length=15L, blank=True) -->
