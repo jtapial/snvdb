@@ -32,6 +32,21 @@ class Uniprot(models.Model):
         # Return list of Uniprot objects
         return partners
 
+    def interactions(self):
+        chains = self.chains.all()
+        output = []
+        for chain in chains:
+            i1 = chain.interactions_1.all()
+            i2 = chain.interactions_2.all()
+            for interaction in i1:
+                output.append(interaction)
+            for interaction in i2:
+                output.append(interaction)
+          
+        #Return a list of Interaction objects
+        return output
+
+
 class AminoAcid(models.Model):
     one_letter_code = models.CharField(max_length=1L, primary_key=True)
     three_letter_code = models.CharField(max_length=3L)

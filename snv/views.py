@@ -27,7 +27,7 @@ class UniprotList(ListView):
 class UniprotView(DetailView):
 	model = Uniprot
 	template_name = 'Uniprot_view.html'
-
+	
 class DiseaseView(DetailView):
 	model = Disease
 	template_name = 'Disease_view.html'

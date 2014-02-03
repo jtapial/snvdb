@@ -1,18 +1,35 @@
 {% extends "base.html" %}
 
-{% block title %}uniprot ID: {{uniprot.acc_number}} {% endblock %}
+{% block title %}Uniprot ID: {{uniprot.acc_number}} {% endblock %}
 {% block content %}
 
 <div class = "well">
 	
-	<h3>Chains for the protein {{uniprot.acc_number}}:</h3>
-		<ul>
+	<h3>Chain entries for the protein {{uniprot.acc_number}}:</h3>
+		{% if uniprot.chains.all %}
+			<table>
+				<tr>
+					<td><strong>PDB id</strong></td>
+					<td><strong>PDB chain</strong></td>
+					<td><strong>Sequence identity (%)</strong></td>
+					<td><strong>Coverage (%)</strong></td>
+					<td><strong>Sequence start</strong></td>
+					<td><strong>Sequence end</strong></td>
+				</tr>
 			{% for item in uniprot.chains.all %}
-				<li>{{item.id}}</li>
-			{% empty %}
-				<p>The protein has no associated chains</p>
+				<tr>
+					<td>{{item.pdb_id}}</td>
+					<td>{{item.pdb_chain}}</td>
+					<td>{{item.seq_identity}}</td>
+					<td>{{item.coverage}}</td>
+					<td>{{item.seq_start}}</td>
+					<td>{{item.seq_end}}</td>
+				</tr>
 			{% endfor %}
-		</ul>
+			</table>
+		{% else %}
+			<p>The protein has no registered chain entries</p>
+		{% endif %}
 
 </div>
 
@@ -20,8 +37,10 @@
 <div class = "well">
 	<h3>Interacting partners of the protein {{uniprot.acc_number}}:</h3>
 		<ul>
-			{% for item in uniprot.get_partners %}
-				<li>{{item.acc_number}}</li>
+			{% for item in uniprot.interacting_partners %}
+				<li> <a href="{% url 'uniprot-view' pk=item.acc_number %}">{{ item.acc_number  }} </a> </li>
+			{% empty %}
+				<p>The protein has no interacting partners</p>
 			{% endfor %}
 
 		</ul>
@@ -30,18 +49,32 @@
 
 <div class = "well">
 	<h3>Interaction entries for the protein {{uniprot.acc_number}}:</h3>
-	<ul>
-			{% for item in uniprot.get_interactions %}
-				<li>{{item.id}}</li>
-			{% endfor %}
-		</ul>
+		{% if uniprot.interactions%}		
+			<table>
+				<tr>
+					<td><strong>ID</strong></td>
+					<td><strong>Partner 1</strong></td>
+					<td><strong>Partner 2</strong></td>
+					<td><strong>Type</strong></td>
+				</tr>
+				{% for item in uniprot.interactions %}
+					<tr>
+						<td>{{item.id}}</td>
+						<td>{{item.chain_1.uniprot.acc_number}}</td>
+						<td>{{item.chain_2.uniprot.acc_number}}</td>
+						<td>{{item.type.type}}</td>
+					</tr>
+				{% endfor %}
+			</table>
+		{% else %}
+			<p>The protein has no associated interaction entries</p>
+		{% endif %}
 </div>
 
 <div class = "well">
     <h3>Sequence :</h3>
     <p>{{ uniprot.sequence }}</p>
 </div>
-
 
 <a href="#">Back to Results</a>
 {% endblock %}
