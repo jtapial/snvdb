@@ -60,8 +60,8 @@
 				{% for item in uniprot.interactions %}
 					<tr>
 						<td>{{item.id}}</td>
-						<td>{{item.chain_1.uniprot.acc_number}}</td>
-						<td>{{item.chain_2.uniprot.acc_number}}</td>
+						<td><a href="{% url 'uniprot-view' pk=item.chain_1.uniprot.acc_number %}">{{item.chain_1.uniprot.acc_number}}</a></td>
+						<td><a href="{% url 'uniprot-view' pk=item.chain_2.uniprot.acc_number %}">{{item.chain_2.uniprot.acc_number}}</a></td>
 						<td>{{item.type.type}}</td>
 					</tr>
 				{% endfor %}
