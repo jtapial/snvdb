@@ -44,7 +44,7 @@ class Uniprot(models.Model):
                 output.append(interaction)
           
         #Return a list of Interaction objects
-        return output
+        return set(output)
 
 
 class AminoAcid(models.Model):
