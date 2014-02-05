@@ -30,7 +30,7 @@ class Uniprot(models.Model):
             for partner in p:
                 partners.append(partner.uniprot)
         # Return list of Uniprot objects
-        return partners
+        return set(partners)
 
     def interactions(self):
         chains = self.chains.all()
@@ -44,7 +44,7 @@ class Uniprot(models.Model):
                 output.append(interaction)
           
         #Return a list of Interaction objects
-        return output
+        return set(output)
 
 
 class AminoAcid(models.Model):
