@@ -7,7 +7,7 @@
 	
 	<h3>Chain entries for the protein {{uniprot.acc_number}}:</h3>
 		{% if uniprot.chains.all %}
-			<table>
+			<table class="table table-condensed table-hover">
 				<tr>
 					<td><strong>PDB id</strong></td>
 					<td><strong>PDB chain</strong></td>
@@ -49,8 +49,8 @@
 
 <div class = "well">
 	<h3>Interaction entries for the protein {{uniprot.acc_number}}:</h3>
-		{% if uniprot.interactions%}		
-			<table>
+		{% if uniprot.interactions %}		
+			<table class="table table-condensed table-hover">
 				<tr>
 					<td><strong>ID</strong></td>
 					<td><strong>Partner 1</strong></td>
@@ -69,6 +69,40 @@
 		{% else %}
 			<p>The protein has no associated interaction entries</p>
 		{% endif %}
+</div>
+
+<div class = "well">
+	<h3>SNVs for the protein {{uniprot.acc_number}}:</h3>
+		{% if uniprot.snvs.all %}
+		<table class="table table-condensed table-hover">
+			<tr>
+				<td><strong>FT id</strong></td>
+				<td><strong>Type</strong></td>
+				<td><strong>Position</strong></td>
+				<td><strong>WT aa</strong></td>
+				<td><strong>Mutant aa</strong></td>
+				<td><strong>dbSNP id</strong></td>
+				
+			{% for item in uniprot.snvs.all %}
+			<tr>
+				<td>{{item.ft_id}}</td>
+				<td>{{item.type.type}}</td>
+				<td>{{item.uniprot_position}}</td>
+				<td>{{item.wt_aa.one_letter_code}}</td>
+				<td>{{item.mutant_aa.one_letter_code}}</td>
+				{% if item.db_snp %}
+					<td>Link to dbSNP {{item.db_snp}}</a></td>
+				{% else %}
+					<td>None</td>
+				{% endif %}
+			</tr>
+			{% endfor %}
+		</table>
+		
+		{% else %}
+			<p>The protein has no associated SNV entries</p>
+		{% endif %}
+
 </div>
 
 <div class = "well">
