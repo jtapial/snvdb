@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block javascript %}
+<script type="text/javascript" src="{{BASE_URL}}{% static 'jsmol/jsmol/JSmol.min.js'%}"></script> 
+{% endblock %}
+
+{% block title %}Interaction ID: {{interaction.id}} {% endblock %}
+{% block content %}
+
+<div class = "well">
+	
+	<h3>Interation Details:</h3>
+		<table>
+			<tr>
+				<td><strong>Type</strong></td>
+				<td><strong>Chain 1</strong></td>
+				<td><strong>Chain 2</strong></td>
+				<td><strong>Filename</strong></td>
+			</tr>
+			<tr>
+				<td>{{interaction.inter_type.inter_type}}</td>
+				<td>{{interaction.chain_1.id}}</td>
+				<td>{{interaction.chain_2.id}}</td>
+				<td>{{interaction.filename}}</td>
+			</tr>
+		</table>
+</div>
+
+<div>
+	<script type="text/javascript">
+		var Info = {
+  color: "#FFFFFF",  // white background (note this changes legacy default which was black)
+  height: 500,      // pixels (but it may be in percent)
+  width: 500,
+  use: "HTML5",         // "HTML5" or "Java" (case-insensitive)
+  j2sPath: "{{ BASE_URL }}/static/jsmol/jsmol/j2s",           // only used in the HTML5 modality
+  defaultModel: "",
+  script: null,
+  src: null,
+  readyFunction: null,
+  addSelectionOptions: false,
+  debug: false
+};	
+
+	Jmol.getApplet("myJmol", Info);
+	Jmol.script(myJmol,'load {{BASE_URL}}{% static interaction.filename %}; select all; spacefill off; select protein; wireframe 50; select all; color chain;');
+
+	</script>
+</div>
+
+{% endblock %}

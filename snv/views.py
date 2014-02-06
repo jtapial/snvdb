@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.core.urlresolvers import reverse
 
 # Class Import
-from snv.models import Uniprot, Snv, Disease
+from snv.models import Uniprot, Snv, Disease, Interaction
 
 #View Import
 #for listing
@@ -35,6 +35,10 @@ class DiseaseView(DetailView):
 class SnvView(DetailView):
 	model = Snv
 	template_name = 'Snv_view.html'
+
+class InteractionView(DetailView):
+	model = Interaction
+	template_name = 'Interaction_view.html'
 
 class home(ListView):
 	#return render(request, 'home.html')

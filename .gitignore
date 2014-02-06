@@ -2,3 +2,4 @@
 /snvproj/settings.pyc*
 *.pyc
 *~
+/snv/static/*/*
