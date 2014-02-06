@@ -69,7 +69,7 @@ word-wrap:break-word;
 				</tr>
 				{% for item in uniprot.interactions %}
 					<tr>
-						<td>{{item.id}}</td>
+						<td><a href="{% url 'interaction-view' pk=item.id %}">{{item.id}}</a></td>
 						<td><a href="{% url 'uniprot-view' pk=item.chain_1.uniprot.acc_number %}">{{item.chain_1.uniprot.acc_number}}</a></td>
 						<td><a href="{% url 'uniprot-view' pk=item.chain_2.uniprot.acc_number %}">{{item.chain_2.uniprot.acc_number}}</a></td>
 						<td>{{item.type.type}}</td>
