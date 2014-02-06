@@ -8,8 +8,8 @@ import snv.views
 
 urlpatterns = patterns('',
     # Examples:
-
-        url(r'^$', snv.views.home.as_view(), name='home',),
+		 url(r'^$', snv.views.home, name='home',),
+        #url(r'^$', snv.views.home.as_view(), name='home',),
         url(r'^listuniprot$', snv.views.UniprotList.as_view(), name='uniprot-list',),
         url(r'^uniprot/(?P<pk>(\D+|\d+)+)/$', snv.views.UniprotView.as_view(), name='uniprot-view',),
         url(r'^disease/(?P<pk>\d+)/$', snv.views.DiseaseView.as_view(), name='disease-view',),
@@ -18,6 +18,8 @@ urlpatterns = patterns('',
         url(r'^logout/$', 'django.contrib.auth.views.logout'),
         url(r'^search-form/$', snv.views.search_form),
         url(r'^search/$', snv.views.search, name='search-results',),
+        #url(r'^media/(?P<path>.*)$', 'django.views.static.serve',{'document_root': settings.MEDIA_ROOT}),
+
     # url(r'^snvproj/', include('snvproj.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:

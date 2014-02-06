@@ -143,6 +143,7 @@ class SnvType(models.Model):
     class Meta:
         db_table = 'snv_type'
 
+
 class Snv(models.Model):
     ft_id = models.CharField(max_length=10L, primary_key=True)
     type = models.ForeignKey(SnvType,db_column='type',related_name='snvs')
@@ -152,8 +153,8 @@ class Snv(models.Model):
     uniprot_position = models.IntegerField()
     gene_code = models.CharField(max_length=10L, blank=True)
     db_snp = models.CharField(max_length=15L, blank=True)
-    uniprot_residue = models.ManyToManyField(UniprotResidue,through='SnvUniprotResidue',related_name="snvs")
-    
+    uniprot_residue = models.ManyToManyField(UniprotResidue,through='SnvUniprotResidue',related_name="snvs") #similar to wt_aa, but it will be available only when their uniprots exist in database 
+
     class Meta:
         db_table = 'snv'
     def get_absolute_url(self):
@@ -166,13 +167,36 @@ class Snv(models.Model):
         return gene_id
 
 class Disease(models.Model):
-    mim = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=255L, blank=True)
-    snvs = models.ManyToManyField(Snv,through='SnvDisease',related_name="diseases")
-    class Meta:
-        db_table = 'disease'
-    def get_absolute_url(self):
-        return reverse('disease-view', kwargs={'pk': self.mim})
+	mim = models.IntegerField(primary_key=True)
+	name = models.CharField(max_length=255L, blank=True)
+	snvs = models.ManyToManyField(Snv,through='SnvDisease',related_name="diseases")
+
+	class Meta:
+		db_table = 'disease'
+
+	def get_Snv(self):		#Return a list of related snvs and diseases
+
+		snvlist=self.snvs.all()
+		relatedsnv = []
+		disease_sum = []
+		for item in snvlist:				
+			#find all diseases from all snvs that share the same uniprot_acc_number		
+			related_snvs = Snv.objects.filter(uniprot=item.uniprot)
+			related_disease = []			
+			for	snv_item in related_snvs:
+				for disease_item in snv_item.diseases.all():
+					related_disease.append(disease_item)
+					disease_sum.append(disease_item)
+			related_disease_set = list(set(related_disease)-set(item.diseases.all()))
+			relatedsnv.append({'obj':item, 'disease_set':related_disease_set} )
+		
+		final_disease_sum = list(set(disease_sum)-set(item.diseases.all()))
+		return [relatedsnv,final_disease_sum]
+
+
+	def get_absolute_url(self):
+		return reverse('disease-view', kwargs={'pk': self.mim})
+
 
 class SnvDisease(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -184,10 +208,11 @@ class SnvDisease(models.Model):
 class SnvUniprotResidue(models.Model):
     id = models.IntegerField(primary_key=True)
     snv = models.ForeignKey(Snv,db_column='ft_id')
-    uniprot_residue = models.ForeignKey(UniprotResidue,db_column='uniprot_residue_id')
+    uniprot_residue = models.ForeignKey(UniprotResidue, db_column='uniprot_residue_id') #db_column='uniprot_residue_id'
     class Meta:
         db_table = 'snv_uniprot_residue'
 # AUTO
+
 
 
 

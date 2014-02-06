@@ -1,15 +1,22 @@
 {% extends 'base.html' %}
+{% block css%}
+.jumbotron {
+background: -webkit-linear-gradient(#2E82D1, #7CC1EC); /* For Safari */
+background: -o-linear-gradient(#2E82D1, #7CC1EC); /* For Opera 11.1 to 12.0 */
+background: -moz-linear-gradient(#2E82D1, #7CC1EC); /* For Firefox 3.6 to 15 */
+background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last) */	
+}
+{% endblock %}
 {% block header %}
 <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
       <div class="container">
-        <h1>Search Results</h1>
-        <p>SNV is Single Nucleotide Variation (not to be confused with SNP, Single Nucleotide Polymorphism)<br>
-        This is a template for a simple  informational website. It includes a large callout called a jumbotron and three supporting pieces of content. </p>
+        <h1 style ="color:#fff">Search Results</h1>
+        <h3 style = "color:#E3FBFF">Here is what we've found in our database </h3>
       </div>
     </div>
 
-{% endblock %}    
+{% endblock %}   
 <!-- Contents -->
 {% block title %} <p>You searched for: <strong>{{ query }}</strong></p> {% endblock %}
 
