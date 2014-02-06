@@ -41,7 +41,7 @@
 			<td><a href = {{item.obj.get_absolute_url}} target ='_blank'>{{item.obj.ft_id}}</td>
 			<td>{{item.obj.wt_aa.three_letter_code}}</td>
 			<td>{{item.obj.mutant_aa.three_letter_code}}</td>
-			{% if item.obj.uniprot_residue.all %}<td><a href = '{% url "uniprot-view" pk=item.obj.uniprot_acc_number %}'>{{item.obj.uniprot_acc_number}}</td>{% else %}<td class="text-danger">{{item.obj.uniprot_acc_number}}{% endif %}</td>
+			{% if item.obj.uniprot_residue.all %}<td><a href = '{% url "uniprot-view" pk=item.obj.uniprot %}'>{{item.obj.uniprot}}</td>{% else %}<td class="text-danger">{{item.obj.uniprot}}{% endif %}</td>
 			<td>{{item.obj.uniprot_position}}</td>	
 			<td><ul class="list-unstyled">{% for disease in item.disease_set %}<li><a href = {{disease.get_absolute_url}} target='_blank'>{{disease.mim}} | {{disease.name}}</a></li>{% endfor %}</ul></td>
 		</tr>
@@ -52,8 +52,3 @@
 
 
 {% endblock %}
-
-	<!-- ft_id = models.CharField(max_length=10L, primary_key=True) / type = models.CharField(max_length=20L) /wt_aa = models.CharField(max_length=1L)/ 	mutant_aa = models.CharField(max_length=1L)/ 	uniprot_acc_number = models.CharField(max_length=6L)
-	uniprot_position = models.IntegerField()
-	gene_code = models.CharField(max_length=10L, blank=True)
-	db_snp = models.CharField(max_length=15L, blank=True) -->
