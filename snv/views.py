@@ -7,6 +7,7 @@ from django.shortcuts import render
 # Class Import
 from snv.models import *
 
+
 #View Import
 #for listing
 from django.views.generic import ListView, View, DetailView
@@ -47,8 +48,14 @@ class SnvView(DetailView):
 	model = Snv
 	template_name = 'Snv_view.html'
 
+
+class InteractionView(DetailView):
+	model = Interaction
+	template_name = 'Interaction_view.html'
+
 def home(request):
 	return render(request, 'home.html')
+
 
 #####################  SEARCH #####################################
 from django.template.response import TemplateResponse

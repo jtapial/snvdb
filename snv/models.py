@@ -92,7 +92,7 @@ class Chain(models.Model):
 
 
 class InteractionType(models.Model):
-    type = models.CharField(max_length=20L, primary_key=True)
+    inter_type = models.CharField(db_column="type",max_length=20L, primary_key=True)
     class Meta:
         db_table = 'interaction_type'
 
@@ -100,7 +100,7 @@ class Interaction(models.Model):
     id = models.IntegerField(primary_key=True)
     chain_1 = models.ForeignKey(Chain,db_column='chain_1_id',related_name='interactions_1')
     chain_2 = models.ForeignKey(Chain,db_column='chain_2_id',related_name='interactions_2')
-    type = models.ForeignKey(InteractionType,db_column='type',related_name='+')
+    inter_type = models.ForeignKey(InteractionType,db_column='type',related_name='+')
     filename = models.CharField(max_length=100L)
     class Meta:
         db_table = 'interaction'

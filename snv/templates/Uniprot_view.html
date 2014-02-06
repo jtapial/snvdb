@@ -1,5 +1,11 @@
 {% extends "base.html" %}
-
+{% block css%}
+p.wrap
+{
+word-wrap:break-word;
+}
+</style>
+{% endblock%}
 {% block title %}Uniprot ID: {{uniprot.acc_number}} {% endblock %}
 {% block content %}
 
@@ -130,7 +136,7 @@
 
 <div class = "well">
     <h3>Sequence :</h3>
-    <p>{{ uniprot.sequence }}</p>
+    <p class="wrap">{{ uniprot.sequence }}</p>
 </div>
 
 <a href="#">Back to Results</a>
