@@ -18,6 +18,8 @@ urlpatterns = patterns('',
         url(r'^logout/$', 'django.contrib.auth.views.logout'),
         url(r'^search-form/$', snv.views.search_form),
         url(r'^search/$', snv.views.search, name='search-results',),
+        #url(r'^media/(?P<path>.*)$', 'django.views.static.serve',{'document_root': settings.MEDIA_ROOT}),
+
     # url(r'^snvproj/', include('snvproj.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:

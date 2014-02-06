@@ -74,7 +74,8 @@ class Disease(models.Model):#Modified by Sirawit, MantToManyField (a kind of for
 		snv_disease = SnvDisease.objects.filter(mim=self.mim)
 		relatedsnv = []
 		for item in snv_disease:
-			relatedsnv.append(Snv.objects.get(ft_id=item.ft_id))	
+			A = Snv.objects.get(ft_id=item.ft_id)
+			relatedsnv.append(A)	
 		return relatedsnv
 
 '''

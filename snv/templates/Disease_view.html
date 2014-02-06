@@ -6,36 +6,50 @@
 	<h4>Disease ID: {{disease.mim}} [<a href = "http://www.omim.org/entry/{{disease.mim}}" target = "_blank">Link</a>]</h4>
    <h4>Disease Name: {{disease.name}}</h4>
 </div>
+<h3>Related Diseases Summary</h3>
 
-<h3>Related SNVs</h3>
+<div class = "well">
+	{% if diseases %}	
+	<p>Found {{ diseases|length }} disease{{ diseases|pluralize }} that share the same Uniprots taken from related SNVs</p>
+	{% for item in diseases %}
+		<p><a href = {{item.get_absolute_url}} target='_blank'>{{item.mim}} | {{item.name}}</a></p>
+	{% endfor %}
+	{% else %}	
+	<p>No related disease found.</p>
 
-	<p>{{ disease.get_absolute_url }}</p>
+	{% endif %}
+</div>
+
+<h3>Related SNVs, Uniprots, and Diseases</h3>
+
+	<p>Found {{ snv_list|length }} related SNV{{ snv_list|pluralize }}</p>
+	<p>Uniprot Acc Numbers marked with <span class="text-danger">red colour</span> are not available to view in detail</p>
 
 	{% if snv_list %}
-	<table class="table table-condensed">
+	
+	<table class="table table-condensed table-hover">
 		<tr>
 			<th>ID</th>
-			<th>Type</th>
-			<th>WT Amino Acid</th>
-			<th>Mutant Amino Acid</th>
+			<th>WT AA</th>
+			<th>Mutant AA</th>
+			<th>Uniprot Acc Number</th>
+			<th>Uniprot Position</th>
+			<th>Related Diseases</th>
 		</tr>
   	{% for item in snv_list %}
 		<tr>
-			<td>{{item.ft_id}}</td>
-			<td>{{item.type}}</td>
-			<td>{{item.wt_aa}}</td>
-			<td>{{item.mutant_aa}}</td>
+			<td><a href = {{item.obj.get_absolute_url}} target ='_blank'>{{item.obj.ft_id}}</td>
+			<td>{{item.obj.wt_aa.three_letter_code}}</td>
+			<td>{{item.obj.mutant_aa.three_letter_code}}</td>
+			{% if item.obj.uniprot_residue.all %}<td><a href = '{% url "uniprot-view" pk=item.obj.uniprot_acc_number %}'>{{item.obj.uniprot_acc_number}}</td>{% else %}<td class="text-danger">{{item.obj.uniprot_acc_number}}{% endif %}</td>
+			<td>{{item.obj.uniprot_position}}</td>	
+			<td><ul class="list-unstyled">{% for disease in item.disease_set %}<li><a href = {{disease.get_absolute_url}} target='_blank'>{{disease.mim}} | {{disease.name}}</a></li>{% endfor %}</ul></td>
 		</tr>
 	{% endfor %}
 	</table>
 	{% endif %}
 
 
-<h3>Related Uniprots and Diseases</h3>
-
-	<table class="table table-condensed">
-
-	</table>
 
 {% endblock %}
 

@@ -36,7 +36,10 @@ class DiseaseView(DetailView):
 		# Call the base implementation first to get a context
 		snv = super(DiseaseView, self).get_context_data(**kwargs)
 		# Add in a QuerySet of all the ralated snv
-		snv['snv_list']= self.object.get_Snv()
+		obtained_data = self.object.get_Snv()		
+		snv['snv_list']= obtained_data[0]
+		snv['diseases']= obtained_data[1]
+
 		return snv
 
 
