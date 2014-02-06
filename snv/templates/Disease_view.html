@@ -1,12 +1,54 @@
 {% extends "base.html" %}
-
-{% block title %} Disease ID: {{disease.mim}}{% endblock %}
+{% block pagetitle %}{{disease.mim}}{% endblock %}
+{% block title %} {{disease.name}}{% endblock %}
 {% block content %}
 <div class = "well">
-   <h3>Disease Name: {{disease.name}}</h3>
-	<p>Further information available soon :) </p> 
+	<h4>Disease ID: {{disease.mim}} [<a href = "http://www.omim.org/entry/{{disease.mim}}" target = "_blank">Link</a>]</h4>
+   <h4>Disease Name: {{disease.name}}</h4>
+</div>
+<h3>Related Diseases Summary</h3>
+
+<div class = "well">
+	{% if diseases %}	
+	<p>Found {{ diseases|length }} disease{{ diseases|pluralize }} that share the same Uniprots taken from related SNVs</p>
+	{% for item in diseases %}
+		<p><a href = {{item.get_absolute_url}} target='_blank'>{{item.mim}} | {{item.name}}</a></p>
+	{% endfor %}
+	{% else %}	
+	<p>No related disease found.</p>
+
+	{% endif %}
 </div>
 
+<h3>Related SNVs, Uniprots, and Diseases</h3>
 
-<a href="{% url 'search-results' %}">Back to Results</a>
+	<p>Found {{ snv_list|length }} related SNV{{ snv_list|pluralize }}</p>
+	<p>Uniprot Acc Numbers marked with <span class="text-danger">red colour</span> are not available to view in detail</p>
+
+	{% if snv_list %}
+	
+	<table class="table table-condensed table-hover">
+		<tr>
+			<th>ID</th>
+			<th>WT AA</th>
+			<th>Mutant AA</th>
+			<th>Uniprot Acc Number</th>
+			<th>Uniprot Position</th>
+			<th>Related Diseases</th>
+		</tr>
+  	{% for item in snv_list %}
+		<tr>
+			<td><a href = {{item.obj.get_absolute_url}} target ='_blank'>{{item.obj.ft_id}}</td>
+			<td>{{item.obj.wt_aa.three_letter_code}}</td>
+			<td>{{item.obj.mutant_aa.three_letter_code}}</td>
+			{% if item.obj.uniprot_residue.all %}<td><a href = '{% url "uniprot-view" pk=item.obj.uniprot %}'>{{item.obj.uniprot}}</td>{% else %}<td class="text-danger">{{item.obj.uniprot}}{% endif %}</td>
+			<td>{{item.obj.uniprot_position}}</td>	
+			<td><ul class="list-unstyled">{% for disease in item.disease_set %}<li><a href = {{disease.get_absolute_url}} target='_blank'>{{disease.mim}} | {{disease.name}}</a></li>{% endfor %}</ul></td>
+		</tr>
+	{% endfor %}
+	</table>
+	{% endif %}
+
+
+
 {% endblock %}
