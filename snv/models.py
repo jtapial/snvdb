@@ -12,6 +12,7 @@ from django.db import models
 
 from django.core.urlresolvers import reverse
 
+from Bio import Entrez
 
 class Uniprot(models.Model):
     acc_number = models.CharField(max_length=6L, primary_key=True)
@@ -58,7 +59,7 @@ class UniprotResidue(models.Model):
     id = models.IntegerField(primary_key=True)
     uniprot = models.ForeignKey(Uniprot,db_column='uniprot_acc_number',related_name="residues")
     position = models.IntegerField(db_column='uniprot_position')
-    amino_acid = models.ForeignKey(AminoAcid,related_name="+")
+    amino_acid = models.ForeignKey(AminoAcid,db_column='amino_acid',related_name="+")
     class Meta:
         db_table = 'uniprot_residue'
 
@@ -147,16 +148,22 @@ class Snv(models.Model):
     type = models.ForeignKey(SnvType,db_column='type',related_name='snvs')
     wt_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="wt_aa")
     mutant_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="mutant_aa")
-    uniprot = models.ForeignKey(Uniprot,db_column="uniprot_acc_number",related_name="snvs")
+    uniprot = models.CharField(max_length=6L,db_column="uniprot_acc_number")
     uniprot_position = models.IntegerField()
     gene_code = models.CharField(max_length=10L, blank=True)
     db_snp = models.CharField(max_length=15L, blank=True)
-
     uniprot_residue = models.ManyToManyField(UniprotResidue,through='SnvUniprotResidue',related_name="snvs")
+    
     class Meta:
         db_table = 'snv'
     def get_absolute_url(self):
         return reverse('snv-view', kwargs={'pk': self.ft_id})
+
+    def get_genbank_id(self):
+        handle = Entrez.esearch(db="gene", term="%s[Gene Name] AND homo sapiens[Organism]" % self.gene_code)
+        record = Entrez.read(handle)
+        gene_id = record["IdList"][0]
+        return gene_id
 
 class Disease(models.Model):
     mim = models.IntegerField(primary_key=True)

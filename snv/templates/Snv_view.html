@@ -1,9 +1,67 @@
 {% extends "base.html" %}
 
-{% block title %}{{ snv.ft_id }} {% endblock %}
+{% block title %}SNV FT ID: {{ snv.ft_id }}{% endblock %}
+
 {% block content %}
 <div class = "well">
-    <p> More info Soon :)</p>
+    <ul>
+    	{% if snv.uniprot_residue.uniprot %}
+    		<li><strong>Related protein: </strong><a href="{% url 'uniprot-view' pk=snv.uniprot %}">{{snv.uniprot}}</a></li>
+    	{% else %}
+    		<li><strong>Related protein: </strong><a class="text-danger">{{snv.uniprot}}</a> <i>(Proteins with names in red cannot be displayed)</i></li>
+    	{% endif %}
+
+    	<li><strong>Related gene: </strong>{{snv.gene_code}} <a href="https://www.ncbi.nlm.nih.gov/gene/{{snv.get_genbank_id}}">(link)</a></li>
+    	<li><strong>Type: </strong>{{snv.type.type}}</li>
+
+    	{% if snv.db_snp %}
+    		<li><strong>dbSNP ID: </strong>{{snv.db_snp}} <a href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{snv.db_snp}}">(link)</a></li>
+    	{% else %}
+    		<li><a class="text-danger">This SNV has no associated dbSNP id</a></li>
+    	{% endif %}
+    </ul>
+
+</div>
+
+<div>
+	<table class="table table-condensed table-hover">
+		<tr>
+			<td><strong>Position</strong></td>
+			<td><strong>WT aa</strong></td>
+			<td><strong>Mutant aa</strong></td>
+		</tr>
+
+		<tr>
+			<td>{{snv.uniprot_position}}</td>
+			<td>{{snv.wt_aa.one_letter_code}}</td>
+			<td>{{snv.mutant_aa.one_letter_code}}</td>
+		</tr>
+	</table>
+</div>
+
+{% if snv.type.type == "Disease" %}
+
+<div>
+	<h3>Disorders associated to this SNV:</h3>
+
+	<table class="table table-condensed table-hover">
+		<tr>
+			<td><strong>Disorder name</strong></td>
+			<td><strong>OMIM code</strong></td>
+		</tr>
+	
+		{% for item in snv.diseases.all %}
+
+		<tr>
+			<td><a href="{% url 'disease-view' pk=item.mim %}">{{item.name}}</a></td>
+			<td>{{item.mim}} <a href="http://omim.org/entry/{{item.mim}}">(link)</a></td>
+		</tr>
+	</table>
+
+		{% endfor %}
+
+{% endif %}
+
 </div>
 
 

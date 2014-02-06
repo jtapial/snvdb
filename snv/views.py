@@ -2,6 +2,7 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
+from Bio import Entrez
 
 # Class Import
 from snv.models import Uniprot, Snv, Disease

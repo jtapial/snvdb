@@ -5,12 +5,13 @@
 
 <div class = "well">
 	
-	<h3>Chain entries for the protein {{uniprot.acc_number}}:</h3>
+	<h3>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}:</h3>
 		{% if uniprot.chains.all %}
 			<table class="table table-condensed table-hover">
 				<tr>
 					<td><strong>PDB id</strong></td>
 					<td><strong>PDB chain</strong></td>
+					<td><strong>PDB model</strong></td>
 					<td><strong>Sequence identity (%)</strong></td>
 					<td><strong>Coverage (%)</strong></td>
 					<td><strong>Sequence start</strong></td>
@@ -20,6 +21,7 @@
 				<tr>
 					<td>{{item.pdb_id}}</td>
 					<td>{{item.pdb_chain}}</td>
+					<td>{{item.pdb_model}}</td>
 					<td>{{item.seq_identity}}</td>
 					<td>{{item.coverage}}</td>
 					<td>{{item.seq_start}}</td>
@@ -35,7 +37,7 @@
 
 
 <div class = "well">
-	<h3>Interacting partners of the protein {{uniprot.acc_number}}:</h3>
+	<h3>Found {{uniprot.interacting_partners | length}} interacting partners of the protein {{uniprot.acc_number}}:</h3>
 		<ul>
 			{% for item in uniprot.interacting_partners %}
 				<li> <a href="{% url 'uniprot-view' pk=item.acc_number %}">{{ item.acc_number  }} </a> </li>
@@ -48,7 +50,7 @@
 </div>
 
 <div class = "well">
-	<h3>Interaction entries for the protein {{uniprot.acc_number}}:</h3>
+	<h3>Found {{uniprot.interactions | length}} interaction entries for the protein {{uniprot.acc_number}}:</h3>
 		{% if uniprot.interactions %}		
 
 			<table class="table table-condensed table-hover">
@@ -74,7 +76,7 @@
 </div>
 
 <div class = "well">
-	<h3>SNVs for the protein {{uniprot.acc_number}}:</h3>
+	<h3>Found {{uniprot.snvs.all | length}} SNVs for the protein {{uniprot.acc_number}}:</h3>
 		{% if uniprot.snvs.all %}
 		<table class="table table-condensed table-hover">
 			<tr>
@@ -84,18 +86,37 @@
 				<td><strong>WT aa</strong></td>
 				<td><strong>Mutant aa</strong></td>
 				<td><strong>dbSNP id</strong></td>
+				<td><strong>Associated disorder</strong></td>
+				<td><strong>OMIM code</strong></td>
+				
 				
 			{% for item in uniprot.snvs.all %}
 			<tr>
-				<td>{{item.ft_id}}</td>
+				<td><a href="{% url 'snv-view' pk=item.ft_id %}">{{item.ft_id}}</td>
 				<td>{{item.type.type}}</td>
 				<td>{{item.uniprot_position}}</td>
 				<td>{{item.wt_aa.one_letter_code}}</td>
 				<td>{{item.mutant_aa.one_letter_code}}</td>
 				{% if item.db_snp %}
-					<td>Link to dbSNP {{item.db_snp}}</a></td>
+					<td>{{item.db_snp}}<a href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{item.db_snp}}"> (link)</a></td>
 				{% else %}
-					<td>None</td>
+					<td></td>
+				{% endif %}
+				{% if item.diseases.all %}
+					<td><table>
+						{% for element in item.diseases.all %}
+						<tr><td><a href="{% url 'disease-view' pk=element.mim %}">{{element.name}}</a></td></tr>
+						{% endfor %}
+					</table></td>
+					<td><table>
+						{% for element in item.diseases.all %}
+						<tr><td>{{element.mim}}<a href="http://omim.org/entry/{{element.mim}}"> (link)</a></td></tr>
+						{% endfor %}
+					</table></td>
+					
+				{% else %}
+					<td></td>
+					<td></td>
 				{% endif %}
 			</tr>
 			{% endfor %}
