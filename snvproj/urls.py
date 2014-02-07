@@ -8,7 +8,10 @@ import snv.views
 
 urlpatterns = patterns('',
     # Examples:
-		 url(r'^$', snv.views.home, name='home',),
+		url(r'^$', snv.views.home, name='home',),
+        url(r'^info/$', snv.views.info, name='info',),
+        url(r'^about/$', snv.views.about, name='about',),
+        url(r'^getting-started/$', snv.views.gettingstarted, name='getting-started',),
         #url(r'^$', snv.views.home.as_view(), name='home',),
         url(r'^listuniprot$', snv.views.UniprotList.as_view(), name='uniprot-list',),
         url(r'^uniprot/(?P<pk>(\D+|\d+)+)/$', snv.views.UniprotView.as_view(), name='uniprot-view',),

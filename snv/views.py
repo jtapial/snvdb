@@ -7,7 +7,6 @@ from django.shortcuts import render
 # Class Import
 from snv.models import *
 
-
 #View Import
 #for listing
 from django.views.generic import ListView, View, DetailView
@@ -40,7 +39,7 @@ class DiseaseView(DetailView):
 		obtained_data = self.object.get_Snv()		
 		snv['snv_list']= obtained_data[0]
 		snv['diseases']= obtained_data[1]
-
+		snv['uniprots']= obtained_data[2]
 		return snv
 
 
@@ -53,9 +52,19 @@ class InteractionView(DetailView):
 	model = Interaction
 	template_name = 'Interaction_view.html'
 
+###################### BASIC VIEW ##################################
+
 def home(request):
 	return render(request, 'home.html')
 
+def info(request):
+	return render(request, 'info.html')
+
+def about(request):
+	return render(request, 'about.html')
+
+def gettingstarted(request):
+	return render(request, 'getting-started.html')
 
 #####################  SEARCH #####################################
 from django.template.response import TemplateResponse
