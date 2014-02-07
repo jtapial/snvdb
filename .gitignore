@@ -2,4 +2,6 @@
 /snvproj/settings.pyc*
 *.pyc
 *~
-/snv/static/*/*
+/snv/static/jsmol/**
+/snv/static/pdb/**
+!**/.gitkeep
