@@ -43,8 +43,55 @@
 };	
 
 	Jmol.getApplet("myJmol", Info);
-	Jmol.script(myJmol,'load {{BASE_URL}}{% static interaction.filename %}; select all; spacefill off; select protein; wireframe 50; select all; color chain;');
-
+	reset_structure();
+	function interface_residues(color1,color2){
+	// Mapping interface residues onto structure
+	{% for interface_res in interaction.interface_residues.all %}
+		{% if interface_res.chain_residue.chain == interaction.chain_1 %}
+			Jmol.script(myJmol, 'select {{interface_res.chain_residue.position}}:A; color ' + color1 +';');
+		{% elif interface_res.chain_residue.chain == interaction.chain_2 %}
+			Jmol.script(myJmol, 'select {{interface_res.chain_residue.position}}:B; color ' + color2 +';');
+		{% else %}
+		alert("Chain mapping failed");
+		{% endif %}
+	{% endfor %}
+	}
+	function map_snvs(color1,color2){
+	// Mapping snvs on chain_1 onto structure
+	{% for cresidue in interaction.chain_1.residues.all %}
+		{% for ur in cresidue.uniprot_residue.all %}
+			{% for snv in ur.snvs.all %}
+				Jmol.script(myJmol,'select {{cresidue.position}}:A; color ' + color1 +';')
+			{% endfor %}
+		{% endfor %}
+	{% endfor %}
+	// Mapping snvs on chain_2 onto structure
+	{% for cresidue in interaction.chain_2.residues.all %}
+		{% for ur in cresidue.uniprot_residue.all %}
+			{% for snv in ur.snvs.all %}
+				Jmol.script(myJmol,'select {{cresidue.position}}:B; color ' + color2 +';')
+			{% endfor %}
+		{% endfor %}
+	{% endfor %}
+	}
+	function reset_structure(){
+		Jmol.script(myJmol,'zap; load {{BASE_URL}}{% static interaction.filename %}; select all; spacefill off; select protein; wireframe 50; select all; color chain;');
+	}
+	
+	</script>
+</div>
+<div class="btn-group">
+	<button type="button" id="reset-btn" class="btn btn-default">Reset</button>
+	<button type="button" id="ir-btn" class="btn btn-default">Interface Residues</button>
+	<button type="button" id="snvs-btn" class="btn btn-default">Map Snvs</button>
+		<button type="button" id="dropdown" class="btn btn-default"><a data-toggle="dropdown" href="#">Dropdown trigger</a></button>
+  		<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+  		</ul>
+	<script>
+	// Bootstrap button calls
+		$('#ir-btn').click(function(){interface_residues("pink","purple")});
+		$('#snvs-btn').click(function(){map_snvs("orange","red")});
+		$('#reset-btn').click(function(){reset_structure()});
 	</script>
 </div>
 
