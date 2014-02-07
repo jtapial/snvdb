@@ -109,7 +109,7 @@ class ChainResidue(models.Model):
     id = models.IntegerField(primary_key=True)
     chain = models.ForeignKey(Chain,db_column='chain_id',related_name='residues')
     position = models.CharField(max_length=10L,db_column='chain_position')
-    amino_acid = models.ForeignKey(AminoAcid,related_name="+")
+    amino_acid = models.ForeignKey(AminoAcid,related_name="+",db_column='amino_acid')
     uniprot_residue = models.ManyToManyField(UniprotResidue,through='PositionMapping',related_name='chain_residues')
     class Meta:
         db_table = 'chain_residue'
