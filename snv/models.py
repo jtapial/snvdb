@@ -179,6 +179,7 @@ class Disease(models.Model):
 		snvlist=self.snvs.all()
 		relatedsnv = []
 		disease_sum = []
+		relateduni = []
 		for item in snvlist:				
 			#find all diseases from all snvs that share the same uniprot_acc_number		
 			related_snvs = Snv.objects.filter(uniprot=item.uniprot)
@@ -188,10 +189,12 @@ class Disease(models.Model):
 					related_disease.append(disease_item)
 					disease_sum.append(disease_item)
 			related_disease_set = list(set(related_disease)-set(item.diseases.all()))
-			relatedsnv.append({'obj':item, 'disease_set':related_disease_set} )
-		
-		final_disease_sum = list(set(disease_sum)-set(item.diseases.all()))
-		return [relatedsnv,final_disease_sum]
+			if [item.uniprot,list(set(related_disease))] not in relateduni:
+				relateduni.append([item.uniprot,list(set(related_disease))])
+			relatedsnv.append({'obj':item, 'disease_set':related_disease_set})
+		final_related_uniprot = relateduni
+		final_disease_sum = list(set(disease_sum)-set([self]))
+		return [relatedsnv,final_disease_sum,final_related_uniprot]
 
 
 	def get_absolute_url(self):

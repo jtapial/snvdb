@@ -14,7 +14,14 @@ padding-top: 90px;
 padding-bottom: 90px			
 }
 
-.btn-primary{color:#fff;background-color:#2A60A5;border-color:#265593} <!--default bg #428bca, border #357ebd>
+.btn-primary{color:#fff;background-color:#2A60A5;border-color:#265593} <!--default bg #428bca, border #357ebd -->
+.btn-primary:hover,.btn-primary:focus,.btn-primary:active,.btn-primary.active,.open .dropdown-toggle.btn-primary{color:#2A60A5;background-color:#fff;border-color:#fff}
+.btn-primary:hover,.btn-primary.disabled:focus,.btn-primary[disabled]:focus,fieldset[disabled] .btn-primary:focus,.btn-primary.disabled:active,.btn-primary[disabled]:active,fieldset[disabled] .btn-primary:active,.btn-primary.disabled.active,.btn-primary[disabled].active,fieldset[disabled] .btn-primary.active{color:#2A60A5; background-color:#fff;border-color:#fff}
+
+
+
+.btn-xlg{padding:14px 20px;font-size:24px;line-height:1.33;border-radius:10px}
+
 
 
 {% endblock %}
@@ -24,14 +31,13 @@ padding-bottom: 90px
 <div class="cover-container">
     <div class="jumbotron">
       <div class="container">
-        <h1 style="color: #fff">The SNV Project</h1>
-        <p style="color: #fff"> SNV is Single Nucleotide Variation (not to be confused with SNP, Single Nucleotide Polymorphism)<br>
-        This is a template for a simple  informational website. It includes a large callout called a jumbotron and three supporting pieces of content. </p>
-        
+        <h1 style="font-size:450%;color: #fff; text-align:center;text-shadow:2px 2px #2963AF;">SNVdb</h1>
+        <h3 style="color: #fff; text-align:center"> Uncover protein interactions, SNVs, and associated diseases...    </h3>
 		<!-- ############  Search form ######################-->
-        <form class="form-horizontal"  role="form" action="/search/" method="get">
+        
+		<form class="form-horizontal"  role="form" action="/search/" method="get">
 			<div class="form-group">
-				<label for="inputtype" class="col-sm-2 control-label" style="color: #fff">Select type</label>
+				<p for="inputtype" class="col-sm-2 control-label" style="color: #fff">Select type</p>
 				<div class="col-sm-10">
 					 <select class="form-control" name = "search_select">
 						  <option value = '1'>Uniprot</option>
@@ -42,7 +48,7 @@ padding-bottom: 90px
 			</div>
 
 			<div class="form-group">
-	 			<label for="inputQ" class="col-sm-2 control-label" style="color: #fff">Your query</label>
+	 			<p for="inputQ" class="col-sm-2 control-label" style="color: #fff">Your query</p>
 				<div class="col-sm-10">
 					<input type="text" class="form-control" name = "q" placeholder="Enter your keyword here">
 				</div>
@@ -53,11 +59,12 @@ padding-bottom: 90px
 					{% if error %}					
 					<p class="text-danger">{{ error }}</p>
 					{% endif %}
-					<input class="btn btn-primary btn-lg" role="button" type = "submit" value="Start search&raquo;"> 
+					<input class="btn btn-primary btn-xlg" role="button" type = "submit" value="Start search&raquo;"> 
 
 				</div>
 			</div>
 		</form>
+		
 		<!-- ############  END OF Search form ######################-->
       	
 	</div>
@@ -68,22 +75,26 @@ padding-bottom: 90px
 
 <!--##########################Content##########################-->
 {% block content %}
+
+
+
+
       <!-- Example row of columns -->
       <div class="row">
         <div class="col-md-4">
           <h2><span class="glyphicon glyphicon-question-sign"></span> What is SNV</h2>
           <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          <p><a class="btn btn-default" href='{% url 'info' %}' role="button">View details &raquo;</a></p>
         </div>
         <div class="col-md-4">
           <h2><span class="glyphicon glyphicon-book"></span> How to use </h2>
           <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          <p><a class="btn btn-default" href='{% url 'getting-started' %}' role="button">View details &raquo;</a></p>
        </div>
         <div class="col-md-4">
           <h2><span class="glyphicon glyphicon-user"></span> About us</h2>
           <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
+          <p><a class="btn btn-default" href='{% url 'about' %}' role="button">View details &raquo;</a></p>
         </div>
       </div>
 {% endblock %}   
