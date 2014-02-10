@@ -52,6 +52,17 @@ class InteractionView(DetailView):
 	model = Interaction
 	template_name = 'Interaction_view.html'
 
+	def get_context_data(self, **kwargs):
+
+		interaction = super(InteractionView, self).get_context_data(**kwargs)
+
+		snvs = self.object.get_snvs()
+
+		interaction['snv_partner1'] = snvs[0]
+		interaction['snv_partner2'] = snvs[1]
+
+		return interaction
+
 ###################### BASIC VIEW ##################################
 
 def home(request):

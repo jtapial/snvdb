@@ -105,6 +105,20 @@ class Interaction(models.Model):
     class Meta:
         db_table = 'interaction'
 
+    def get_snvs(self):
+        cr_withsnv_partner1 = []
+        for chain_residue in self.chain_1.residues.all():
+            for ur in chain_residue.uniprot_residue.all():
+                for snv in ur.snvs.all():
+                    cr_withsnv_partner1.append(chain_residue)
+        cr_withsnv_partner2 = []
+        for chain_residue in self.chain_2.residues.all():
+            for ur in chain_residue.uniprot_residue.all():
+                for snv in ur.snvs.all():
+                    cr_withsnv_partner2.append(chain_residue)
+
+        return [list(set(cr_withsnv_partner1)),list(set(cr_withsnv_partner2))]
+
 class ChainResidue(models.Model):
     id = models.IntegerField(primary_key=True)
     chain = models.ForeignKey(Chain,db_column='chain_id',related_name='residues')

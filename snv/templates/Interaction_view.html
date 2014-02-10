@@ -58,33 +58,50 @@
 	};
 	function map_snvs(color1,color2){
 	// Mapping snvs on chain_1 onto structure
-	{% for cresidue in interaction.chain_1.residues.all %}
-		{% for ur in cresidue.uniprot_residue.all %}
-			{% for snv in ur.snvs.all %}
-				Jmol.script(myJmol,'select {{cresidue.position}}:A; color ' + color1 +';');
-			{% endfor %}
-		{% endfor %}
+	{% for cresidue in snv_partner1 %}
+		Jmol.script(myJmol,'select {{cresidue.position}}:A; color ' + color1 +';');
+	{% empty %}
+		alert("Partner 1 has no Snvs")
 	{% endfor %}
 	// Mapping snvs on chain_2 onto structure
-	{% for cresidue in interaction.chain_2.residues.all %}
-		{% for ur in cresidue.uniprot_residue.all %}
-			{% for snv in ur.snvs.all %}
-				Jmol.script(myJmol,'select {{cresidue.position}}:B; color ' + color2 +';');
-			{% empty %}
-				alert("Partner 2 has no SNVs");
-			{% endfor %}
-		{% endfor %}
+	{% for cresidue in snv_partner2 %}
+		Jmol.script(myJmol,'select {{cresidue.position}}:B; color ' + color2 +';');
+	{% empty %}
+		alert("Partner 2 has no Snvs")
 	{% endfor %}
 	};
 	function reset_structure(){
 		Jmol.script(myJmol,'zap; load {{BASE_URL}}{% static interaction.filename %}; select all; spacefill off; select protein; wireframe 50; select all; color chain;');
 	};
-	function show_partner(){
-		Jmol.script(myJmol, 'hide none;');
+	function show_partner(partner){
+		Jmol.script(myJmol, 'hide hidden and not :'+partner+';');
 	};
 	function hide_partner(partner){
-		Jmol.script(myJmol, 'hide :'+partner+';');
+		Jmol.script(myJmol, 'hide hidden or :'+partner+';');
 	};
+
+	$(document).ready(function(){
+		// Bootstrap button calls
+		$('#ir-btn').click(function(){interface_residues("pink","purple")});
+		$('#snvs-btn').click(function(){map_snvs("orange","red")});
+		$('#reset-btn').click(function(){reset_structure()});
+		$('#showhide1-btn').click(function(){
+			if ($('#showhide1-btn').hasClass('active')){
+				show_partner('A');
+				$('#showhide1-btn').text('Hide Partner 1');
+			} else {
+				hide_partner("A");
+				$('#showhide1-btn').text('Show Partner 1');
+			}});
+		$('#showhide2-btn').click(function(){
+			if ($('#showhide2-btn').hasClass('active')){
+				show_partner('B');
+				$('#showhide2-btn').text('Hide Partner 2');
+			} else {
+				hide_partner("B");
+				$('#showhide2-btn').text('Show Partner 2');
+			}});
+		});
 	
 	</script>
 </div>
@@ -92,16 +109,8 @@
 	<button type="button" id="reset-btn" class="btn btn-default">Reset</button>
 	<button type="button" id="ir-btn" class="btn btn-default">Interface Residues</button>
 	<button type="button" id="snvs-btn" class="btn btn-default">Map Snvs</button>
-	<button type="button" id="hide-btn" class="btn btn-default">Hide Partner 1</button>
-	<button type="button" id="show-btn" class="btn btn-default">Show Partner 1</button>
-	<script>
-	// Bootstrap button calls
-		$('#ir-btn').click(function(){interface_residues("pink","purple")});
-		$('#snvs-btn').click(function(){map_snvs("orange","red")});
-		$('#reset-btn').click(function(){reset_structure()});
-		$('#hide-btn').click(function(){hide_partner("A")});
-		$('#show-btn').click(function(){show_partner()});
-	</script>
+	<button type="button" id="showhide1-btn" class="btn btn-default" data-toggle="button">Hide Partner 1</button>
+	<button type="button" id="showhide2-btn" class="btn btn-default" data-toggle="button">Hide Partner 2</button>
 </div>
 
 {% endblock %}
