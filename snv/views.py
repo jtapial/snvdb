@@ -28,6 +28,14 @@ class UniprotView(DetailView):
 	model = Uniprot
 	template_name = 'Uniprot_view.html'
 	
+	def get_context_data(self, **kwargs):
+		# Call the base implementation first to get a context
+		snv = super(UniprotView, self).get_context_data(**kwargs)
+		# Add in a QuerySet of all the ralated snv
+		obtained_data = self.object.get_Snv()		
+		snv['snv_list']= obtained_data
+		return snv
+	
 class DiseaseView(DetailView):
 	model = Disease
 	template_name = 'Disease_view.html'   

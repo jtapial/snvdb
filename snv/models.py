@@ -15,38 +15,42 @@ from django.core.urlresolvers import reverse
 from Bio import Entrez
 
 class Uniprot(models.Model):
-    acc_number = models.CharField(max_length=6L, primary_key=True)
-    sequence = models.TextField(blank=True)
-    class Meta:
-        db_table = 'uniprot'
-        
-    def get_absolute_url(self):
-        return reverse('uniprot-view', kwargs={'pk': self.acc_number})
+	acc_number = models.CharField(max_length=6L, primary_key=True)
+	sequence = models.TextField(blank=True)
+	class Meta:
+		db_table = 'uniprot'
 
-    def interacting_partners(self):
-        chains = self.chains.all()
-        partners = []
-        for chain in chains:
-            p = chain.binding_partners()
-            for partner in p:
-                partners.append(partner.uniprot)
-        # Return list of Uniprot objects
-        return set(partners)
+	def get_Snv(self):	#Return a list of all related snvs 
+		snvlist=[]
+		for item in self.residues.all():					
+			snvlist.extend(item.snvs.all())		
+		return snvlist
 
-    def interactions(self):
-        chains = self.chains.all()
-        output = []
-        for chain in chains:
-            i1 = chain.interactions_1.all()
-            i2 = chain.interactions_2.all()
-            for interaction in i1:
-                output.append(interaction)
-            for interaction in i2:
-                output.append(interaction)
-          
-        #Return a list of Interaction objects
-        return set(output)
+	def interacting_partners(self):
+		chains = self.chains.all()
+		partners = []
+		for chain in chains:
+			p = chain.binding_partners()
+			for partner in p:
+				partners.append(partner.uniprot)
+		# Return list of Uniprot objects
+		return set(partners)
 
+	def interactions(self):
+		chains = self.chains.all()
+		output = []
+		for chain in chains:
+			i1 = chain.interactions_1.all()
+			i2 = chain.interactions_2.all()
+			for interaction in i1:
+				output.append(interaction)
+			for interaction in i2:
+				output.append(interaction)
+		#Return a list of Interaction objects
+		return set(output)
+
+	def get_absolute_url(self):
+		return reverse('uniprot-view', kwargs={'pk': self.acc_number})
 
 class AminoAcid(models.Model):
     one_letter_code = models.CharField(max_length=1L, primary_key=True)

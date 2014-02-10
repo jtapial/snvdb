@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block pagetitle %}Uniprot ID: {{uniprot.acc_number}} {% endblock %}
 {% block css%}
 p.wrap
 {
@@ -8,7 +9,10 @@ word-wrap:break-word;
 {% endblock%}
 {% block title %}Uniprot ID: {{uniprot.acc_number}} {% endblock %}
 {% block content %}
-
+<div class = "well">
+    <h3>Sequence :</h3>
+    <p class="wrap">{{ uniprot.sequence }}</p>
+</div>
 <div class = "well">
 	
 	<h3>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}:</h3>
@@ -43,19 +47,6 @@ word-wrap:break-word;
 
 
 <div class = "well">
-	<h3>Found {{uniprot.interacting_partners | length}} interacting partners of the protein {{uniprot.acc_number}}:</h3>
-		<ul>
-			{% for item in uniprot.interacting_partners %}
-				<li> <a href="{% url 'uniprot-view' pk=item.acc_number %}">{{ item.acc_number  }} </a> </li>
-			{% empty %}
-				<p>The protein has no interacting partners</p>
-			{% endfor %}
-
-		</ul>
-
-</div>
-
-<div class = "well">
 	<h3>Found {{uniprot.interactions | length}} interaction entries for the protein {{uniprot.acc_number}}:</h3>
 		{% if uniprot.interactions %}		
 
@@ -82,41 +73,41 @@ word-wrap:break-word;
 </div>
 
 <div class = "well">
-	<h3>Found {{uniprot.snvs.all | length}} SNVs for the protein {{uniprot.acc_number}}:</h3>
-		{% if uniprot.snvs.all %}
+	<h3>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}:</h3>
+		
+	{% if snv_list %}
+
 		<table class="table table-condensed table-hover">
 			<tr>
-				<td><strong>FT id</strong></td>
-				<td><strong>Type</strong></td>
-				<td><strong>Position</strong></td>
-				<td><strong>WT aa</strong></td>
-				<td><strong>Mutant aa</strong></td>
-				<td><strong>dbSNP id</strong></td>
-				<td><strong>Associated disorder</strong></td>
-				<td><strong>OMIM code</strong></td>
+				<th>FT id</th>
+				<th>Type</th>
+				<th>Position</th>
+				<th>Mutation</th>
+				<th>dbSNP id</th>
+				<th>Directly associated disorder</th>
+				<th>OMIM code</th>
 				
 				
-			{% for item in uniprot.snvs.all %}
+			{% for item in snv_list %}
 			<tr>
-				<td><a href="{% url 'snv-view' pk=item.ft_id %}">{{item.ft_id}}</td>
+				<td><a href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</td>
 				<td>{{item.type.type}}</td>
 				<td>{{item.uniprot_position}}</td>
-				<td>{{item.wt_aa.one_letter_code}}</td>
-				<td>{{item.mutant_aa.one_letter_code}}</td>
+				<td>{{item.wt_aa.three_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.three_letter_code}}</td>
 				{% if item.db_snp %}
-					<td>{{item.db_snp}}<a href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{item.db_snp}}"> (link)</a></td>
+					<td>{{item.db_snp}}<a href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{item.db_snp}}" target='_blank'> (link)</a></td>
 				{% else %}
 					<td></td>
 				{% endif %}
 				{% if item.diseases.all %}
 					<td><table>
 						{% for element in item.diseases.all %}
-						<tr><td><a href="{% url 'disease-view' pk=element.mim %}">{{element.name}}</a></td></tr>
+						<tr><td><a href="{% url 'disease-view' pk=element.mim %}" target='_blank'>{{element.name}}</a></td></tr>
 						{% endfor %}
 					</table></td>
 					<td><table>
 						{% for element in item.diseases.all %}
-						<tr><td>{{element.mim}}<a href="http://omim.org/entry/{{element.mim}}"> (link)</a></td></tr>
+						<tr><td>{{element.mim}}<a href="http://omim.org/entry/{{element.mim}}" target='_blank'> (link)</a></td></tr>
 						{% endfor %}
 					</table></td>
 					
@@ -134,10 +125,5 @@ word-wrap:break-word;
 
 </div>
 
-<div class = "well">
-    <h3>Sequence :</h3>
-    <p class="wrap">{{ uniprot.sequence }}</p>
-</div>
 
-<a href="#">Back to Results</a>
 {% endblock %}
