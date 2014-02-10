@@ -48,9 +48,9 @@
 	// Mapping interface residues onto structure
 	{% for interface_res in interaction.interface_residues.all %}
 		{% if interface_res.chain_residue.chain == interaction.chain_1 %}
-			Jmol.script(myJmol, 'select {{interface_res.chain_residue.position}}:A; color ' + color1 +';');
+			Jmol.script(myJmol, 'select {{interface_res.chain_residue.position}}:A; spacefill;');
 		{% elif interface_res.chain_residue.chain == interaction.chain_2 %}
-			Jmol.script(myJmol, 'select {{interface_res.chain_residue.position}}:B; color ' + color2 +';');
+			Jmol.script(myJmol, 'select {{interface_res.chain_residue.position}}:B; spacefill;');
 		{% else %}
 		alert("Chain mapping failed");
 		{% endif %}

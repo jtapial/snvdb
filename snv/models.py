@@ -121,7 +121,7 @@ class Interaction(models.Model):
                 for snv in ur.snvs.all():
                     cr_withsnv_partner2.append(chain_residue)
 
-        return [list(set(cr_withsnv_partner1)),list(set(cr_withsnv_partner2))]
+        return [set(cr_withsnv_partner1),set(cr_withsnv_partner2)]
 
 class ChainResidue(models.Model):
     id = models.IntegerField(primary_key=True)
