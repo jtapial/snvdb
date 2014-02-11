@@ -6,6 +6,7 @@ import MySQLdb
 import os
 import re
 import getpass
+from decimal import *
 
 # Database connection object
 # Will prompt for 
@@ -839,31 +840,117 @@ def accessibility_import():
 	cur.close()
 
 	print("Populated accessibility table")
+
+def pfam_import():
+
+	print("Populating pfam_hmm, uniprot_pfam_mapping and active_site_residue tables")
+
+	cur = db.cursor()
+
+	pfam_file = open(os.environ['SHARED']+'/snv/data/Pfam_results.txt')
+
+	for line in pfam_file:
+		# Split on whitespace
+		values = line.split()
+		# Check not header line
+		if values[0][0] != '#':
+			# hmm values - to be inserted into pfam_hmm
+			hmm_acc = values[5]
+			hmm_name = values[6]
+			hmm_type = values[7]
+			hmm_length = int(values[10])
+			hmm_clan = values[12]
+			# Insert into pfam_hmm
+			try:
+				cur.execute('INSERT INTO pfam_hmm (hmm_acc,name,type,length,clan) VALUES (%s,%s,%s,%s,%s)',(hmm_acc,hmm_name,hmm_type,hmm_length,hmm_clan))
+				db.commit()
+			except MySQLdb.IntegrityError:
+				pass
+			# mapping values - insert into uniprot_pfam_mapping
+			uniprot_acc_number = values[0][3:9]
+			ur_ids = []
+			# get all uniprot_residue ids for alignment and envelope starts and ends
+			for i in range(1,5):
+				cur.execute('SELECT id FROM uniprot_residue WHERE uniprot_acc_number=%s AND uniprot_position=%s',(uniprot_acc_number,values[i]))
+				ur_ids.append(cur.fetchone())
+			alignment_start_ur_id = ur_ids[0][0]
+			alignment_end_ur_id = ur_ids[1][0]
+			envelope_start_ur_id = ur_ids[2][0]
+			envelope_end_ur_id = ur_ids[3][0]
+			hmm_start = int(values[8])
+			hmm_end = int(values[9])
+			bit_score = Decimal(values[11])
+			e_value = values[12]
+			significance = int(values[13])
+			mapping_insert = (uniprot_acc_number,hmm_acc,alignment_start_ur_id,alignment_end_ur_id,envelope_start_ur_id,envelope_end_ur_id,hmm_start,hmm_end,bit_score,e_value,significance)
+			mapping_id = ""
+			try:
+				cur.execute('''INSERT INTO uniprot_pfam_mapping 
+					(uniprot_acc_number,
+					hmm_acc,
+					alignment_start_ur_id,
+					alignment_end_ur_id,
+					envelope_start_ur_id,
+					envelope_end_ur_id,
+					hmm_start,
+					hmm_end,
+					bit_score,
+					e_value,
+					significance)
+					VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''',mapping_insert)
+				mapping_id = int(cur.lastrowid)
+			except MySQLdb.IntegrityError:
+				cur.execute('SELECT id FROM uniprot_pfam_mapping WHERE uniprot_acc_number=%s AND hmm_acc=%s AND alignment_start_ur_id=%s AND alignment_end_ur_id=%s',(
+					uniprot_acc_number,
+					hmm_acc,
+					alignment_start_ur_id,
+					alignment_end_ur_id
+					))
+				mapping_id = cur.fetchone()[0]
+			
+			# active site insert
+			if len(values) == 16:
+				active_site = values[15]
+				match = re.search('\[(.*?)\]',active_site)
+				if match:
+					active_site_residues = match.group(1)
+				for position in set(active_site_residues.split(',')):
+					try:
+						cur.execute('SELECT id FROM uniprot_residue WHERE uniprot_acc_number=%s AND uniprot_position=%s',(uniprot_acc_number,position))
+						active_site_ur_id = cur.fetchone()[0]
+						cur.execute('INSERT INTO active_site_residue (up_mapping_id,active_site_ur_id) VALUES (%s,%s)',(mapping_id,active_site_ur_id))
+						db.commit()
+					except MySQLdb.IntegrityError:
+						pass
+	print("Populated pfam_hmm, uniprot_pfam_mapping and active_site_residue tables")
+	cur.close()
 	
 ##METHOD CALLS:
 
-create_tables()
+#create_tables()
 
-uniprot_import_from_fasta()
+#uniprot_import_from_fasta()
 
-snv_type_import()
+#snv_type_import()
 
-amino_acid_import()
+#amino_acid_import()
 
-snv_import()
+#snv_import()
 
-uniprot_residue_import()
+#uniprot_residue_import()
 
-disease_import()
+#disease_import()
 
-snv_disease_import()
+#snv_disease_import()
 
-chain_interaction_interaction_type_import()
+#chain_interaction_interaction_type_import()
 
-chain_residue_position_mapping_import()
+#chain_residue_position_mapping_import()
 
-interface_residue_import()
+#interface_residue_import()
 
-accessibility_import()
+#accessibility_import()
+
+pfam_import()
 
 db.close()
