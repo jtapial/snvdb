@@ -5,17 +5,29 @@ p.wrap
 {
 word-wrap:break-word;
 }
-</style>
-{% endblock%}
-{% block title %}Uniprot ID: {{uniprot.acc_number}} {% endblock %}
+
+h1{ position:relative; }
+h1 span{ position:absolute; top:-70px;}
+h3{ position:relative; }
+h3 span{ position:absolute; top:-70px;}
+{% endblock %}
+
+{% block javascript %}<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">{% endblock %}
+
+{% block title %}<span id = "basic"></span>Uniprot ID: {{uniprot.acc_number}} {% endblock %}
 {% block content %}
+
+<!-- ################## Uniprot BASIC VIEW ##################################-->
+<div class="row row-offcanvas row-offcanvas-right"> 
+        <div class="col-xs-12 col-sm-9"><!-- Left Canvas-->
+
 <div class = "well">
     <h3>Sequence :</h3>
     <p class="wrap">{{ uniprot.sequence }}</p>
 </div>
 <div class = "well">
 	
-	<h3>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}:</h3>
+	<h3><span id = "chains"></span>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}:</h3>
 		{% if uniprot.chains.all %}
 			<table class="table table-condensed table-hover">
 				<tr>
@@ -47,7 +59,7 @@ word-wrap:break-word;
 
 
 <div class = "well">
-	<h3>Found {{uniprot.interactions | length}} interaction entries for the protein {{uniprot.acc_number}}:</h3>
+	<h3><span id = "interactions"></span>Found {{uniprot.interactions | length}} interaction entries for the protein {{uniprot.acc_number}}:</h3>
 		{% if uniprot.interactions %}		
 
 			<table class="table table-condensed table-hover">
@@ -72,8 +84,13 @@ word-wrap:break-word;
 		{% endif %}
 </div>
 
+<h3>Mapping SNV to the sequence</h3>
 <div class = "well">
-	<h3>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}:</h3>
+<p style ="word-wrap:break-word;">{{mapped_seq|safe}}</p>
+</div>
+
+
+	<h3><span id = "snvs"></span>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}:</h3>
 		
 	{% if snv_list %}
 
@@ -81,7 +98,7 @@ word-wrap:break-word;
 			<tr>
 				<th>FT id</th>
 				<th>Type</th>
-				<th>Position</th>
+				<th>Pos</th>
 				<th>Mutation</th>
 				<th>dbSNP id</th>
 				<th>Directly associated disorder</th>
@@ -93,9 +110,9 @@ word-wrap:break-word;
 				<td><a href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</td>
 				<td>{{item.type.type}}</td>
 				<td>{{item.uniprot_position}}</td>
-				<td>{{item.wt_aa.three_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.three_letter_code}}</td>
+				<td>{{item.wt_aa.one_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.one_letter_code}}</td>
 				{% if item.db_snp %}
-					<td>{{item.db_snp}}<a href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{item.db_snp}}" target='_blank'> (link)</a></td>
+					<td><span title="External link to dbSNP"><a href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{item.db_snp}}" target='_blank'>{{item.db_snp}}</a></span></td>
 				{% else %}
 					<td></td>
 				{% endif %}
@@ -107,7 +124,7 @@ word-wrap:break-word;
 					</table></td>
 					<td><table>
 						{% for element in item.diseases.all %}
-						<tr><td>{{element.mim}}<a href="http://omim.org/entry/{{element.mim}}" target='_blank'> (link)</a></td></tr>
+						<tr><td><span title="External link to OMIM"><a href="http://omim.org/entry/{{element.mim}}" target='_blank'>{{element.mim}}</span></a></td></tr>
 						{% endfor %}
 					</table></td>
 					
@@ -123,7 +140,20 @@ word-wrap:break-word;
 			<p>The protein has no associated SNV entries</p>
 		{% endif %}
 
-</div>
 
+        </div><!--/span-->
 
+<!-- ################## NAVIGATION BAR ##################################-->
+        <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+          <div class="span3 bs-docs-sidebar">
+			<ul class="nav nav-list bs-sidenav affix">
+			  <li><a href="#basic"><span class="glyphicon glyphicon-chevron-right"></span> Basic information</a></li>
+			  <li><a href="#chains"><span class="glyphicon glyphicon-chevron-right"></span> Chains</a></li>
+			  <li><a href="#interactions"><span class="glyphicon glyphicon-chevron-right"></span> Interactions</a></li>
+			  <li><a href="#snvs"><span class="glyphicon glyphicon-chevron-right"></span> Related SNVs</a></li>
+
+			</ul>
+        </div><!--/span-->
+      </div><!--/row-->
 {% endblock %}
+{% block extraplugin %} <script src="{{ STATIC_URL }}offcanvas.js"></script>  <script src="{{ STATIC_URL }}tooltip.js"></script> {% endblock %}

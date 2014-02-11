@@ -30,11 +30,12 @@ class UniprotView(DetailView):
 	
 	def get_context_data(self, **kwargs):
 		# Call the base implementation first to get a context
-		snv = super(UniprotView, self).get_context_data(**kwargs)
+		data = super(UniprotView, self).get_context_data(**kwargs)
 		# Add in a QuerySet of all the ralated snv
 		obtained_data = self.object.get_Snv()		
-		snv['snv_list']= obtained_data
-		return snv
+		data['snv_list']= obtained_data
+		data['mapped_seq']= self.object.get_mapping_seq()
+		return data
 	
 class DiseaseView(DetailView):
 	model = Disease
@@ -55,6 +56,11 @@ class SnvView(DetailView):
 	model = Snv
 	template_name = 'Snv_view.html'
 
+	def get_context_data(self, **kwargs):	
+		response = super(SnvView, self).get_context_data(**kwargs)
+		response['marked_seq']= self.object.get_marked_seq()
+		response['sim_snv']=self.object.get_similar_snv()
+		return response
 
 class InteractionView(DetailView):
 	model = Interaction
