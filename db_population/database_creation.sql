@@ -130,3 +130,32 @@ UNIQUE (ft_id, mim),
 FOREIGN KEY (ft_id) REFERENCES snv (ft_id),
 FOREIGN KEY (mim) REFERENCES disease (mim)
 );
+CREATE TABLE pfam_hmm (
+hmm_acc VARCHAR(12) NOT NULL,
+name VARCHAR(50) NOT NULL,
+type VARCHAR(50) NOT NULL,
+length INT NOT NULL,
+PRIMARY KEY (hmm_acc)
+);
+CREATE TABLE uniprot_pfam_mapping (
+id INT AUTO_INCREMENT NOT NULL,
+uniprot_acc_number VARCHAR(6) NOT NULL,
+hmm_acc VARCHAR(12) NOT NULL,
+alignment_start_ur_id INT NOT NULL,
+alignment_end_ur_id INT NOT NULL,
+envelope_start_ur_id INT NOT NULL,
+envelope_end_ur_id INT NOT NULL,
+hmm_start INT NOT NULL,
+hmm_end INT NOT NULL,
+bit_score DECIMAL(5,1) NOT NULL,
+e_value VARCHAR(255) NOT NULL,
+significance BOOL NOT NULL,
+PRIMARY KEY (id),
+UNIQUE(uniprot_acc_number,hmm_acc,alignment_start_ur_id,alignment_end_ur_id),
+FOREIGN KEY (uniprot_acc_number) REFERENCES uniprot (acc_number),
+FOREIGN KEY (hmm_acc) REFERENCES pfam_hmm (hmm_acc),
+FOREIGN KEY (alignment_start_ur_id) REFERENCES uniprot_residue (id),
+FOREIGN KEY (alignment_end_ur_id) REFERENCES uniprot_residue (id),
+FOREIGN KEY (envelope_start_ur_id) REFERENCES uniprot_residue (id),
+FOREIGN KEY (envelope_end_ur_id) REFERENCES uniprot_residue (id)
+);
