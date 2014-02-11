@@ -273,7 +273,39 @@ class SnvUniprotResidue(models.Model):
     uniprot_residue = models.ForeignKey(UniprotResidue, db_column='uniprot_residue_id') #db_column='uniprot_residue_id'
     class Meta:
         db_table = 'snv_uniprot_residue'
-# AUTO
+
+class PfamHmm(models.Model):
+    hmm_acc = models.CharField(max_length=12L, primary_key=True)
+    name = models.CharField(max_length=50L)
+    type = models.CharField(max_length=50L)
+    length = models.IntegerField()
+    clan = models.CharField(max_length=50L)
+    uniprots =  models.ManyToManyField(Uniprot,through='UniprotPfamMapping',related_name='pfam_hmms')
+    class Meta:
+        db_table = 'pfam_hmm'
+
+class UniprotPfamMapping(models.Model):
+    id = models.IntegerField(primary_key=True)
+    uniprot = models.ForeignKey(Uniprot,db_column='uniprot_acc_number')
+    pfam_hmm = models.ForeignKey(PfamHmm,db_column='hmm_acc')
+    alignment_start_residue = models.ForeignKey(UniprotResidue,db_column='alignment_start_ur_id',related_name='+')
+    alignment_end_residue = models.ForeignKey(UniprotResidue,db_column='alignment_end_ur_id',related_name='+')
+    envelope_start_residue = models.ForeignKey(UniprotResidue,db_column='envelope_start_ur_id',related_name='+')
+    envelope_end_residue = models.ForeignKey(UniprotResidue,db_column='envelope_end_ur_id',related_name='+')
+    hmm_start = models.IntegerField()
+    hmm_end = models.IntegerField()
+    bit_score = models.DecimalField(max_digits=7, decimal_places=1)
+    e_value = models.CharField(max_length=255L)
+    significance = models.IntegerField()
+    class Meta:
+        db_table = 'uniprot_pfam_mapping'
+
+class ActiveSiteResidue(models.Model):
+    id = models.IntegerField(primary_key=True)
+    mapping = models.ForeignKey(UniprotPfamMapping,db_column='up_mapping_id',related_name="active_site_residues")
+    residue = models.ForeignKey(UniprotResidue,db_column='active_site_ur_id',related_name='active_site_residues')
+    class Meta:
+        db_table = 'active_site_residue'
 
 
 
