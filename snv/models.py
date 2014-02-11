@@ -26,6 +26,33 @@ class Uniprot(models.Model):
 			snvlist.extend(item.snvs.all())		
 		return snvlist
 
+	def get_mapping_seq(self):
+		seq=self.sequence
+		mod_seq=''		
+		snvlist=self.get_Snv()
+		mod = {}
+		for snv in snvlist:
+			if snv.uniprot_position in mod:
+				mod[snv.uniprot_position].append(snv)
+			else:
+				mod[snv.uniprot_position]=[snv]
+		sorted_mod = sorted(mod.items(), key=lambda t: t[0])
+		pos = sorted_mod.pop(0)
+		for curr_pos in range(len(seq)):		
+			if(curr_pos<pos[0]-1):
+				mod_seq = mod_seq + seq[curr_pos]
+			else: 
+				pos_mute = ''
+				for item in pos[1]:
+					pos_mute=pos_mute + item.mutant_aa.one_letter_code + ' '
+				mod_seq = mod_seq + '<mark><b><a href="" class="text-danger" title="Position = '+str(curr_pos+1)+' Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></b></mark>'		
+				if(len(sorted_mod)>0):
+					pos = sorted_mod.pop(0)				
+				else:				
+					mod_seq = mod_seq+seq[curr_pos+1:]
+					break		
+		return mod_seq
+
 	def interacting_partners(self):
 		chains = self.chains.all()
 		partners = []
@@ -163,26 +190,40 @@ class SnvType(models.Model):
 
 
 class Snv(models.Model):
-    ft_id = models.CharField(max_length=10L, primary_key=True)
-    type = models.ForeignKey(SnvType,db_column='type',related_name='snvs')
-    wt_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="wt_aa")
-    mutant_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="mutant_aa")
-    uniprot = models.CharField(max_length=6L,db_column="uniprot_acc_number")
-    uniprot_position = models.IntegerField()
-    gene_code = models.CharField(max_length=10L, blank=True)
-    db_snp = models.CharField(max_length=15L, blank=True)
-    uniprot_residue = models.ManyToManyField(UniprotResidue,through='SnvUniprotResidue',related_name="snvs") #similar to wt_aa, but it will be available only when their uniprots exist in database 
+	ft_id = models.CharField(max_length=10L, primary_key=True)
+	type = models.ForeignKey(SnvType,db_column='type',related_name='snvs')
+	wt_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="wt_aa")
+	mutant_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="mutant_aa")
+	uniprot = models.CharField(max_length=6L,db_column="uniprot_acc_number")
+	uniprot_position = models.IntegerField()
+	gene_code = models.CharField(max_length=10L, blank=True)
+	db_snp = models.CharField(max_length=15L, blank=True)
+	uniprot_residue = models.ManyToManyField(UniprotResidue,through='SnvUniprotResidue',related_name="snvs") #similar to wt_aa, but it will be available only when their uniprots exist in database 
 
-    class Meta:
-        db_table = 'snv'
-    def get_absolute_url(self):
-        return reverse('snv-view', kwargs={'pk': self.ft_id})
+	class Meta:
+		db_table = 'snv'
+	
+	def get_marked_seq(self):
+		uniobj = Uniprot.objects.filter(acc_number=self.uniprot) #get a list of object (it should return a list with one element inside)
+		mod_seq = ''		
+		if(len(uniobj)!=0): #if the object is available in our database
+			pre_seq =  uniobj[0].sequence
+			mod_seq =  pre_seq[:self.uniprot_position-1]+'<mark><b><span class="text-danger" title="Original Amino Acid ='+self.wt_aa.one_letter_code+' ">'+self.mutant_aa.one_letter_code+'</span></b></mark>'+pre_seq[self.uniprot_position:]		
+		 	
+		return mod_seq
 
-    def get_genbank_id(self):
-        handle = Entrez.esearch(db="gene", term="%s[Gene Name] AND homo sapiens[Organism]" % self.gene_code)
-        record = Entrez.read(handle)
-        gene_id = record["IdList"][0]
-        return gene_id
+	def get_similar_snv(self):
+		snvlist = list(set(Snv.objects.filter(uniprot=self.uniprot).filter(uniprot_position=self.uniprot_position))-set([self]))
+		return snvlist
+	
+	def get_absolute_url(self):
+		return reverse('snv-view', kwargs={'pk': self.ft_id})
+
+	def get_genbank_id(self):
+		handle = Entrez.esearch(db="gene", term="%s[Gene Name] AND homo sapiens[Organism]" % self.gene_code)
+		record = Entrez.read(handle)
+		gene_id = record["IdList"][0]
+		return gene_id
 
 class Disease(models.Model):
 	mim = models.IntegerField(primary_key=True)

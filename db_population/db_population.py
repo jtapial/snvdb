@@ -32,11 +32,12 @@ def create_tables():
 	print("Tables created")
 	
 
-def uniprot_import():
-	print("Populating uniprot tables")
+def uniprot_import_from_fasta():
+	#This populates the uniprot table in two stages from the data in the provided FASTA files
+		
+	print("Populating uniprot table from FASTA files")
 	cur = db.cursor()
-	#Script to populate uniprot table
-	
+		
 	fasta_path = os.environ['SNV_DATA'] + "/FASTA/Fasta"
 
 	filenames = os.listdir(fasta_path)
@@ -57,10 +58,12 @@ def uniprot_import():
 				cur.execute('INSERT INTO uniprot VALUES (%s,%s)',(uniprot,seq))
 				db.commit()
 			except:
+				print "Error adding uniprot from FASTA file. Accession number: ", uniprot
 				db.rollback()
-	cur.close()
+				continue
 
-	print("Populated uniprot table")
+	cur.close()
+	print("Added Uniprot entries from FASTA files")
 
 	
 
@@ -144,6 +147,188 @@ def amino_acid_import():
 	
 	print("Populated amino_acid table")
 
+
+def snv_import():
+
+#This script populates the "snv" table using the information in the "humsavar.txt" file.
+#It also calls the methods:
+# - uniprot_import_from_uniprot
+# - check_uniprot_online
+# - add_this_snv
+
+#The environment variables to open the file must be changed accordingly if this script is being run on another machine.
+#The tables "snv_type" and "amino_acid" must be populated before this script is run.
+#The uniprot table must have been populated with the import_uniprot_from_fasta method
+
+
+	print("Populating snv table. Uniprots not present in the FASTA files will also be added")
+
+	cur = db.cursor()
+		
+	in_file_path = os.environ['SHARED'] + "/snv/data/humsavar.txt"
+
+	in_file = open(in_file_path, 'r')
+
+
+	wtallele_regex = re.compile('^p\.(\D*)\d*')
+	##REGEX for the wt allele: Start_line + "p." + (any non-digits) + any digits
+	mallele_regex = re.compile('^p\.\D*\d*(\D*)$')
+	##REGEX for the mutant allele: Start_line + "p." + any non-digits + any digits + (any non-digits) + end_line
+
+	position_regex = re.compile('^p\.\D*(\d*)')
+	##REGEX for the mutant position (Uniprot): Start_line + "p." + any non-digits + (any digits)
+
+	for line in in_file:
+		if not line.startswith('#'):
+			splitline = line.split(None,6)
+
+			#Extraction of the FT_id:
+			ftid = splitline[2]
+
+			#Extraction of the uniprot_acc_number:
+			uniprot_acc_number = splitline[1]
+
+			#Extraction of the uniprot_position:
+			position_match = re.match(position_regex, splitline[3])
+			uniprot_position = position_match.group(1)
+
+			#Extraction of the type:
+			snv_type = splitline[4]
+
+			#Extraction of the wt_allele:
+			wtallele_match = re.match(wtallele_regex, splitline[3])
+			wt_allele = wtallele_match.group(1)
+
+			#Extraction of the mutant_allele:
+			mallele_match = re.match(mallele_regex, splitline[3])
+			m_allele = mallele_match.group(1)
+
+			#Extraction of the gene_code:
+			gene_code_input = splitline[0]
+
+			if gene_code_input == "-":
+				gene_code = None
+			else:
+				gene_code = gene_code_input
+
+			#Extraction of the SNV_id in dbSNP:
+			db_SNP_data = splitline[5]
+
+			if db_SNP_data == "-":
+				db_SNP = None
+			else:
+				db_SNP = db_SNP_data.rstrip()
+
+			# Get one letter code from three letter code in file
+			# wt_allele
+			cur.execute('SELECT one_letter_code FROM amino_acid	WHERE three_letter_code=%s', (wt_allele))
+			converted_aa = cur.fetchone()
+			wt_allele = converted_aa[0]
+			# m_allele
+			cur.execute('SELECT one_letter_code FROM amino_acid	WHERE three_letter_code=%s', (m_allele))
+			converted_aa = cur.fetchone()
+			m_allele = converted_aa[0]
+
+			# Print warning if amino acids not one letter
+			if len(wt_allele)>1:
+				print "excessive length of wt_aa. Variant code: ", ftid
+			elif len(m_allele)>1:
+				print "excessive length of m_aa. Variant code: ", ftid
+			# Print warning if over length db_snp
+			if db_SNP != None:
+				if len(db_SNP)>15:
+					print "excessive length of db_SNP. Variant code: ", ftid, len(db_SNP)
+
+			#Final compilation as a list
+			data_list = [ftid, snv_type, wt_allele, m_allele, uniprot_acc_number, uniprot_position, gene_code, db_SNP]
+			
+
+			#Check if the uniprot exists in the database
+			cur.execute('SELECT EXISTS(SELECT 1 FROM uniprot WHERE acc_number=%s)', (uniprot_acc_number))
+			check_database = cur.fetchone()[0]
+
+			#If it exists, add the snv normally calling the method "add_this_snv"
+			if check_database == 1:
+				add_this_snv(data_list)
+
+			#If it does not exists, check the snv with uniprot online:
+			elif check_database == 0:
+
+				#If the uniprot checker detects a sequence on Uniprot online and adds it to the local database, extract more data for the snv and add the snv
+				if check_uniprot_online(uniprot_acc_number) == True:
+
+					#Addition of the snv (call method)
+					add_this_snv(data_list)
+				
+				#If the uniprot checker does not detect a valid sequence, print a message and do not add the snv (nor the uniprot)
+				else:
+					print "Skipped SNV, FTID: ", ftid, ", Uniprot accession number: ", uniprot_acc_number, " Could not detect a valid uniprot entry"
+					continue
+	
+	cur.close()
+	db.close()
+	in_file.close()
+
+def check_uniprot_online(uniprot_acc_number):
+
+	#This method checks online if there is a valid sequence for a given uniprot accession number.
+	#If there is, it adds the Uniprot entry to the local database and returns true
+	#If there is not, it returns false
+	
+	cur = db.cursor()
+
+	webpage = urllib.urlopen("http://www.uniprot.org/uniprot/" + uniprot_acc_number + ".fasta")
+	lines = webpage.readlines()
+
+	for i in range(len(lines)):
+		lines[i] = lines[i].rstrip()
+	
+	seq_lines = lines[1:]
+	seq_lines = ''.join(seq_lines)
+
+	#Check if the sequence is empty.
+	if seq_lines != "":
+		try:
+			cur.execute('INSERT INTO uniprot VALUES (%s, %s)', (uniprot_acc_number,seq_lines))
+			return True
+		except:
+			print seq_lines
+			db.rollback()
+			print "ERROR adding Uniprot from the online database. Uniprot accession number: ", uniprot_acc_number
+			return False
+	else:
+		return False
+
+
+def add_this_snv(data_list):
+	#This method adds a snv to the local database. It requires a uniprot entry with the adequate accession number alredy in the database
+	# It also requires the amino_acid table to have been populated
+	# The information from the snvs comes from the humsavar.txt file opened by the snv_import method
+
+
+	#Check that the line on the humsavar.txt file is still open and stored in splitline
+
+	cur = db.cursor()
+
+	#Addition to the database
+	try:
+		cur.execute('INSERT INTO snv (ft_id,type,wt_aa,mutant_aa,uniprot_acc_number,uniprot_position,gene_code,db_snp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', data_list)
+		db.commit()
+
+	except MySQLdb.IntegrityError:
+		#Check if the SNV is already in the database (THE FILE HAS DUPLICATE ENTRIES FOR A SNV IF HAS MORE THAN ONE DISEASE)
+		cur.execute('SELECT EXISTS(SELECT 1 FROM snv WHERE ft_id=%s)', data_list[0])
+		check_already_added = cur.fetchone()[0]
+		if check_already_added == 1:
+			db.rollback()
+			pass
+		
+		else:
+			db.rollback()
+			print "Integrity error adding SNV FTID: ", data_list
+			pass
+
+
 def uniprot_residue_import():
 	
 	#This populates the "uniprot_residue" table using the data in the "uniprot" table and the "amino_acid" table.
@@ -153,7 +338,7 @@ def uniprot_residue_import():
 
 	cur = db.cursor()
 	
-	cur.execute('SELECT acc_number, sequence FROM  uniprot')
+	cur.execute('SELECT acc_number, sequence FROM uniprot')
 
 	uniprots = cur.fetchall()
 
@@ -176,6 +361,7 @@ def uniprot_residue_import():
 					db.commit()
 
 				except:
+					print "Error importing uniprot residue. Uniprot accession number: ", acc_number, " Position: ", uniprot_position
 					db.rollback()
 
 	cur.close()
@@ -234,127 +420,11 @@ def disease_import():
 			db.rollback()
 
 
-
 	cur.close()
 	in_file.close()
 
 	print("Populated disease table")
-
-		
-				
-def snv_import():
 	
-	#This script populates the "snv" table using the information in the "humsavar.txt" file and the information in the "amino_acid" table.
-	# Also populates the snv_uniprot_residue table for snvs which map to uniprots we have represented
-
-	#The environment variables to open the file must be changed accordingly if this script is being run on another machine.
-	#The tables "snv_type" and "amino_acid" must be populated before this script is run.
-
-	print("Populating snv table")
-
-	cur = db.cursor()
-		
-	in_file_path = os.environ['SHARED'] + "/snv/data/humsavar.txt"
-
-	in_file = open(in_file_path, 'r')
-
-
-	wtallele_regex = re.compile('^p\.(\D*)\d*')
-	##REGEX for the ancestral allele: Start_line + "p." + (any non-digits) + any digits
-	mallele_regex = re.compile('^p\.\D*\d*(\D*)$')
-	##REGEX for the mutated allele: Start_line + "p." + any non-digits + any digits + (any non-digits) + end_line
-
-	position_regex = re.compile('^p\.\D*(\d*)')
-	##REGEX for the mutated position (Uniprot): Start_line + "p." + any non-digits + (any digits)
-
-	for line in in_file:
-		if not line.startswith('#'):
-			splitline = line.split(None,6)
-
-			#Extraction of the FT_id:
-			ftid = splitline[2]
-
-			#Extraction of the type:
-			type = splitline[4]
-
-			#Extraction of the wt_allele:
-			wtallele_match = re.match(wtallele_regex, splitline[3])
-			wt_allele = wtallele_match.group(1)
-
-			#Extraction of the mutant_allele:
-			mallele_match = re.match(mallele_regex, splitline[3])
-			m_allele = mallele_match.group(1)
-
-			#Extraction of the uniprot_acc_number:
-			uniprot_acc_number = splitline[1]
-
-			#Extraction of the uniprot_position:
-			position_match = re.match(position_regex, splitline[3])
-			uniprot_position = position_match.group(1)
-
-			#Extraction of the gene_code:
-			gene_code_input = splitline[0]
-
-			if gene_code_input == "-":
-				gene_code = None
-			else:
-				gene_code = gene_code_input
-
-			#Extraction of the SNV_id in dbSNP:
-			db_SNP_data = splitline[5]
-
-			if db_SNP_data == "-":
-				db_SNP = None
-			else:
-				db_SNP = db_SNP_data.rstrip()
-
-			# Get one letter code from three letter code in file
-			# wt_allele
-			cur.execute('SELECT one_letter_code FROM amino_acid	WHERE three_letter_code=%s', (wt_allele))
-			converted_aa = cur.fetchone()
-			wt_allele = converted_aa[0]
-			# m_allele
-			cur.execute('SELECT one_letter_code FROM amino_acid	WHERE three_letter_code=%s', (m_allele))
-			converted_aa = cur.fetchone()
-			m_allele = converted_aa[0]
-
-			# Print warning if amino acids not one letter
-			if len(wt_allele)>1:
-				print "excessive length of wt_aa. Variant code: ", ftid
-			elif len(m_allele)>1:
-				print "excessive length of m_aa. Variant code: ", ftid
-			# Print warning if over length db_snp
-			if db_SNP != None:
-				if len(db_SNP)>15:
-					print "excessive length of db_SNP. Variant code: ", ftid, len(db_SNP)
-
-			#Final compilation as a list
-			data_list = [ftid, type, wt_allele, m_allele, uniprot_acc_number, uniprot_position, gene_code, db_SNP]
-
-			try:
-				cur.execute('INSERT INTO snv (ft_id,type,wt_aa,mutant_aa,uniprot_acc_number,uniprot_position,gene_code,db_snp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', data_list)
-				db.commit()
-
-			except MySQLdb.IntegrityError:
-				db.rollback()
-			# Get uniprot_residue_id
-			cur.execute('SELECT id FROM uniprot_residue WHERE uniprot_acc_number=%s AND uniprot_position=%s',(uniprot_acc_number,uniprot_position))
-			result = cur.fetchone()
-			# If uniprot residue exists insert value into mapping table
-			if result != None:
-				uniprot_res_id = result[0]
-				try:
-					cur.execute('INSERT INTO snv_uniprot_residue (ft_id,uniprot_residue_id) VALUES (%s,%s)',(ftid,uniprot_res_id))
-					db.commit()
-				except MySQLdb.IntegrityError:
-					db.rollback()
-	cur.close()
-
-	print("Populated snv table")
-
-
-	
-
 def snv_disease_import():
 	
 	## This script populates the "snv_disease" table using the information in the "humsavar.txt" file.
@@ -770,22 +840,21 @@ def accessibility_import():
 
 	print("Populated accessibility table")
 	
-
 ##METHOD CALLS:
 
 create_tables()
 
-uniprot_import()
+uniprot_import_from_fasta()
 
 snv_type_import()
 
 amino_acid_import()
 
+snv_import()
+
 uniprot_residue_import()
 
 disease_import()
-
-snv_import()
 
 snv_disease_import()
 
@@ -796,6 +865,5 @@ chain_residue_position_mapping_import()
 interface_residue_import()
 
 accessibility_import()
-
 
 db.close()
