@@ -47,9 +47,11 @@ word-wrap:break-word;
 			<td><a href="{% url 'disease-view' pk=item.mim %}">{{item.name}}</a></td>
 			<td>{{item.mim}} <a href="http://omim.org/entry/{{item.mim}}">(link)</a></td>
 		</tr>
-	</table>
 
 		{% endfor %}
+	</table>
+
+		
 {% else %}
 <p>No disorders found to be related to this SNV.</p>
 
@@ -59,7 +61,7 @@ word-wrap:break-word;
 <h3>Mapping SNV to the sequence</h3>
 <div class = "well">
 {% if snv.uniprot_residue.all %}
-<p style ="word-wrap:break-word;">{{marked_seq|safe}}</p>
+<p style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">{{marked_seq|safe}}</p>
 {% else %}
 <p>Sorry, No sequence data available in our database...</p>
 {% endif %}
@@ -111,4 +113,17 @@ word-wrap:break-word;
 {% else %}
 <p>No other SNV sharing the same position found</p>
 {% endif %}
+{% endblock %}
+{% block extraplugin %}
+<script type="text/javascript">
+$('[data-toggle="tooltip"]').tooltip({
+    'placement': 'top'
+});
+$('[data-toggle="popover"]').popover({
+    trigger: 'hover',
+        'placement': 'top'
+});
+
+
+</script>
 {% endblock %}
