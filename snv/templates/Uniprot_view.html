@@ -12,7 +12,10 @@ h3{ position:relative; }
 h3 span{ position:absolute; top:-70px;}
 {% endblock %}
 
-{% block javascript %}<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">{% endblock %}
+{% block javascript %}<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">
+<script src="{{ STATIC_URL }}tooltip.js"></script> 
+
+{% endblock %}
 
 {% block title %}<span id = "basic"></span>Uniprot ID: {{uniprot.acc_number}} {% endblock %}
 {% block content %}
@@ -20,10 +23,35 @@ h3 span{ position:absolute; top:-70px;}
 <!-- ################## Uniprot BASIC VIEW ##################################-->
 <div class="row row-offcanvas row-offcanvas-right"> 
         <div class="col-xs-12 col-sm-9"><!-- Left Canvas-->
+<h3>Sequence</h3>
+<div class = "well">   
+    <p class="wrap" style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">{{ uniprot.get_seq }}</p>
 
-<div class = "well">
-    <h3>Sequence :</h3>
-    <p class="wrap">{{ uniprot.sequence }}</p>
+<!-- Button trigger modal -->
+<button class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+  Get raw sequence 
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>      
+		<h4 class="modal-title" id="myModalLabel">ID: {{uniprot.acc_number}}</h4>
+      </div>
+      <div class="modal-body" style ="word-wrap:break-word;" >
+			{{uniprot.sequence}}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</button>
 </div>
 <div class = "well">
 	
@@ -86,8 +114,10 @@ h3 span{ position:absolute; top:-70px;}
 
 <h3>Mapping SNV to the sequence</h3>
 <div class = "well">
-<p style ="word-wrap:break-word;">{{mapped_seq|safe}}</p>
+<p  style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">{{mapped_seq|safe}}</p>
 </div>
+<strong><p>Colour code:</p></strong>
+<p><code style="background-color:red;color:white;">A</code> Disease, <code style="background-color:green;color:white;">A</code> Polymorphism, <code style="background-color:blue;color:white;">A</code> Unclassified, <code style="background-color:purple;color:white;">A</code> Multiple variations </p>      
 
 
 	<h3><span id = "snvs"></span>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}:</h3>
@@ -112,7 +142,7 @@ h3 span{ position:absolute; top:-70px;}
 				<td>{{item.uniprot_position}}</td>
 				<td>{{item.wt_aa.one_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.one_letter_code}}</td>
 				{% if item.db_snp %}
-					<td><span title="External link to dbSNP"><a href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{item.db_snp}}" target='_blank'>{{item.db_snp}}</a></span></td>
+					<td><a data-toggle="popover" data-content="External link to dbSNP"  href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{item.db_snp}}" target='_blank'>{{item.db_snp}}</a></td>
 				{% else %}
 					<td></td>
 				{% endif %}
@@ -124,7 +154,7 @@ h3 span{ position:absolute; top:-70px;}
 					</table></td>
 					<td><table>
 						{% for element in item.diseases.all %}
-						<tr><td><span title="External link to OMIM"><a href="http://omim.org/entry/{{element.mim}}" target='_blank'>{{element.mim}}</span></a></td></tr>
+						<tr><td><a data-toggle="popover" data-content="External link to OMIM"  href="http://omim.org/entry/{{element.mim}}" target='_blank'>{{element.mim}}</a></td></tr>
 						{% endfor %}
 					</table></td>
 					
@@ -140,8 +170,8 @@ h3 span{ position:absolute; top:-70px;}
 			<p>The protein has no associated SNV entries</p>
 		{% endif %}
 
-
         </div><!--/span-->
+
 
 <!-- ################## NAVIGATION BAR ##################################-->
         <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
@@ -156,4 +186,23 @@ h3 span{ position:absolute; top:-70px;}
         </div><!--/span-->
       </div><!--/row-->
 {% endblock %}
-{% block extraplugin %} <script src="{{ STATIC_URL }}offcanvas.js"></script>  <script src="{{ STATIC_URL }}tooltip.js"></script> {% endblock %}
+
+{% block extraplugin %}
+<script type="text/javascript">
+$('[data-toggle="tooltip"]').tooltip({
+    'placement': 'top'
+});
+$('[data-toggle="popover"]').popover({
+    trigger: 'hover',
+        'placement': 'top'
+});
+
+$('#userNameField').tooltip({
+    'show': true,
+        'placement': 'bottom',
+        'title': "Please remember to..."
+});
+
+$('#userNameField').tooltip('show');
+</script>
+{% endblock %}

@@ -26,6 +26,14 @@ class Uniprot(models.Model):
 			snvlist.extend(item.snvs.all())		
 		return snvlist
 
+	def get_seq(self):
+		mod_seq = ''
+		for curr_pos in range(len(self.sequence)):
+			if((curr_pos)%10 ==0):
+				mod_seq = mod_seq + ' '			
+			mod_seq = mod_seq+self.sequence[curr_pos]
+		return mod_seq
+
 	def get_mapping_seq(self):
 		seq=self.sequence
 		mod_seq=''		
@@ -36,22 +44,41 @@ class Uniprot(models.Model):
 				mod[snv.uniprot_position].append(snv)
 			else:
 				mod[snv.uniprot_position]=[snv]
-		sorted_mod = sorted(mod.items(), key=lambda t: t[0])
-		pos = sorted_mod.pop(0)
-		for curr_pos in range(len(seq)):		
+		
+		if len(mod)==0:
+			return '<p>No SNV Found</p>'		
+		sorted_mod = sorted(mod.items(), key=lambda t: t[0]) #list of snv [pos0,pos1] pos0 = residue number, pos1 = snv obj 
+		pos = sorted_mod.pop(0)		
+		for curr_pos in range(len(seq)):
+			if((curr_pos)%10 ==0):
+				mod_seq = mod_seq + ' '		
 			if(curr_pos<pos[0]-1):
 				mod_seq = mod_seq + seq[curr_pos]
 			else: 
-				pos_mute = ''
+				pos_mute = ''			
+				color = 'purple'
+				if len(pos[1])==1:
+					if pos[1][0].type.type =='Disease':
+						color = 'red'
+					elif pos[1][0].type.type =='Polymorphism':	
+						color = 'green'
+					elif pos[1][0].type.type =='Unclassified':	
+						color = 'blue'						
 				for item in pos[1]:
-					pos_mute=pos_mute + item.mutant_aa.one_letter_code + ' '
-				mod_seq = mod_seq + '<mark><b><a href="" class="text-danger" title="Position = '+str(curr_pos+1)+' Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></b></mark>'		
+					pos_mute=pos_mute + item.mutant_aa.one_letter_code +'('+item.type.type+') '	
+				mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a style="color:white;" data-toggle="popover" data-content="Position: '+str(curr_pos+1)+' Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'		
 				if(len(sorted_mod)>0):
 					pos = sorted_mod.pop(0)				
 				else:				
-					mod_seq = mod_seq+seq[curr_pos+1:]
+					while curr_pos <len(seq)-1:
+						curr_pos+=1
+						if((curr_pos)%10 ==0):
+							mod_seq = mod_seq + '  '							
+						mod_seq = mod_seq+seq[curr_pos]
+						
 					break		
 		return mod_seq
+
 
 	def interacting_partners(self):
 		chains = self.chains.all()
@@ -207,9 +234,21 @@ class Snv(models.Model):
 		uniobj = Uniprot.objects.filter(acc_number=self.uniprot) #get a list of object (it should return a list with one element inside)
 		mod_seq = ''		
 		if(len(uniobj)!=0): #if the object is available in our database
-			pre_seq =  uniobj[0].sequence
-			mod_seq =  pre_seq[:self.uniprot_position-1]+'<mark><b><span class="text-danger" title="Original Amino Acid ='+self.wt_aa.one_letter_code+' ">'+self.mutant_aa.one_letter_code+'</span></b></mark>'+pre_seq[self.uniprot_position:]		
-		 	
+			pre_seq =  uniobj[0].sequence #get sequence data
+			for curr_pos in range(len(pre_seq)): #run through all position
+				if curr_pos%10 ==0:
+					mod_seq = mod_seq + '  '
+				if curr_pos==self.uniprot_position-1:
+					color = 'purple'
+					if self.type.type =='Disease':
+						color = 'red'
+					elif self.type.type =='Polymorphism':	
+						color = 'green'
+					elif self.type.type =='Unclassified':	
+						color = 'blue'	
+					mod_seq =  mod_seq+'<mark style="background-color:'+color+'"><a style="color:white;" data-toggle="popover" data-content="Position:'+str(self.uniprot_position)+', Original Amino Acid:'+self.wt_aa.one_letter_code+' ">'+self.mutant_aa.one_letter_code+'</a></mark>'				 		
+				else:				
+					mod_seq = mod_seq + pre_seq[curr_pos]	
 		return mod_seq
 
 	def get_similar_snv(self):
@@ -280,7 +319,7 @@ class PfamHmm(models.Model):
     type = models.CharField(max_length=50L)
     length = models.IntegerField()
     clan = models.CharField(max_length=50L)
-    uniprots =  models.ManyToManyField(Uniprot,through='UniprotPfamMapping',related_name='pfam_hmms')
+    uniprots = models.ManyToManyField(Uniprot,through='UniprotPfamMapping',related_name='pfam_hmms')
     class Meta:
         db_table = 'pfam_hmm'
 
@@ -306,6 +345,8 @@ class ActiveSiteResidue(models.Model):
     residue = models.ForeignKey(UniprotResidue,db_column='active_site_ur_id',related_name='active_site_residues')
     class Meta:
         db_table = 'active_site_residue'
+
+
 
 
 
