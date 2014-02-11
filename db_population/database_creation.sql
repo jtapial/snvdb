@@ -135,6 +135,7 @@ hmm_acc VARCHAR(12) NOT NULL,
 name VARCHAR(50) NOT NULL,
 type VARCHAR(50) NOT NULL,
 length INT NOT NULL,
+clan VARCHAR(50) NOT NULL,
 PRIMARY KEY (hmm_acc)
 );
 CREATE TABLE uniprot_pfam_mapping (
@@ -158,4 +159,13 @@ FOREIGN KEY (alignment_start_ur_id) REFERENCES uniprot_residue (id),
 FOREIGN KEY (alignment_end_ur_id) REFERENCES uniprot_residue (id),
 FOREIGN KEY (envelope_start_ur_id) REFERENCES uniprot_residue (id),
 FOREIGN KEY (envelope_end_ur_id) REFERENCES uniprot_residue (id)
+);
+CREATE TABLE active_site_residue (
+id INT AUTO_INCREMENT NOT NULL,
+up_mapping_id INT NOT NULL,
+active_site_ur_id INT NOT NULL,
+PRIMARY KEY (id),
+FOREIGN KEY (up_mapping_id) REFERENCES uniprot_pfam_mapping (id),
+FOREIGN KEY (active_site_ur_id) REFERENCES uniprot_residue (id),
+UNIQUE(up_mapping_id,active_site_ur_id)
 );
