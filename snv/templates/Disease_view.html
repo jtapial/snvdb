@@ -1,12 +1,28 @@
 {% extends "base.html" %}
-{% block pagetitle %}{{disease.mim}}{% endblock %}
-{% block title %} {{disease.name}}{% endblock %}
+{% block pagetitle %}Disease ID : {{disease.mim}}{% endblock %}
+{% block css%}
+
+h1{ position:relative; }
+h1 span{ position:absolute; top:-70px;}
+h3{ position:relative; }
+h3 span{ position:absolute; top:-70px;}
+{% endblock %}
+
+{% block javascript %}<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">{% endblock %}
+{% block title %}<span id = "basic"></span>{{disease.name}}{% endblock %}
 {% block content %}
+<!-- ################## DISEASE BASIC VIEW ##################################-->
+
+<div class="row row-offcanvas row-offcanvas-right"> 
+        <div class="col-xs-12 col-sm-9"><!-- Left Canvas-->
+
+
 <div class = "well">
 	<h4>Disease ID: {{disease.mim}} [<a href = "http://www.omim.org/entry/{{disease.mim}}" target = "_blank">Link</a>]</h4>
-   <h4>Disease Name: {{disease.name}}</h4>
+	<h4>Disease Name: {{disease.name}}</h4>
 </div>
-<h3>Related Diseases Summary</h3>
+
+<h3><span id = "summary"></span>Related Diseases Summary</h3>
 
 <div class = "well">
 	{% if diseases %}	
@@ -20,7 +36,7 @@
 	{% endif %}
 </div>
 
-<h3>Related SNVs, Uniprots, and Diseases</h3>
+<h3><span id = "snvs"></span>Related SNVs, Uniprots, and Diseases</h3>
 
 	<p>Found {{ snv_list|length }} related SNV{{ snv_list|pluralize }}</p>
 	<p>Uniprot Acc Numbers marked with <span class="text-danger">red colour</span> are not available to view in detail</p>
@@ -30,25 +46,55 @@
 	<table class="table table-condensed table-hover">
 		<tr>
 			<th>ID</th>
-			<th>WT AA</th>
-			<th>Mutant AA</th>
-			<th>Uniprot Acc Number</th>
-			<th>Uniprot Position</th>
-			<th>Related Diseases</th>
+			<th>Uniprot</th>
+			<th>Position</th>
+			<th>Mutation</th>
+			<th>Directly associated diseases</th>
 		</tr>
   	{% for item in snv_list %}
 		<tr>
 			<td><a href = {{item.obj.get_absolute_url}} target ='_blank'>{{item.obj.ft_id}}</td>
-			<td>{{item.obj.wt_aa.three_letter_code}}</td>
-			<td>{{item.obj.mutant_aa.three_letter_code}}</td>
 			{% if item.obj.uniprot_residue.all %}<td><a href = '{% url "uniprot-view" pk=item.obj.uniprot %}'>{{item.obj.uniprot}}</td>{% else %}<td class="text-danger">{{item.obj.uniprot}}{% endif %}</td>
 			<td>{{item.obj.uniprot_position}}</td>	
-			<td><ul class="list-unstyled">{% for disease in item.disease_set %}<li><a href = {{disease.get_absolute_url}} target='_blank'>{{disease.mim}} | {{disease.name}}</a></li>{% endfor %}</ul></td>
+			<td>{{item.obj.wt_aa.three_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.obj.mutant_aa.three_letter_code}}</td>			
+			<td>{% for disease_item in item.obj.diseases.all %}<a href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a></br>{% endfor %}</td>			
 		</tr>
 	{% endfor %}
 	</table>
+
+<h3><span id = "uniprots"></span>Related Uniprots and their associated diseases</h3>
+
+	<table class="table table-condensed table-hover">
+		<tr>
+			<th>Uniprot</th>
+			<th>Associated diseases from this Uniprot</th>
+		</tr>
+		{% for uniprot in uniprots %}
+		<tr>
+			<td>{{uniprot.0}}</td>
+			<td>{% for disease_item in uniprot.1 %}<a href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a></br>{% endfor %}</td>
+		</tr>
+		{% endfor %}
+	</table>	
 	{% endif %}
 
+<!-- <td><ul class="list-unstyled">{% for disease_item in item.disease_set %}<li><a href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a></li>{% endfor %}</ul></td> -->
 
+
+        </div><!--/span-->
+
+<!-- ################## NAVIGATION BAR ##################################-->
+        <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+          <div class="span3 bs-docs-sidebar">
+			<ul class="nav nav-list bs-sidenav affix">
+			  <li><a href="#basic"><span class="glyphicon glyphicon-chevron-right"></span> Basic information</a></li>
+			  <li><a href="#summary"><span class="glyphicon glyphicon-chevron-right"></span> Related diseases Summary</a></li>
+			  <li><a href="#snvs"><span class="glyphicon glyphicon-chevron-right"></span> Related SNVs list</a></li>
+			  <li><a href="#uniprots"><span class="glyphicon glyphicon-chevron-right"></span> Related Uniprot list</a></li>
+
+			</ul>
+        </div><!--/span-->
+      </div><!--/row-->
 
 {% endblock %}
+{% block extraplugin %} <script src="{{ STATIC_URL }}offcanvas.js"></script> {% endblock %}
