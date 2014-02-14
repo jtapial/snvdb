@@ -264,7 +264,7 @@ class Snv(models.Model):
 					mod_seq = mod_seq + '  '
 				if curr_pos==self.uniprot_position-1:
 					color = get_color([self])
-					mod_seq =  mod_seq+'<mark style="background-color:'+color+'"><a style="color:white;" data-toggle="popover" data-content="Position:'+str(self.uniprot_position)+', Original Amino Acid:'+self.wt_aa.one_letter_code+' ">'+self.mutant_aa.one_letter_code+'</a></mark>'				 		
+					mod_seq =  mod_seq+'<mark style="background-color:'+color+'"><a style="color:white;" title="Position:'+str(self.uniprot_position)+', Original Amino Acid:'+self.wt_aa.one_letter_code+' ">'+self.mutant_aa.one_letter_code+'</a></mark>'				 		
 				else:				
 					mod_seq = mod_seq + pre_seq[curr_pos]	
 		return mod_seq
@@ -331,13 +331,14 @@ class SnvUniprotResidue(models.Model):
     class Meta:
         db_table = 'snv_uniprot_residue'
 
+
 class PfamHmm(models.Model):
     acc = models.CharField(max_length=12L, primary_key=True,db_column="hmm_acc")
     name = models.CharField(max_length=50L)
     type = models.CharField(max_length=50L)
     length = models.IntegerField()
     clan = models.CharField(max_length=50L)
-    uniprots = models.ManyToManyField(Uniprot,through='UniprotPfamMapping',related_name='pfam_hmms')
+    uniprots =  models.ManyToManyField(Uniprot,through='UniprotPfamMapping',related_name='pfam_hmms')
     class Meta:
         db_table = 'pfam_hmm'
 
@@ -363,10 +364,6 @@ class ActiveSiteResidue(models.Model):
     residue = models.ForeignKey(UniprotResidue,db_column='active_site_ur_id',related_name='active_site_residues')
     class Meta:
         db_table = 'active_site_residue'
-
-
-
-
 
 
 
