@@ -11,9 +11,11 @@ h1 span{ position:absolute; top:-70px;}
 h3{ position:relative; }
 h3 span{ position:absolute; top:-70px;}
 {% endblock %}
-
+{% load staticfiles %}
 {% block javascript %}<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">
 <script src="{{ STATIC_URL }}tooltip.js"></script> 
+<script type="text/javascript" src="{{BASE_URL}}{% static 'jsmol/jsmol/JSmol.min.js'%}"></script> 
+
 
 {% endblock %}
 
@@ -27,32 +29,31 @@ h3 span{ position:absolute; top:-70px;}
 <div class = "well">   
     <p class="wrap" style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">{{ uniprot.get_seq }}</p>
 
-<!-- Button trigger modal -->
-<button class="btn btn-primary" data-toggle="modal" data-target="#myModal">
-  Get raw sequence 
-</button>
+	<!-- Button trigger modal -->
+	<button class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+	  Get raw sequence 
+	</button>
 
-<!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>      
-		<h4 class="modal-title" id="myModalLabel">ID: {{uniprot.acc_number}}</h4>
-      </div>
-      <div class="modal-body" style ="word-wrap:break-word;" >
-			{{uniprot.sequence}}
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
+	<!-- Modal -->
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+		<div class="modal-content">
+		  <div class="modal-header">
+		    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>      
+			<h4 class="modal-title" id="myModalLabel">ID: {{uniprot.acc_number}}</h4>
+		  </div>
+		  <div class="modal-body" style ="word-wrap:break-word;" >
+				{{uniprot.sequence}}
+		  </div>
+		  <div class="modal-footer">
+		    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
+</div><!-- End Well -->
 
 
-</button>
-</div>
 <div class = "well">
 	
 	<h3><span id = "chains"></span>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}:</h3>
@@ -88,8 +89,16 @@ h3 span{ position:absolute; top:-70px;}
 
 <div class = "well">
 	<h3><span id = "interactions"></span>Found {{uniprot.interactions | length}} interaction entries for the protein {{uniprot.acc_number}}:</h3>
-		{% if uniprot.interactions %}		
+		{% if uniprot.interactions %}
+			<!-- POP UP JAVA SCRIPT--> 
+			<script>
+				function myFunction(url)
+				{
+					cuteLittleWindow = window.open(url, "_blank", "location=no,width=600,height=850");
+				}
+			</script> 
 
+			<!-- END OF POP UP JAVA SCRIPT-->
 			<table class="table table-condensed table-hover">
 
 				<tr>
@@ -97,13 +106,15 @@ h3 span{ position:absolute; top:-70px;}
 					<td><strong>Partner 1</strong></td>
 					<td><strong>Partner 2</strong></td>
 					<td><strong>Type</strong></td>
+					<th>View Interaction</th>
 				</tr>
 				{% for item in uniprot.interactions %}
 					<tr>
-						<td><a href="{% url 'interaction-view' pk=item.id %}">{{item.id}}</a></td>
+						<td>{{item.id}}</td>
 						<td><a href="{% url 'uniprot-view' pk=item.chain_1.uniprot.acc_number %}">{{item.chain_1.uniprot.acc_number}}</a></td>
 						<td><a href="{% url 'uniprot-view' pk=item.chain_2.uniprot.acc_number %}">{{item.chain_2.uniprot.acc_number}}</a></td>
 						<td>{{item.type.type}}</td>
+						<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.id %}')">See Interaction</button></td>
 					</tr>
 				{% endfor %}
 			</table>
@@ -113,11 +124,32 @@ h3 span{ position:absolute; top:-70px;}
 </div>
 
 <h3>Mapping SNV to the sequence</h3>
+<div class="alert alert-info">
+<p>Hover and click on each SNV position to see more detail. </p>
+</div>
 <div class = "well">
 <p  style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">{{mapped_seq|safe}}</p>
 </div>
 <strong><p>Colour code:</p></strong>
 <p><code style="background-color:red;color:white;">A</code> Disease, <code style="background-color:green;color:white;">A</code> Polymorphism, <code style="background-color:blue;color:white;">A</code> Unclassified, <code style="background-color:purple;color:white;">A</code> Multiple variations </p>      
+<!-- MODAL TO DISPLAY WHEN CLICKING ON MUTIPLE MUTATION POSSITION-->
+<div style="display: none;" id="addBookDialog" class="modal fade bs-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title" id="mySmallModalLabel">Select the SNV you would like to see</h4>
+        </div>
+        <div class="modal-body">
+		<div id="myResults"></div>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
+
+
 
 
 	<h3><span id = "snvs"></span>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}:</h3>
@@ -197,6 +229,11 @@ $('[data-toggle="popover"]').popover({
         'placement': 'top'
 });
 
+$('[data-toggle="modal"]').popover({
+    trigger: 'hover',
+        'placement': 'top'
+});
+
 $('#userNameField').tooltip({
     'show': true,
         'placement': 'bottom',
@@ -204,5 +241,23 @@ $('#userNameField').tooltip({
 });
 
 $('#userNameField').tooltip('show');
+
+
+
+
+$(document).on("click", ".open-AddBookDialog", function () {
+     var myBookId = $(this).data('id');
+
+	// 'Modern' browsers (IE8+, use CSS-style selectors)
+	document.querySelector('#myResults').innerHTML = myBookId;
+	// Using the jQuery library
+	$('#myResults').html(myBookId);
+	// Legacy browser support
+	document.getElementById('myResults').innerHTML = myBookId;
+     //$(".modal-body #bookId").val( myBookId );
+});
+
+
+
 </script>
 {% endblock %}

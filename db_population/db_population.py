@@ -10,10 +10,10 @@ from decimal import *
 
 # Database connection object
 # Will prompt for 
-db = MySQLdb.connect(host=raw_input('MySQL Host: '),
-					user=raw_input('MySQL Username: '),
-					passwd=getpass.getpass('MySQL Password: '),
-					db=raw_input('MySQL DB: '))
+db = MySQLdb.connect(host='localhost',
+					user='root',
+					passwd='snv1013',
+					db='snv')
 
 
 
@@ -927,29 +927,29 @@ def pfam_import():
 	
 ##METHOD CALLS:
 
-#create_tables()
+create_tables()
 
-#uniprot_import_from_fasta()
+uniprot_import_from_fasta()
 
-#snv_type_import()
+snv_type_import()
 
-#amino_acid_import()
+amino_acid_import()
 
-#snv_import()
+snv_import()
 
-#uniprot_residue_import()
+uniprot_residue_import()
 
-#disease_import()
+disease_import()
 
-#snv_disease_import()
+snv_disease_import()
 
-#chain_interaction_interaction_type_import()
+chain_interaction_interaction_type_import()
 
-#chain_residue_position_mapping_import()
+chain_residue_position_mapping_import()
 
-#interface_residue_import()
+interface_residue_import()
 
-#accessibility_import()
+accessibility_import()
 
 pfam_import()
 

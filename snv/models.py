@@ -14,6 +14,25 @@ from django.core.urlresolvers import reverse
 
 from Bio import Entrez
 
+##############################
+#     GLOBAL METHOD
+##############################
+
+#This method gets a list of SNVs and return appropriate color code to display
+def get_color(snv_list):
+	if len(snv_list)==1:
+		if snv_list[0].type.type =='Disease':
+			return  'red'
+		elif snv_list[0].type.type =='Polymorphism':	
+			return 'green'
+		elif snv_list[0].type.type =='Unclassified':	
+			return 'blue'
+	return 'purple'			
+
+
+##############################
+#     CLASSES
+############################## 
 class Uniprot(models.Model):
 	acc_number = models.CharField(max_length=6L, primary_key=True)
 	sequence = models.TextField(blank=True)
@@ -34,6 +53,8 @@ class Uniprot(models.Model):
 			mod_seq = mod_seq+self.sequence[curr_pos]
 		return mod_seq
 
+	###############################################
+	#This method returns html code for a sequence with mapped snvs 
 	def get_mapping_seq(self):
 		seq=self.sequence
 		mod_seq=''		
@@ -56,17 +77,20 @@ class Uniprot(models.Model):
 				mod_seq = mod_seq + seq[curr_pos]
 			else: 
 				pos_mute = ''			
-				color = 'purple'
-				if len(pos[1])==1:
-					if pos[1][0].type.type =='Disease':
-						color = 'red'
-					elif pos[1][0].type.type =='Polymorphism':	
-						color = 'green'
-					elif pos[1][0].type.type =='Unclassified':	
-						color = 'blue'						
-				for item in pos[1]:
-					pos_mute=pos_mute + item.mutant_aa.one_letter_code +'('+item.type.type+') '	
-				mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a style="color:white;" data-toggle="popover" data-content="Position: '+str(curr_pos+1)+' Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'		
+				color = get_color(pos[1])
+				if color == 'purple':#multiple mutation case
+					html = ''
+					for item in pos[1]:					
+						pos_mute=pos_mute + item.mutant_aa.one_letter_code +'('+item.type.type+') '	
+						html = html+"<p><a href = '"+item.get_absolute_url()+"' target='_blank'>ID: "+item.ft_id+", Mutation: "+item.mutant_aa.one_letter_code +" ("+item.type.type+") </a></p>"
+					mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="#" style="color:white;" class="open-AddBookDialog" data-id="'+html+'" data-toggle="modal" data-target=".bs-modal-sm"  data-content="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
+				else:#One mutation case
+					url = pos[1][0].get_absolute_url()
+					pos_mute=pos_mute + pos[1][0].mutant_aa.one_letter_code +'('+pos[1][0].type.type+') '	
+					mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="'+url+'" target="_blank"style="color:white;" data-toggle="popover" data-content="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
+
+					
+				
 				if(len(sorted_mod)>0):
 					pos = sorted_mod.pop(0)				
 				else:				
@@ -78,7 +102,7 @@ class Uniprot(models.Model):
 						
 					break		
 		return mod_seq
-
+	###########################################################
 
 	def interacting_partners(self):
 		chains = self.chains.all()
@@ -239,13 +263,7 @@ class Snv(models.Model):
 				if curr_pos%10 ==0:
 					mod_seq = mod_seq + '  '
 				if curr_pos==self.uniprot_position-1:
-					color = 'purple'
-					if self.type.type =='Disease':
-						color = 'red'
-					elif self.type.type =='Polymorphism':	
-						color = 'green'
-					elif self.type.type =='Unclassified':	
-						color = 'blue'	
+					color = get_color([self])
 					mod_seq =  mod_seq+'<mark style="background-color:'+color+'"><a style="color:white;" data-toggle="popover" data-content="Position:'+str(self.uniprot_position)+', Original Amino Acid:'+self.wt_aa.one_letter_code+' ">'+self.mutant_aa.one_letter_code+'</a></mark>'				 		
 				else:				
 					mod_seq = mod_seq + pre_seq[curr_pos]	
