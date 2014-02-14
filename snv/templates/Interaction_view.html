@@ -79,6 +79,9 @@
 	function hide_partner(partner){
 		Jmol.script(myJmol, 'hide hidden or :'+partner+';');
 	};
+	function color_range(start,end,color,partner){
+		Jmol.script(myJmol, 'select '+start+'-'+end+':'+partner+'; color '+color+';')
+	};
 
 	$(document).ready(function(){
 		// Bootstrap button calls
@@ -101,6 +104,11 @@
 				hide_partner("B");
 				$('#showhide2-btn').text('Show Partner 2');
 			}});
+		{% for mapping in interaction.chain_1.uniprot.pfam_mappings.all %}
+		$('#mapid{{mapping.id}}').click(function(){
+			color_range({{mapping.alignment_start_residue.position}},{{mapping.alignment_end_residue.position}},"blue","A");
+			});
+		{% endfor %}
 		});
 	
 	</script>
@@ -111,6 +119,10 @@
 	<button type="button" id="snvs-btn" class="btn btn-default">Map Snvs</button>
 	<button type="button" id="showhide1-btn" class="btn btn-default" data-toggle="button">Hide Partner 1</button>
 	<button type="button" id="showhide2-btn" class="btn btn-default" data-toggle="button">Hide Partner 2</button>
+	{% for mapping in interaction.chain_1.uniprot.pfam_mappings.all %}
+	<button type="button" id='mapid{{mapping.id}}' class="btn btn-default">{{mapping.hmm.acc}}</button>
+	{% endfor %}
 </div>
+
 
 {% endblock %}

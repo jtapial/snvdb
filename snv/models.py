@@ -332,7 +332,7 @@ class SnvUniprotResidue(models.Model):
         db_table = 'snv_uniprot_residue'
 
 class PfamHmm(models.Model):
-    hmm_acc = models.CharField(max_length=12L, primary_key=True)
+    acc = models.CharField(max_length=12L, primary_key=True,db_column="hmm_acc")
     name = models.CharField(max_length=50L)
     type = models.CharField(max_length=50L)
     length = models.IntegerField()
@@ -343,8 +343,8 @@ class PfamHmm(models.Model):
 
 class UniprotPfamMapping(models.Model):
     id = models.IntegerField(primary_key=True)
-    uniprot = models.ForeignKey(Uniprot,db_column='uniprot_acc_number')
-    pfam_hmm = models.ForeignKey(PfamHmm,db_column='hmm_acc')
+    uniprot = models.ForeignKey(Uniprot,db_column='uniprot_acc_number',related_name='pfam_mappings')
+    hmm = models.ForeignKey(PfamHmm,db_column='hmm_acc')
     alignment_start_residue = models.ForeignKey(UniprotResidue,db_column='alignment_start_ur_id',related_name='+')
     alignment_end_residue = models.ForeignKey(UniprotResidue,db_column='alignment_end_ur_id',related_name='+')
     envelope_start_residue = models.ForeignKey(UniprotResidue,db_column='envelope_start_ur_id',related_name='+')
