@@ -83,11 +83,11 @@ class Uniprot(models.Model):
 					for item in pos[1]:					
 						pos_mute=pos_mute + item.mutant_aa.one_letter_code +'('+item.type.type+') '	
 						html = html+"<p><a href = '"+item.get_absolute_url()+"' target='_blank'>ID: "+item.ft_id+", Mutation: "+item.mutant_aa.one_letter_code +" ("+item.type.type+") </a></p>"
-					mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="#" style="color:white;" class="open-AddBookDialog" data-id="'+html+'" data-toggle="modal" data-target=".bs-modal-sm"  data-content="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
+					mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="#" style="color:white;" class="open-AddBookDialog" data-id="'+html+'" data-toggle="modal" data-target=".bs-modal-sm"  title="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
 				else:#One mutation case
 					url = pos[1][0].get_absolute_url()
 					pos_mute=pos_mute + pos[1][0].mutant_aa.one_letter_code +'('+pos[1][0].type.type+') '	
-					mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="'+url+'" target="_blank"style="color:white;" data-toggle="popover" data-content="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
+					mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="'+url+'" target="_blank"style="color:white;" title="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
 
 					
 				
