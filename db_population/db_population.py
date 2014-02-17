@@ -10,10 +10,10 @@ from decimal import *
 
 # Database connection object
 # Will prompt for 
-db = MySQLdb.connect(host='localhost',
-					user='root',
-					passwd='snv1013',
-					db='snv')
+db = MySQLdb.connect(host=raw_input('MySQL Host: '),
+	user=raw_input('MySQL Username: '),
+	passwd=getpass.getpass('MySQL Password: '),
+	db=raw_input('MySQL DB: '))
 
 
 
