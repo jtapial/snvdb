@@ -77,6 +77,10 @@ class InteractionView(DetailView):
 
 		return interaction
 
+class SuperpositionView(DetailView):
+	model = SuperpositionMapping
+	template_name = 'Superposition_view.html'
+
 ###################### BASIC VIEW ##################################
 
 def home(request):
