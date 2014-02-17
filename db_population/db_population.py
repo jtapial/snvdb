@@ -16,6 +16,7 @@ passwd=getpass.getpass('MySQL Password: '),
 db=raw_input('MySQL DB: '))
 
 
+
 ##METHOD DEFINITION:
 
 def create_tables():
