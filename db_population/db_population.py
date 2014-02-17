@@ -149,6 +149,230 @@ def amino_acid_import():
 	print("Populated amino_acid table")
 
 
+def uniprot_gene_code_check(tuples):
+	#This method takes a list of tuples (uniprot ID, gene code), then queries Uniprot with the batch of IDs and corrects the gene codes.
+	#The output is a list of corrected gene codes
+	
+	print "Initiating retrieval from Uniprot"
+	code_list = [x[1] for x in tuples]
+	uniprot_ids = [x[0] for x in tuples]
+	
+	uniprot_string = ' '.join(uniprot_ids)
+	
+	#Generate url POST request for Uniprot batch retrieval
+
+	url = "http://www.uniprot.org/batch/"
+
+	params = {
+		'format': 'txt',
+		'query': uniprot_string
+	}
+
+	data = urllib.urlencode(params)
+	request = urllib2.Request(url, data)
+	contact = "javier.tapial-rodriguez13@imperial.ac.uk"
+	request.add_header('User-Agent', 'Python %s' % contact)
+
+	#Open and read the request (text flatfile)
+	
+	response = urllib2.urlopen(request)
+	
+	retrieval_file = response.read()
+
+	#Split the file by protein ("//"" Characters at the end of a line)
+
+	splitpage = retrieval_file.split('//\n')
+
+	#Regex compilation
+	uniprot_name_regex = re.compile('RecName:.*?Full=(.*?);')
+	gene_code_regex = re.compile('Name=(.*?);')
+
+	#Initialise variables for the dictionary creation (will use this for the final error report):
+	no_uniprot_found = []
+
+	#Creation of a dictionary (the keys are the uniprot accession numbers on the entries (maybe many per entry), and the values are the text entries for each protein
+	
+	uniprot_dict = {}
+	
+	for protein in splitpage:
+		extracted_uniprot_candidates = []
+	
+		for line in protein.split('\n'):
+			if line.startswith("AC"):
+				for item in line.split()[1:]:
+					extracted_uniprot_candidates.append(item.rstrip(";"))
+		
+		for item in extracted_uniprot_candidates:
+			uniprot_dict[item] = splitpage.index(protein)
+	
+	#Parsing of each uniprot entry
+
+	#Initialise general variables for the parsing (for the final error report)
+		
+		code_mismatch_list = []
+		code_mismatch_candidates_list = []
+		no_uniprot_name = []
+
+		#Initialise output list
+		correct_codes = []
+
+	for element in tuples:
+		u_id = element[0]
+		code = element[1]
+
+		#Initialise variables for each parsing
+		
+		extracted_code_candidates = []
+		extracted_uniprot_name = None
+		extracted_code = None
+
+		#Look for the dictionary value for each uniprot
+		try:
+			protein = splitpage[uniprot_dict[u_id]]
+		
+		#If no uniprot found in the dictionary, add this case to the final error report
+		except:
+			no_uniprot_found.append(u_id)
+			continue
+						
+		for line in protein.split('\n'):
+
+			#Look for gene codes and append them to the candidate list
+			if line.startswith('GN') and gene_code_regex.search(line):
+				for item in gene_code_regex.findall(line):
+					extracted_code_candidates.append(item) 
+			
+			#Look for uniprot full names and take the first one (we do not have any previous information about this for the edge cases)
+			elif line.startswith("DE") and uniprot_name_regex.search(line):
+				extracted_uniprot_name = uniprot_name_regex.search(line).group(1)
+			
+
+			#Try to fit the previous gene code to any of the candidates. If not possible, then pick the first one add this case to the final error report
+			for element in extracted_code_candidates:
+				if element.startswith(code):
+					extracted_code = element
+					break
+			
+		if extracted_code == None:
+			extracted_code = extracted_code_candidates[0]
+			code_mismatch_list.append(code)
+			code_mismatch_candidates_list.append(extracted_code_candidates)
+			
+		#Append the extracted code to the output
+		correct_codes.append(extracted_code)
+
+
+		#If no uniprot full name found, then add the uniprot accession number to the final error report
+		if extracted_uniprot_name == None:
+			no_uniprot_name.append(u_id)
+			
+	#Final message
+	print "Retrieval from uniprot complete. Fixed codes for: ", len(correct_codes), "entries"
+
+	##Final report of failures:
+
+	print "No uniprot found for: ", len(no_uniprot_found), "entries"
+	print no_uniprot_found
+	
+	print "Found: ", len(code_mismatch_list), "gene code mismatches"
+	for element1, element2 in zip(code_mismatch_list, code_mismatch_candidates_list):
+		print element1
+		print element2
+
+	print "No uniprot name found for: ", len(no_uniprot_name), "uniprots"
+	for element in no_uniprot_name:
+		print element
+	
+	#Return of results
+	return correct_codes
+	
+
+def idretrieval(codes):
+#Method to retrieve the ids using a list of gene codes as input
+	print "Retrieving GenBank ID from the local download for :", len(codes), "gene codes"
+
+	data_file = open('/data/geneDB/ftp.ncbi.nlm.nih.gov/gene/DATA/gene2accession', 'r')
+	id_dict = {}
+		
+	dataline = data_file.readline()
+	while dataline:
+		splitdataline = [x.rstrip() for x in dataline.split('\t')]
+		if splitdataline[0] == "9606":
+			for code in codes:
+				if splitdataline[-1] == code:
+					id_dict[code] = splitdataline[1]
+					codes.remove(code)
+					break
+					
+		
+		dataline = data_file.readline()
+
+	data_file.close()
+	
+	print "GenBank ID retrieval complete. Found ID for: ", len(id_dict.items()), "entries"
+	return id_dict.items()
+	
+
+
+def gene_import():
+	#Method to populate the gene table
+	#This method takes information from the humsavar file only. No interaction with the database.
+	#Code extraction from the humsavar file
+
+	print "Populating gene table"
+	
+	in_file_path = os.environ['SHARED_DATA'] + '/humsavar.txt'
+	in_file = open(in_file_path, 'r')
+	in_file_lines = in_file.readlines()
+
+	short_codes_raw = []
+	long_codes_tuples = []
+
+	for line in in_file_lines:
+		if not line.startswith('#'):
+			splitline = line.split(None,6)
+			code = splitline[0]
+			if len(code) < 9 :
+				short_codes_raw.append(code)
+			else:
+				uniprot_id = splitline[1]
+				long_codes_tuples.append((uniprot_id,code))
+			
+
+	short_codes = list(set(short_codes_raw))
+
+	long_codes_unique_tuples = list(set(long_codes_tuples))
+
+	print "Gene code extraction complete."
+	print "Total number of codes: ", len(short_codes + long_codes_unique_tuples)
+	print len(short_codes), "codes extracted normally"
+	print len(long_codes_unique_tuples), "codes are likely to be truncated and will be checked online with Uniprot"
+
+	#Method calling:
+	correct_long_codes = uniprot_gene_code_check(long_codes_unique_tuples)
+
+	final_codes = short_codes + correct_long_codes
+
+	output = idretrieval(final_codes)
+
+
+	#Write results into the database:
+
+
+	for entry in output:
+		try:
+			cur.execute('INSERT INTO gene VALUES (%s,%s)', entry)
+			db.commit()
+
+		except:
+			print "Database error for entry: ", entry
+			db.rollback()
+			continue
+
+	print "Populated gene table"
+	in_file.close()
+
+
 def snv_import():
 
 #This script populates the "snv" table using the information in the "humsavar.txt" file.
@@ -934,6 +1158,8 @@ uniprot_import_from_fasta()
 snv_type_import()
 
 amino_acid_import()
+
+gene_import()
 
 snv_import()
 
