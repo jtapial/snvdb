@@ -169,3 +169,13 @@ FOREIGN KEY (up_mapping_id) REFERENCES uniprot_pfam_mapping (id),
 FOREIGN KEY (active_site_ur_id) REFERENCES uniprot_residue (id),
 UNIQUE(up_mapping_id,active_site_ur_id)
 );
+CREATE TABLE combined_uniprot_mapping (
+id INT AUTO_INCREMENT NOT NULL,
+ref_chain_id INT NOT NULL,
+target_chain_id INT NOT NULL,
+target_chain_letter CHAR(1) NOT NULL,
+PRIMARY KEY (id),
+FOREIGN KEY (ref_chain_id) REFERENCES chain (id),
+FOREIGN KEY (target_chain_id) REFERENCES chain (id),
+UNIQUE (ref_chain_id,target_chain_id,target_chain_letter)
+);
