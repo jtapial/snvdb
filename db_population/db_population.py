@@ -7,6 +7,8 @@ import os
 import re
 import getpass
 from decimal import *
+import urllib
+import urllib2
 
 # Database connection object
 # Will prompt for 
@@ -312,7 +314,9 @@ def idretrieval(codes):
 #Method to retrieve the ids using a list of gene codes as input
 	print "Retrieving GenBank ID from the local download for :", len(codes), "gene codes"
 
-	data_file = open('/data/geneDB/ftp.ncbi.nlm.nih.gov/gene/DATA/gene2accession', 'r')
+	genepath = os.environ['GENE_DATA']
+
+	data_file = open(genepath+'/gene2accession', 'r')
 	id_dict = {}
 		
 	dataline = data_file.readline()
@@ -341,8 +345,10 @@ def gene_import():
 	#Code extraction from the humsavar file
 
 	print "Populating gene table"
+
+	cur = db.cursor()
 	
-	in_file_path = os.environ['SHARED_DATA'] + '/humsavar.txt'
+	in_file_path = os.environ['SHARED'] + '/snv/data/humsavar.txt'
 	in_file = open(in_file_path, 'r')
 	in_file_lines = in_file.readlines()
 
@@ -393,6 +399,7 @@ def gene_import():
 	print "Populated gene table"
 	in_file.close()
 
+	cur.close()
 
 def snv_import():
 
@@ -512,7 +519,6 @@ def snv_import():
 					continue
 	
 	cur.close()
-	db.close()
 	in_file.close()
 
 def check_uniprot_online(uniprot_acc_number):
@@ -552,6 +558,8 @@ def check_uniprot_online(uniprot_acc_number):
 	else:
 		return False
 
+	cur.close()
+
 
 
 def add_this_snv(data_list):
@@ -582,6 +590,7 @@ def add_this_snv(data_list):
 			print "Integrity error adding SNV FTID: ", data_list
 			pass
 
+	cur.close()
 
 def uniprot_residue_import():
 	
@@ -1180,17 +1189,17 @@ def pfam_import():
 	
 ##METHOD CALLS:
 
-create_tables()
+#create_tables()
 
-uniprot_import_from_fasta()
+#uniprot_import_from_fasta()
 
-snv_type_import()
+#snv_type_import()
 
-amino_acid_import()
+#amino_acid_import()
 
-gene_import()
+#gene_import()
 
-snv_import()
+#snv_import()
 
 uniprot_residue_import()
 
