@@ -34,7 +34,7 @@ def create_tables():
 	
 
 def uniprot_import_from_fasta():
-	#This populates the uniprot table in two stages from the data in the provided FASTA files
+	#This performs the first stage of the uniprot table population (from the data in the provided fasta files). The second stage is done along with the snv table population
 		
 	print("Populating uniprot table from FASTA files")
 	cur = db.cursor()
@@ -42,10 +42,14 @@ def uniprot_import_from_fasta():
 	fasta_path = os.environ['SNV_DATA'] + "/FASTA/Fasta"
 
 	filenames = os.listdir(fasta_path)
+	
+	name_regex = re.compile('^>\w*?\|\w*\|\w+\s+(.*?)\sOS=')
+	match_errors = []
 
 	# For files in directory
 	# Find ones ending in '.txt' i.e. FASTA sequences
 	# Extract uniprot id and sequence
+	# Query Uniprot to extract the name
 	# Insert into uniprot table
 	for filename in filenames:
 		if filename[-4:] == ".txt":
@@ -55,8 +59,23 @@ def uniprot_import_from_fasta():
 			for line in fasta_file:
 				if line[0] != ">":
 					seq += line.rstrip()
+					
+					
+			webpage = urllib.urlopen("http://www.uniprot.org/uniprot/" + uniprot + ".fasta")
+			line = webpage.readline()
+			
+			if name_regex.match(line):
+				uniprot_name = name_regex.match(line).group(1)
+			else:
+				uniprot_name = None
+				print "No match for uniprot: ", uniprot
+				match_errors.append(uniprot)
+			
+			
+			output = (uniprot, uniprot_name, seq)
+			
 			try:
-				cur.execute('INSERT INTO uniprot VALUES (%s,%s)',(uniprot,seq))
+				cur.execute('INSERT INTO uniprot VALUES (%s,%s,%s)', output)
 				db.commit()
 			except:
 				print "Error adding uniprot from FASTA file. Accession number: ", uniprot
@@ -65,6 +84,8 @@ def uniprot_import_from_fasta():
 
 	cur.close()
 	print("Added Uniprot entries from FASTA files")
+
+
 
 	
 
@@ -501,20 +522,27 @@ def check_uniprot_online(uniprot_acc_number):
 	#If there is not, it returns false
 	
 	cur = db.cursor()
-
+	name_regex = re.compile('^>\w*?\|\w*\|\w+\s+(.*?)\sOS=')
+	
 	webpage = urllib.urlopen("http://www.uniprot.org/uniprot/" + uniprot_acc_number + ".fasta")
 	lines = webpage.readlines()
 
 	for i in range(len(lines)):
 		lines[i] = lines[i].rstrip()
 	
+	header_line = lines[0]
+	if name_regex.match(header_line):
+		uniprot_name = name_regex.match(header_line).group(1)
+	else:
+		uniprot_name = None
+		
 	seq_lines = lines[1:]
 	seq_lines = ''.join(seq_lines)
 
 	#Check if the sequence is empty.
 	if seq_lines != "":
 		try:
-			cur.execute('INSERT INTO uniprot VALUES (%s, %s)', (uniprot_acc_number,seq_lines))
+			cur.execute('INSERT INTO uniprot VALUES (%s, %s, %s)', (uniprot_acc_number, uniprot_name, seq_lines))
 			return True
 		except:
 			print seq_lines
@@ -523,6 +551,7 @@ def check_uniprot_online(uniprot_acc_number):
 			return False
 	else:
 		return False
+
 
 
 def add_this_snv(data_list):

@@ -1,5 +1,6 @@
 CREATE TABLE uniprot (
 acc_number CHAR(6) NOT NULL,
+name VARCHAR(250),
 sequence TEXT,
 PRIMARY KEY (acc_number)
 );
