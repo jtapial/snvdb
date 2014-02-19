@@ -39,11 +39,20 @@ class Uniprot(models.Model):
 	class Meta:
 		db_table = 'uniprot'
 
-	def get_Snv(self):	#Return a list of all related snvs 
+	def get_Snv(self):	#Return a list of all related snvs and their statistics
 		snvlist=[]
 		for item in self.residues.all():					
 			snvlist.extend(item.snvs.all())		
-		return snvlist
+		di = po = un = 0		
+		for item in snvlist:
+			if item.type.type == 'Disease':
+				di+=1
+			elif item.type.type == 'Polymorphism':
+				po+=1
+			else:
+				un+=1
+
+		return [snvlist,[len(snvlist),di,po,un]]
 
 	def get_seq(self):
 		mod_seq = ''
@@ -54,7 +63,7 @@ class Uniprot(models.Model):
 		return mod_seq
 
 	###############################################
-	#This method returns html code for a sequence with mapped snvs 
+	#This method returns html code for a sequence with mapped snvs 	
 	def get_mapping_seq(self):
 		seq=self.sequence
 		mod_seq=''		
@@ -103,6 +112,16 @@ class Uniprot(models.Model):
 					break		
 		return mod_seq
 	###########################################################
+	def get_color(self):
+		if self.type.type =='Disease':
+			return  set('red')
+		elif self.type.type =='Polymorphism':	
+			return 'green'
+		elif self.type.type =='Unclassified':	
+			return 'blue'
+		return set('purple')	
+	
+
 
 	def interacting_partners(self):
 		chains = self.chains.all()

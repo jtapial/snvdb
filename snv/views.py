@@ -33,7 +33,8 @@ class UniprotView(DetailView):
 		data = super(UniprotView, self).get_context_data(**kwargs)
 		# Add in a QuerySet of all the ralated snv
 		obtained_data = self.object.get_Snv()		
-		data['snv_list']= obtained_data
+		data['snv_list']= obtained_data[0]
+		data['snv_statistic']=obtained_data[1]
 		data['mapped_seq']= self.object.get_mapping_seq()
 		return data
 	
