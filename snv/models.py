@@ -384,6 +384,13 @@ class ActiveSiteResidue(models.Model):
     class Meta:
         db_table = 'active_site_residue'
 
+class SuperpositionMapping(models.Model):
+    id = models.IntegerField(primary_key=True)
+    ref_chain = models.ForeignKey(Chain,db_column='ref_chain_id',related_name='superpositions_where_ref')
+    target_chain = models.ForeignKey(Chain,db_column='target_chain_id',related_name='superpositions_where_target')
+    target_chain_letter = models.CharField(max_length=1L)
+    class Meta:
+        db_table = 'combined_uniprot_mapping'
 
 
 
