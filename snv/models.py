@@ -301,10 +301,9 @@ class Snv(models.Model):
 	wt_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="wt_aa")
 	mutant_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="mutant_aa")
 	uniprot = models.CharField(max_length=6L,db_column="uniprot_acc_number")
-	uniprot_position = models.IntegerField()
+	uniprot_residue = models.ForeignKey(UniprotResidue,db_column='uniprot_residue_id',related_name='snvs')
 	gene_code = models.CharField(max_length=10L, blank=True)
 	db_snp = models.CharField(max_length=15L, blank=True)
-	uniprot_residue = models.ManyToManyField(UniprotResidue,through='SnvUniprotResidue',related_name="snvs") #similar to wt_aa, but it will be available only when their uniprots exist in database 
 
 	class Meta:
 		db_table = 'snv'
@@ -378,13 +377,6 @@ class SnvDisease(models.Model):
     disease = models.ForeignKey(Disease,db_column='mim')
     class Meta:
         db_table = 'snv_disease'
-
-class SnvUniprotResidue(models.Model):
-    id = models.IntegerField(primary_key=True)
-    snv = models.ForeignKey(Snv,db_column='ft_id')
-    uniprot_residue = models.ForeignKey(UniprotResidue, db_column='uniprot_residue_id') #db_column='uniprot_residue_id'
-    class Meta:
-        db_table = 'snv_uniprot_residue'
 
 
 class PfamHmm(models.Model):
