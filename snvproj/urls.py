@@ -22,6 +22,7 @@ urlpatterns = patterns('',
         url(r'^logout/$', 'django.contrib.auth.views.logout'),
         url(r'^search-form/$', snv.views.search_form),
         url(r'^search/$', snv.views.search, name='search-results',),
+        url(r'^viewer/(?P<uniprot_acc>(\D+|\d+)+)/$',snv.views.SuperpositionView.as_view(),name='superposition-view'),
         #url(r'^media/(?P<path>.*)$', 'django.views.static.serve',{'document_root': settings.MEDIA_ROOT}),
 
     # url(r'^snvproj/', include('snvproj.foo.urls')),

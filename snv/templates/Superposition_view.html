@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block pagetitle %}Uniprot ID: {{ uniprot.acc_number }}{% endblock %}
+{% block css %}
+{% endblock %}
+{% block javascript %}
+<script type="text/javascript" src="{{BASE_URL}}{% static 'jsmol/jsmol/JSmol.min.js'%}"></script> 
+{% endblock %}
+{% block title %}Reference Uniprot Accession: {{ uniprot.acc_number }}{% endblock %}
+{% block content %}
+<div align="center">
+<script type="text/javascript">
+		var Info = {
+  color: "#FFFFFF",  // white background (note this changes legacy default which was black)
+  height: 1000,      // pixels (but it may be in percent)
+  width: 1000,
+  use: "HTML5",         // "HTML5" or "Java" (case-insensitive)
+  j2sPath: "{{ BASE_URL }}/static/jsmol/jsmol/j2s",           // only used in the HTML5 modality
+  defaultModel: "",
+  script: null,
+  src: null,
+  readyFunction: null,
+  addSelectionOptions: false,
+  debug: false
+};	
+
+	Jmol.getApplet("myJmol", Info);
+	reset_structure()
+
+	// load combined structure
+	function reset_structure(){
+		Jmol.script(myJmol,'zap; load {{BASE_URL}}{% static filename %}; select all; spacefill off; select protein; wireframe 50; color chain;');
+	};
+
+	function show_partner(chain_letter){
+		Jmol.script(myJmol, 'hide hidden and not :'+chain_letter+';');
+	};
+	function hide_partner(chain_letter){
+		Jmol.script(myJmol, 'hide hidden or :'+chain_letter+';');
+	};
+
+	$(document).ready(function(){
+		// Bootstrap button calls
+		$('#reset-btn').click(function(){reset_structure()});
+
+		$('#ref-chain-btn').click(function(){
+			if ($('#ref-chain-btn').hasClass('active')){
+				show_partner('A');
+			} else {
+				hide_partner("A");
+			}});
+
+		{% for assignment in assignments %}
+		$('#{{assignment.target_chain.id}}{{assignment.target_chain_letter}}').click(function(){
+			if ($('#{{assignment.target_chain.id}}{{assignment.target_chain_letter}}').hasClass('active')){
+				show_partner('{{assignment.target_chain_letter}}');
+			} else {
+				hide_partner('{{assignment.target_chain_letter}}');
+			}
+		});
+		{% endfor %}
+
+	});
+
+</script>
+</div>
+<div class="btn-group">
+	<button type="button" id="reset-btn" class="btn btn-default">Reset</button>
+	<button type="button" id="ref-chain-btn" class="btn btn-default" data-toggle="button">Ref: {{uniprot.acc_number}}({{ref_chain.id}})</button>
+	{% for assignment in assignments %}
+	<button type="button" id="{{assignment.target_chain.id}}{{assignment.target_chain_letter}}" class="btn btn-default" data-toggle="button">{{assignment.target_chain.uniprot.acc_number}}({{assignment.target_chain.id}})</button>
+	{% endfor %}
+</div>
+{% endblock %}
