@@ -20,6 +20,9 @@ from django.core.urlresolvers import reverse #for edit & create
 
 
 
+
+
+
 class UniprotList(ListView):
 	model = Uniprot
 	template_name = 'Uniprot_list.html'
@@ -36,6 +39,7 @@ class UniprotView(DetailView):
 		data['snv_list']= obtained_data[0]
 		data['snv_statistic']=obtained_data[1]
 		data['mapped_seq']= self.object.get_mapping_seq()
+		data['chains']=self.object.get_graphic()
 		return data
 	
 class DiseaseView(DetailView):

@@ -43,7 +43,8 @@ h3 span{ position:absolute; top:-70px;}
 			<h4 class="modal-title" id="myModalLabel">ID: {{uniprot.acc_number}}</h4>
 		  </div>
 		  <div class="modal-body" style ="word-wrap:break-word;" >
-				{{uniprot.sequence}}
+<input type="button" class="btn btn-primary btn-lg" value = "FASTA" onclick="window.open('http://www.uniprot.org/uniprot/{{uniprot.acc_number}}.fasta','_blank','resizable=yes')" />
+
 		  </div>
 		  <div class="modal-footer">
 		    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -54,11 +55,11 @@ h3 span{ position:absolute; top:-70px;}
 </div><!-- End Well -->
 
 
-<div class = "well">
-	
+
+<!-- #######################################    CHAINS   ############################################################################-->	
 	<h3><span id = "chains"></span>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}:</h3>
 		{% if uniprot.chains.all %}
-			<table class="table table-condensed table-hover">
+			<table class="table table-condensed">
 				<tr>
 					<td><strong>PDB id</strong></td>
 					<td><strong>PDB chain</strong></td>
@@ -68,27 +69,48 @@ h3 span{ position:absolute; top:-70px;}
 					<td><strong>Sequence start</strong></td>
 					<td><strong>Sequence end</strong></td>
 				</tr>
-			{% for item in uniprot.chains.all %}
+			{% for item in chains %}
 				<tr>
-					<td>{{item.pdb_id}}</td>
-					<td>{{item.pdb_chain}}</td>
-					<td>{{item.pdb_model}}</td>
-					<td>{{item.seq_identity}}</td>
-					<td>{{item.coverage}}</td>
-					<td>{{item.seq_start}}</td>
-					<td>{{item.seq_end}}</td>
+					<td><a data-toggle="popover" data-content="External link to PDB" target="_blank" href = "http://www.rcsb.org/pdb/explore/explore.do?structureId={{item.obj.pdb_id}}">{{item.obj.pdb_id}}</td>
+					<td>{{item.obj.pdb_chain}}</td>
+					<td>{{item.obj.pdb_model}}</td>
+					<td>{{item.obj.seq_identity}}</td>
+					<td>{{item.obj.coverage}}</td>
+					<td>{{item.obj.seq_start}}</td>
+					<td>{{item.obj.seq_end}}</td>
 				</tr>
+				<tr>
+					<td colspan="7">{{item.graphic|safe}}</br>
+
+					<div class="panel-group" id="accordion">
+					  <div class="panel panel-default">
+						<div class="panel-heading">
+						  <h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion" href="#collapse{{item.obj.id}}">
+							  Show/Hide Alignment
+							</a>
+						  </h4>
+						</div>
+						<div id="collapse{{item.obj.id}}" class="panel-collapse collapse">
+						  <div class="panel-body" style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">
+							{{item.alignent|safe}}
+						  </div>
+						</div>
+					  </div>
+					</div>				
+					</td>
+				</tr>
+
 			{% endfor %}
 			</table>
 		{% else %}
 			<p>The protein has no registered chain entries</p>
 		{% endif %}
 
-</div>
-
-
+<!-- #######################################    INTERACTION   ############################################################################-->
+<h3><span id = "interactions"></span>Found {{uniprot.interactions | length}} interaction entries for the protein {{uniprot.acc_number}}:</h3>
 <div class = "well">
-	<h3><span id = "interactions"></span>Found {{uniprot.interactions | length}} interaction entries for the protein {{uniprot.acc_number}}:</h3>
+	
 		{% if uniprot.interactions %}
 			<!-- POP UP JAVA SCRIPT--> 
 			<script>
@@ -113,8 +135,8 @@ h3 span{ position:absolute; top:-70px;}
 						<td>{{item.id}}</td>
 						<td><a href="{% url 'uniprot-view' pk=item.chain_1.uniprot.acc_number %}">{{item.chain_1.uniprot.acc_number}}</a></td>
 						<td><a href="{% url 'uniprot-view' pk=item.chain_2.uniprot.acc_number %}">{{item.chain_2.uniprot.acc_number}}</a></td>
-						<td>{{item.type.type}}</td>
-						<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.id %}')">See Interaction</button></td>
+						<td>{{item.inter_type.inter_type}}</td>
+						<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.id %}')">View 3D Interaction</button> <a href = "{{BASE_URL}}{% static item.filename %}" target="_blank">link</a></td>
 					</tr>
 				{% endfor %}
 			</table>
@@ -153,9 +175,24 @@ h3 span{ position:absolute; top:-70px;}
 
 
 	<h3><span id = "snvs"></span>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}:</h3>
-		
 	{% if snv_list %}
+		<p>SNVs statistics</p>
 
+<div class="progress">
+  <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: {{snv_statistic.1}}%">
+    {{snv_statistic.1}}% Diseases
+  </div>
+</div>
+		<div class="progress">
+  <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: {{snv_statistic.2}}%">
+    {{snv_statistic.2}}% Polymorphisms
+  </div>
+</div>
+<div class="progress">
+  <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: {{snv_statistic.3}}%">
+    {{snv_statistic.3}}% Unclassified
+  </div>
+</div>
 		<table class="table table-condensed table-hover">
 			<tr>
 				<th>FT id</th>
@@ -170,7 +207,7 @@ h3 span{ position:absolute; top:-70px;}
 			{% for item in snv_list %}
 			<tr>
 				<td><a href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</td>
-				<td>{{item.type.type}}</td>
+				<td><code style="background-color:{% if item.type.type == 'Disease' %}red{% elif item.type.type == 'Polymorphism'%} green {% else %} blue {% endif %}; color:white;">{{item.type.type}} {{item.get_color.all}}</code></td>
 				<td>{{item.uniprot_position}}</td>
 				<td>{{item.wt_aa.one_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.one_letter_code}}</td>
 				{% if item.db_snp %}
@@ -191,8 +228,8 @@ h3 span{ position:absolute; top:-70px;}
 					</table></td>
 					
 				{% else %}
-					<td></td>
-					<td></td>
+					<td>N/A</td>
+					<td>N/A</td>
 				{% endif %}
 			</tr>
 			{% endfor %}

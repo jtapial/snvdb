@@ -52,7 +52,7 @@ class Uniprot(models.Model):
 			else:
 				un+=1
 
-		return [snvlist,[len(snvlist),di,po,un]]
+		return [snvlist,[len(snvlist),(di*100)/len(snvlist),(po*100)/len(snvlist),un*100/len(snvlist)]]
 
 	def get_seq(self):
 		mod_seq = ''
@@ -61,8 +61,9 @@ class Uniprot(models.Model):
 				mod_seq = mod_seq + ' '			
 			mod_seq = mod_seq+self.sequence[curr_pos]
 		return mod_seq
-	###############################################
+	####################################################################
 	#This method returns html code for SVG graphics
+	####################################################################
 	def get_graphic(self):
 		outset = []
 		for chain in self.chains.all():
@@ -75,41 +76,65 @@ class Uniprot(models.Model):
 			graphic_code +='</svg>'
 
 			#Alighment Method
-			align_code = ''
-			#Do each line for 60 letters
-			cutoff = 50
-			chain_res_set = chain.residues.all()
-			while True:
-				for curr_pos in range(length):
-					align_code = align_code+self.sequence[curr_pos]					
-					if((curr_pos)%10 ==0 and curr_pos>0):
-						align_code = align_code + ' '
-					if ((curr_pos%cutoff==0 and curr_pos>0) or curr_pos==length-1 ): #Second line
-						align_code+='</br>'
-						letter = chain_res_set.pop(0)
-						align_code+='second line</br>'
-			
-					
+			chain_res_set = list(chain.residues.all().extra(order_by = ['id']))
+			res = None			
+			if(chain_res_set):			
+				res = chain_res_set.pop(0)
+				mapping = res.uniprot_residue.all()[0].position
 
-				break
-			
+			align_code = '<code style="background-color:#428bca ; color:white;">Seq 1:</code> '
+			#Do each line for 50 letters
+			cutoff = 50
+
+			if res is not None:
+				second_line=0
+				for curr_pos in range(length):	
+					if((curr_pos)%10 ==0):#First Line
+						if(curr_pos!=0):
+							align_code = align_code + ' '
+					align_code = align_code+self.sequence[curr_pos]	
+
+					if ((((curr_pos+1)%cutoff)==0 and curr_pos>0) or curr_pos==length-1 ): #Second line
+						align_code+='</br><code style="background-color:#5bc0de ; color:white;">Seq 2:</code> '
+						#do until second line position == first line position						
+						while second_line <= curr_pos:
+							if ((second_line%10==0) and (second_line > 0)):				
+								align_code = align_code + ' '
+							
+							if(second_line == mapping-1): #shift in index, (position 1 = index 0 in python)
+								color = 'yellow'
+								if(res.amino_acid.one_letter_code != self.sequence[mapping-1]):
+									color='#FF6600'
+								align_code+= '<mark style="background-color:'+color+'">'+res.amino_acid.one_letter_code+'</mark>'
+
+								if(chain_res_set):
+									res = chain_res_set.pop(0)
+									mapping = res.uniprot_residue.all()[0].position
+							else:
+								align_code +='.'
+												
+							second_line+=1						
+						if(second_line<length):
+							align_code+='</br><code style="background-color:#428bca ; color:white;">Seq 1:</code> '
+						
 			outset.append({'obj':chain,'graphic':graphic_code,'alignent':align_code})	 	
 		return outset
 
 
 
-	###############################################
+	####################################################################
 	#This method returns html code for a sequence with mapped snvs 	
+	###################################################################
 	def get_mapping_seq(self):
 		seq=self.sequence
 		mod_seq=''		
-		snvlist=self.get_Snv()
+		snvlist=self.get_Snv()[0]
 		mod = {}
 		for snv in snvlist:
-			if snv.uniprot_position in mod:
-				mod[snv.uniprot_position].append(snv)
+			if snv.uniprot_residue.position in mod:
+				mod[snv.uniprot_residue.position].append(snv)
 			else:
-				mod[snv.uniprot_position]=[snv]
+				mod[snv.uniprot_residue.position]=[snv]
 		
 		if len(mod)==0:
 			return '<p>No SNV Found</p>'		
