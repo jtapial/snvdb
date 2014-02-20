@@ -2,7 +2,7 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 # Class Import
 from snv.models import *
@@ -77,9 +77,18 @@ class InteractionView(DetailView):
 
 		return interaction
 
-class SuperpositionView(DetailView):
-	model = SuperpositionMapping
-	template_name = 'Superposition_view.html'
+class SuperpositionView(View):
+
+	def get(self,request,uniprot_acc):
+		uniprot = Uniprot.objects.get(acc_number=uniprot_acc)
+		ref_chain = uniprot.get_ref_chain()
+		print(ref_chain.id)
+		assignments = SuperpositionMapping.objects.filter(ref_chain=ref_chain)
+		print(assignments)
+		filename = uniprot.acc_number+"-interactions.pdb"
+		return render(request,'Superposition_view.html', {'uniprot':uniprot,'ref_chain':ref_chain,'assignments':assignments,'filename':filename})
+
+
 
 ###################### BASIC VIEW ##################################
 

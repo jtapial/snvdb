@@ -54,6 +54,14 @@ class Uniprot(models.Model):
 		return mod_seq
 
 	###############################################
+	# Returns reference_chain object
+	def get_ref_chain(self):
+		for chain in self.chains.all():
+			x = chain.superpositions_where_ref
+			y = x.all()
+			if len(y) > 0:
+				return chain
+	###############################################
 	#This method returns html code for a sequence with mapped snvs 
 	def get_mapping_seq(self):
 		seq=self.sequence
