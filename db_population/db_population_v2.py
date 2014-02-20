@@ -490,29 +490,29 @@ def gene_import():
 	
 	(correct_codes, correct_codes_synonyms) = uniprot_gene_code_check(all_codes)
 	
-	#final_codes = short_codes + correct_long_codes
+
 	
 	output = idretrieval(correct_long_codes_synonyms, correct_long_codes)
 	
 
 
-	Write results into the database:
+	#Write results into the database:
 
 
-	for entry in output:
-		try:
-			cur.execute('INSERT INTO gene VALUES (%s,%s)', entry)
-			db.commit()
-
-		except:
-			print "Database error for entry: ", entry
-			db.rollback()
-			continue
-
-	print "Populated gene table"
-	in_file.close()
-
-	cur.close()
+	#for entry in output:
+	#	try:
+	#		cur.execute('INSERT INTO gene VALUES (%s,%s)', entry)
+	#		db.commit()
+#
+#		except:
+#			print "Database error for entry: ", entry
+#			db.rollback()
+#			continue
+#
+#	print "Populated gene table"
+#	in_file.close()
+#
+#	cur.close()
 
 def snv_import():
 
