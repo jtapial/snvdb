@@ -104,7 +104,7 @@ type VARCHAR(20) NOT NULL,
 wt_aa CHAR(1) NOT NULL,
 mutant_aa CHAR(1) NOT NULL,
 uniprot_acc_number CHAR(6) NOT NULL,
-uniprot_position INT NOT NULL,
+uniprot_residue_id INT NOT NULL,
 gene_code VARCHAR(15),
 db_snp VARCHAR(15),
 PRIMARY KEY (ft_id),
@@ -112,15 +112,7 @@ FOREIGN KEY (type) REFERENCES snv_type (type),
 FOREIGN KEY (wt_aa) REFERENCES amino_acid (one_letter_code),
 FOREIGN KEY (mutant_aa) REFERENCES amino_acid (one_letter_code),
 FOREIGN KEY (uniprot_acc_number) REFERENCES uniprot (acc_number),
-FOREIGN KEY (gene_code) REFERENCES gene (symbol)
-);
-CREATE TABLE snv_uniprot_residue (
-id INT NOT NULL AUTO_INCREMENT,
-ft_id VARCHAR(10) NOT NULL,
-uniprot_residue_id INT NOT NULL,
-PRIMARY KEY (id),
-UNIQUE (ft_id,uniprot_residue_id),
-FOREIGN KEY (ft_id) REFERENCES snv (ft_id),
+FOREIGN KEY (gene_code) REFERENCES gene (symbol),
 FOREIGN KEY (uniprot_residue_id) REFERENCES uniprot_residue (id)
 );
 CREATE TABLE snv_disease (

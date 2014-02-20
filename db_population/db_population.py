@@ -605,13 +605,28 @@ def snv_import():
 				if len(db_SNP)>15:
 					print "excessive length of db_SNP. Variant code: ", ftid, len(db_SNP)
 
-			#Final compilation as a list
-			data_list = [ftid, snv_type, wt_allele, m_allele, uniprot_acc_number, uniprot_position, gene_code, db_SNP]
+
+
+			
 			
 
 			#Check if the uniprot exists in the database
 			cur.execute('SELECT EXISTS(SELECT 1 FROM uniprot WHERE acc_number=%s)', (uniprot_acc_number))
 			check_database = cur.fetchone()[0]
+
+			#Final compilation as a list
+			
+
+			# Get uniprot_residue_id
+			cur.execute('SELECT id FROM uniprot_residue WHERE uniprot_acc_number=%s AND uniprot_position=%s',(uniprot_acc_number,uniprot_position))
+			try:
+				uniprot_residue_id = cur.fetchone()[0]
+			except TypeError:
+				print("This uniprot does not exist")
+				print(uniprot_acc_number,uniprot_position)
+				uniprot_residue_id=None
+
+			data_list = [ftid, snv_type, wt_allele, m_allele, uniprot_acc_number, uniprot_residue_id, gene_code, db_SNP]
 
 			#If it exists, add the snv normally calling the method "add_this_snv"
 			if check_database == 1:
@@ -689,7 +704,7 @@ def add_this_snv(data_list):
 
 	#Addition to the database
 	try:
-		cur.execute('INSERT INTO snv (ft_id,type,wt_aa,mutant_aa,uniprot_acc_number,uniprot_position,gene_code,db_snp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', data_list)
+		cur.execute('INSERT INTO snv (ft_id,type,wt_aa,mutant_aa,uniprot_acc_number,uniprot_residue_id,gene_code,db_snp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', data_list)
 		db.commit()
 
 	except MySQLdb.IntegrityError:
@@ -1314,7 +1329,7 @@ def pfam_import():
 
 gene_import()
 
-#snv_import()
+snv_import()
 
 #uniprot_residue_import()
 
