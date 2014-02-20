@@ -61,6 +61,42 @@ class Uniprot(models.Model):
 				mod_seq = mod_seq + ' '			
 			mod_seq = mod_seq+self.sequence[curr_pos]
 		return mod_seq
+	###############################################
+	#This method returns html code for SVG graphics
+	def get_graphic(self):
+		outset = []
+		for chain in self.chains.all():
+			length = len(self.sequence)
+			graphic_code = '<svg width="850" height="50">'
+			graphic_code += '<rect width="800" height="12" x="0" y="10" rx="5" ry="5" style="fill:#428bca;stroke-width:1;stroke:#285379" />'                   
+			graphic_code +=  '<text x="30" y="20" font-weight="bold" fill="white">'+self.acc_number+'</text> <text x="0" y="20" fill="white">|0</text><text x="200" y="20" fill="white">|'+str(length/4)+'</text><text x="400" y="20" fill="white">|'+str(length/2)+'</text><text x="600" y="20" fill="white">|'+str(length*3/4)+'</text><text x="800" y="20" fill="black">|'+str(length)+'</text>'
+			graphic_code += '<rect width="'+ str(int(float(chain.coverage)*800/100)) +'" height="12" x="'+str(float(chain.seq_start)/float(length)*800)+'" y="25" rx="5" ry="5" style="fill:#5bc0de;stroke-width:1;stroke:#499AB2" />'   			
+			graphic_code += '<text x="'+str(float(chain.seq_start)/float(length)*800+30)+'" y="35" font-weight="bold" fill="white"> PDB:'+chain.pdb_id+'</text><text x="'+str(float(chain.seq_start)/float(length)*800)+'" y="35" fill="white">|'+chain.seq_start+'</text><text x="'+str(float(chain.seq_end)/float(length)*800)+'" y="35" fill="black">|'+chain.seq_end+'</text>'
+			graphic_code +='</svg>'
+
+			#Alighment Method
+			align_code = ''
+			#Do each line for 60 letters
+			cutoff = 50
+			chain_res_set = chain.residues.all()
+			while True:
+				for curr_pos in range(length):
+					align_code = align_code+self.sequence[curr_pos]					
+					if((curr_pos)%10 ==0 and curr_pos>0):
+						align_code = align_code + ' '
+					if ((curr_pos%cutoff==0 and curr_pos>0) or curr_pos==length-1 ): #Second line
+						align_code+='</br>'
+						letter = chain_res_set.pop(0)
+						align_code+='second line</br>'
+			
+					
+
+				break
+			
+			outset.append({'obj':chain,'graphic':graphic_code,'alignent':align_code})	 	
+		return outset
+
+
 
 	###############################################
 	#This method returns html code for a sequence with mapped snvs 	
