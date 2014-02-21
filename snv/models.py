@@ -51,8 +51,10 @@ class Uniprot(models.Model):
 				po+=1
 			else:
 				un+=1
-
-		return [snvlist,[len(snvlist),(di*100)/len(snvlist),(po*100)/len(snvlist),un*100/len(snvlist)]]
+		divider = len(snvlist)
+		if divider==0:
+			divider = 1
+		return [snvlist,[len(snvlist),(di*100)/divider,(po*100)/divider,un*100/divider]]
 
 	def get_seq(self):
 		mod_seq = ''
@@ -80,6 +82,10 @@ class Uniprot(models.Model):
 			res = None			
 			if(chain_res_set):			
 				res = chain_res_set.pop(0)
+#################################################
+				if(not res.uniprot_residue.all()):
+					res = chain_res_set.pop(0)
+###############################################
 				mapping = res.uniprot_residue.all()[0].position
 
 			align_code = '<code style="background-color:#428bca ; color:white;">Seq 1:</code> '
@@ -301,7 +307,7 @@ class ChainResidue(models.Model):
 class PositionMapping(models.Model):
     id = models.IntegerField(primary_key=True)
     uniprot_residue = models.ForeignKey(UniprotResidue,db_column='uniprot_residue_id',related_name='+')
-    chain_residue = models.ForeignKey(ChainResidue,db_column='chain_residue_id',related_name='+')
+    chain_residue = models.ForeignKey(ChainResidue,db_column='chain_residue_id',related_name='mapping')
     class Meta:
         db_table = 'position_mapping'
 
