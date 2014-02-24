@@ -54,8 +54,8 @@ h3 span{ position:absolute; top:-70px;}
   	{% for item in snv_list %}
 		<tr>
 			<td><a href = {{item.obj.get_absolute_url}} target ='_blank'>{{item.obj.ft_id}}</td>
-			{% if item.obj.uniprot_residue.all %}<td><a href = '{% url "uniprot-view" pk=item.obj.uniprot %}'>{{item.obj.uniprot}}</td>{% else %}<td class="text-danger">{{item.obj.uniprot}}{% endif %}</td>
-			<td>{{item.obj.uniprot_position}}</td>	
+			{% if item.obj.uniprot_residue %}<td><a href = '{% url "uniprot-view" pk=item.obj.uniprot %}'>{{item.obj.uniprot}}</td>{% else %}<td class="text-danger">{{item.obj.uniprot}}{% endif %}</td>
+			<td>{{item.obj.uniprot_residue.position}}</td>	
 			<td>{{item.obj.wt_aa.three_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.obj.mutant_aa.three_letter_code}}</td>			
 			<td>{% for disease_item in item.obj.diseases.all %}<a href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a></br>{% endfor %}</td>			
 		</tr>

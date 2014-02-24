@@ -39,11 +39,22 @@ class Uniprot(models.Model):
 	class Meta:
 		db_table = 'uniprot'
 
-	def get_Snv(self):	#Return a list of all related snvs 
+	def get_Snv(self):	#Return a list of all related snvs and their statistics
 		snvlist=[]
 		for item in self.residues.all():					
 			snvlist.extend(item.snvs.all())		
-		return snvlist
+		di = po = un = 0		
+		for item in snvlist:
+			if item.type.type == 'Disease':
+				di+=1
+			elif item.type.type == 'Polymorphism':
+				po+=1
+			else:
+				un+=1
+		divider = len(snvlist)
+		if divider==0:
+			divider = 1
+		return [snvlist,[len(snvlist),(di*100)/divider,(po*100)/divider,un*100/divider]]
 
 	def get_seq(self):
 		mod_seq = ''
@@ -52,19 +63,92 @@ class Uniprot(models.Model):
 				mod_seq = mod_seq + ' '			
 			mod_seq = mod_seq+self.sequence[curr_pos]
 		return mod_seq
+	####################################################################
+	#This method returns html code for SVG graphics
+	####################################################################
+	def get_graphic(self):
+		outset = []
+		for chain in self.chains.all():
+			length = len(self.sequence)
+			graphic_code = '<svg width="850" height="50">'
+			graphic_code += '<rect width="800" height="12" x="0" y="10" rx="5" ry="5" style="fill:#428bca;stroke-width:1;stroke:#285379" />'                   
+			graphic_code +=  '<text x="30" y="20" font-weight="bold" fill="white">'+self.acc_number+'</text> <text x="0" y="20" fill="white">|0</text><text x="200" y="20" fill="white">|'+str(length/4)+'</text><text x="400" y="20" fill="white">|'+str(length/2)+'</text><text x="600" y="20" fill="white">|'+str(length*3/4)+'</text><text x="800" y="20" fill="black">|'+str(length)+'</text>'
+			graphic_code += '<rect width="'+ str(int(float(chain.coverage)*800/100)) +'" height="12" x="'+str(float(chain.seq_start)/float(length)*800)+'" y="25" rx="5" ry="5" style="fill:#5bc0de;stroke-width:1;stroke:#499AB2" />'   			
+			graphic_code += '<text x="'+str(float(chain.seq_start)/float(length)*800+30)+'" y="35" font-weight="bold" fill="white"> PDB:'+chain.pdb_id+'</text><text x="'+str(float(chain.seq_start)/float(length)*800)+'" y="35" fill="white">|'+chain.seq_start+'</text><text x="'+str(float(chain.seq_end)/float(length)*800)+'" y="35" fill="black">|'+chain.seq_end+'</text>'
+			graphic_code +='</svg>'
+
+			#Alighment Method
+			chain_res_set = list(chain.residues.all().extra(order_by = ['id']))
+			res = None			
+			if(chain_res_set):			
+				res = chain_res_set.pop(0)
+#################################################
+				if(not res.uniprot_residue.all()):
+					res = chain_res_set.pop(0)
+###############################################
+				mapping = res.uniprot_residue.all()[0].position
+
+			align_code = '<code style="background-color:#428bca ; color:white;">Seq 1:</code> '
+			#Do each line for 50 letters
+			cutoff = 50
+
+			if res is not None:
+				second_line=0
+				for curr_pos in range(length):	
+					if((curr_pos)%10 ==0):#First Line
+						if(curr_pos!=0):
+							align_code = align_code + ' '
+					align_code = align_code+self.sequence[curr_pos]	
+
+					if ((((curr_pos+1)%cutoff)==0 and curr_pos>0) or curr_pos==length-1 ): #Second line
+						align_code+='</br><code style="background-color:#5bc0de ; color:white;">Seq 2:</code> '
+						#do until second line position == first line position						
+						while second_line <= curr_pos:
+							if ((second_line%10==0) and (second_line > 0)):				
+								align_code = align_code + ' '
+							
+							if(second_line == mapping-1): #shift in index, (position 1 = index 0 in python)
+								color = 'yellow'
+								if(res.amino_acid.one_letter_code != self.sequence[mapping-1]):
+									color='#FF6600'
+								align_code+= '<mark style="background-color:'+color+'">'+res.amino_acid.one_letter_code+'</mark>'
+
+								if(chain_res_set):
+									res = chain_res_set.pop(0)
+									mapping = res.uniprot_residue.all()[0].position
+							else:
+								align_code +='.'
+												
+							second_line+=1						
+						if(second_line<length):
+							align_code+='</br><code style="background-color:#428bca ; color:white;">Seq 1:</code> '
+						
+			outset.append({'obj':chain,'graphic':graphic_code,'alignent':align_code})	 	
+		return outset
 
 	###############################################
+	# Returns reference_chain object
+	################################################
+	def get_ref_chain(self):
+		for chain in self.chains.all():
+			x = chain.superpositions_where_ref
+			y = x.all()
+			if len(y) > 0:
+				return chain
+
+	###################################################################
 	#This method returns html code for a sequence with mapped snvs 
+	###################################################################
 	def get_mapping_seq(self):
 		seq=self.sequence
 		mod_seq=''		
-		snvlist=self.get_Snv()
+		snvlist=self.get_Snv()[0]
 		mod = {}
 		for snv in snvlist:
-			if snv.uniprot_position in mod:
-				mod[snv.uniprot_position].append(snv)
+			if snv.uniprot_residue.position in mod:
+				mod[snv.uniprot_residue.position].append(snv)
 			else:
-				mod[snv.uniprot_position]=[snv]
+				mod[snv.uniprot_residue.position]=[snv]
 		
 		if len(mod)==0:
 			return '<p>No SNV Found</p>'		
@@ -103,6 +187,16 @@ class Uniprot(models.Model):
 					break		
 		return mod_seq
 	###########################################################
+	def get_color(self):
+		if self.type.type =='Disease':
+			return  set('red')
+		elif self.type.type =='Polymorphism':	
+			return 'green'
+		elif self.type.type =='Unclassified':	
+			return 'blue'
+		return set('purple')	
+	
+
 
 	def interacting_partners(self):
 		chains = self.chains.all()
@@ -213,7 +307,7 @@ class ChainResidue(models.Model):
 class PositionMapping(models.Model):
     id = models.IntegerField(primary_key=True)
     uniprot_residue = models.ForeignKey(UniprotResidue,db_column='uniprot_residue_id',related_name='+')
-    chain_residue = models.ForeignKey(ChainResidue,db_column='chain_residue_id',related_name='+')
+    chain_residue = models.ForeignKey(ChainResidue,db_column='chain_residue_id',related_name='mapping')
     class Meta:
         db_table = 'position_mapping'
 
