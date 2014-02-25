@@ -80,6 +80,9 @@ class InteractionView(DetailView):
 		interaction['snv_partner1'] = snvs[0]
 		interaction['snv_partner2'] = snvs[1]
 
+		chain_1_mappings = interaction.chain_1.uniprot.mappings
+		
+
 		return interaction
 
 class SuperpositionView(View):

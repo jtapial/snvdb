@@ -28,10 +28,13 @@ seq_identity VARCHAR(10) NOT NULL,
 coverage VARCHAR(10) NOT NULL,
 seq_start VARCHAR(10) NOT NULL,
 seq_end VARCHAR(10) NOT NULL,
+type VARCHAR(20) NOT NULL,
+biological_unit INT NOT NULL,
 uniprot_acc_number CHAR(6) NOT NULL,
 PRIMARY KEY (id),
 FOREIGN KEY (uniprot_acc_number) REFERENCES uniprot (acc_number),
-UNIQUE (pdb_id,pdb_chain,uniprot_acc_number,pdb_model)
+FOREIGN KEY (type) REFERENCES interaction_type (type),
+UNIQUE (pdb_id,pdb_chain,uniprot_acc_number,pdb_model,type,biological_unit)
 );
 CREATE TABLE interaction_type (
 type VARCHAR(20) NOT NULL,
