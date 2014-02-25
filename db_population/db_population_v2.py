@@ -10,6 +10,7 @@ from decimal import *
 import urllib
 import urllib2
 from Bio import Entrez
+
 # Database connection object
 # Will prompt for 
 db = MySQLdb.connect(host=raw_input('MySQL Host: '),
@@ -103,7 +104,11 @@ def uniprot_extract_from_humsavar():
 	in_file.close()
 
 	return (extracted_uniprots_list, initial_codes_dict)
-			
+		
+	
+	
+
+	
 def uniprot_check (uniprots_list, seq_dict, initial_codes_dict):
 	#Batch request to uniprot. The dataset is divided in chunks of 200 to avoid server overload:
 	chunks = [uniprots_list[i:i+200] for i in range(0,len(uniprots_list),200)]
@@ -271,7 +276,6 @@ def uniprot_check (uniprots_list, seq_dict, initial_codes_dict):
 	#Pull a list of uniprots without seq and uniprots without synonyms:
 	no_seq_list = [x for x in uniprots_list if x not in seq_dict]
 	no_synonyms_list = [x for x in uniprots_list if synonyms_dict[x] == []]
-
 				
 	#Final message
 	print "Retrieval from uniprot complete."
@@ -289,9 +293,8 @@ def uniprot_check (uniprots_list, seq_dict, initial_codes_dict):
 		
 	#Return the information
 	return (uniprots_list, names_dict, seq_dict, codes_dict, synonyms_dict)
-
 	
-
+	
 def snv_type_import():
 	
 	print("Populating snv_type table")
@@ -371,8 +374,7 @@ def amino_acid_import():
 	cur.close()
 	
 	print("Populated amino_acid table")
-
-
+	
 def id_retrieval(uniprots_list, codes_dict, synonyms_dict):
 #Method to retrieve the genbank ids using a list of uniprots, a uniprot:code dict, and an uniprot:[synonyms] dict as input
 #Returns an uniprot:GenbankID dict
@@ -383,7 +385,7 @@ def id_retrieval(uniprots_list, codes_dict, synonyms_dict):
 
 	data_file = open(genepath+'/gene2accession', 'r')
 	
-	remaining_uniprots = list(uniprots_list)
+	remaining_uniprots = uniprots_list
 		
 	id_dict = {}
 	
@@ -485,6 +487,7 @@ def id_retrieval(uniprots_list, codes_dict, synonyms_dict):
 	found_uniprots.append("Q6GMX4")
 	remaining_uniprots.remove("Q6GMX4")
 
+
 	#Final report		
 	print "Third round completed querying Entrez online. Found: ", len(id_dict)
 	print "Left: ", len(remaining_uniprots)
@@ -498,12 +501,6 @@ def id_retrieval(uniprots_list, codes_dict, synonyms_dict):
 		for item in remaining_uniprots:
 			print item, codes_dict[item], synonyms_dict[item]
 
-	print "The reported uniprots without a genbank ID will have it set to NULL"
-	for uniprot in remaining_uniprots:
-			if uniprot not in id_dict:
-				id_dict[uniprot] = None
-	
-	
 	return id_dict
 
 def uniprot_import():
@@ -523,38 +520,32 @@ def uniprot_import():
 	#Pass the information to the uniprot_check method to check that the uniprots exist, and get the rest of the sequences, final codes, synonyms and protein names
 	uniprots_list, names_dict, seq_dict, codes_dict, synonyms_dict = uniprot_check(all_uniprots, fasta_seq_dict, humsavar_codes_dict)
 
-
-	#Pass the information from the uniprot_check method to the id_retrieval method to retrieve GenBank IDs
+	#RPass the information from the uniprot_check method to the id_retrieval method to retrieve GenBank IDs
 	id_dict = id_retrieval(uniprots_list, codes_dict, synonyms_dict)
 
 	cur = db.cursor()
-
-	for bit in uniprots_list:
-		a = names_dict.get(bit, None)
-		b = seq_dict.get(bit, None)
-		c = codes_dict.get(bit, None)
-		d = id_dict.get(bit, None)
-		
+	for uniprot in uniprots_list:
 		try:
-			cur.execute("INSERT INTO uniprot VALUES(%s,%s,%s,%s,%s)", (bit,a,b,c,d))
-			db.commit()
+			cur.execute("INSERT INTO uniprot VALUES(%s,%s,%s,%s,%s)", (uniprot,names_dict[uniprot],seq_dict[uniprot],codes_dict[uniprot],id_dict[uniprot]))
 		except:
-			db.rollback()
-			print "DATABASE ERROR FOR UNIPROT: ", bit
-			print bit, a, b, c, d
-	
-	print "population of Uniprot table complete"
+			print "DATABASE ERROR FOR UNIPROT: ", uniprot
+			print uniprot, names_dict[uniprot], seq_dict[uniprot], codes_dict[uniprot], id_dict[uniprot]
+
 
 def snv_import():
 
 #This script populates the "snv" table using the information in the "humsavar.txt" file.
+#It also calls the methods:
+# - uniprot_import_from_uniprot
+# - check_uniprot_online
+# - add_this_snv
 
 #The environment variables to open the file must be changed accordingly if this script is being run on another machine.
 #The tables "snv_type" and "amino_acid" must be populated before this script is run.
-#The uniprot table must have been populated
+#The uniprot table must have been populated with the import_uniprot_from_fasta method
 
 
-	print("Populating snv table.")
+	print("Populating snv table. Uniprots not present in the FASTA files will also be added")
 
 	cur = db.cursor()
 		
@@ -581,16 +572,6 @@ def snv_import():
 			#Extraction of the uniprot_acc_number:
 			uniprot_acc_number = splitline[1]
 
-			#Check if the uniprot exists in the database
-			cur.execute('SELECT EXISTS(SELECT 1 FROM uniprot WHERE acc_number=%s)', (uniprot_acc_number))
-			check_database = cur.fetchone()[0]
-
-			#If it exists, add the snv normally calling the method "add_this_snv"
-			if check_database == 0:
-				print "Skipped SNV, FTID: ", ftid, ", Uniprot accession number: ", uniprot_acc_number, " Could not detect a valid uniprot entry"
-				continue
-				
-
 			#Extraction of the uniprot_position:
 			position_match = re.match(position_regex, splitline[3])
 			uniprot_position = position_match.group(1)
@@ -605,6 +586,14 @@ def snv_import():
 			#Extraction of the mutant_allele:
 			mallele_match = re.match(mallele_regex, splitline[3])
 			m_allele = mallele_match.group(1)
+
+			#Extraction of the gene_code:
+			gene_code_input = splitline[0]
+
+			if gene_code_input == "-":
+				gene_code = None
+			else:
+				gene_code = gene_code_input
 
 			#Extraction of the SNV_id in dbSNP:
 			db_SNP_data = splitline[5]
@@ -634,27 +623,76 @@ def snv_import():
 				if len(db_SNP)>15:
 					print "excessive length of db_SNP. Variant code: ", ftid, len(db_SNP)
 
-		
-			# Get uniprot_residue_id
-			cur.execute('SELECT id FROM uniprot_residue WHERE uniprot_acc_number=%s AND uniprot_position=%s',(uniprot_acc_number,uniprot_position))
-			try:
-				uniprot_residue_id = cur.fetchone()[0]
-			except TypeError:
-				print("This uniprot does not exist")
-				print(uniprot_acc_number,uniprot_position)
-				uniprot_residue_id=None
-
 			#Final compilation as a list
+			data_list = [ftid, snv_type, wt_allele, m_allele, uniprot_acc_number, uniprot_position, gene_code, db_SNP]
+			
 
-			data_list = [ftid, snv_type, wt_allele, m_allele, uniprot_acc_number, uniprot_residue_id, db_SNP]
+			#Check if the uniprot exists in the database
+			cur.execute('SELECT EXISTS(SELECT 1 FROM uniprot WHERE acc_number=%s)', (uniprot_acc_number))
+			check_database = cur.fetchone()[0]
 
 			#If it exists, add the snv normally calling the method "add_this_snv"
 			if check_database == 1:
-				
 				add_this_snv(data_list)
+
+			#If it does not exists, check the snv with uniprot online:
+			elif check_database == 0:
+
+				#If the uniprot checker detects a sequence on Uniprot online and adds it to the local database, extract more data for the snv and add the snv
+				if check_uniprot_online(uniprot_acc_number) == True:
+
+					#Addition of the snv (call method)
+					add_this_snv(data_list)
+				
+				#If the uniprot checker does not detect a valid sequence, print a message and do not add the snv (nor the uniprot)
+				else:
+					print "Skipped SNV, FTID: ", ftid, ", Uniprot accession number: ", uniprot_acc_number, " Could not detect a valid uniprot entry"
+					continue
 	
 	cur.close()
 	in_file.close()
+
+def check_uniprot_online(uniprot_acc_number):
+
+	#This method checks online if there is a valid sequence for a given uniprot accession number.
+	#If there is, it adds the Uniprot entry to the local database and returns true
+	#If there is not, it returns false
+	
+	cur = db.cursor()
+	name_regex = re.compile('^>\w*?\|\w*\|\w+\s+(.*?)\sOS=')
+	
+	webpage = urllib.urlopen("http://www.uniprot.org/uniprot/" + uniprot_acc_number + ".fasta")
+	lines = webpage.readlines()
+
+	for i in range(len(lines)):
+		lines[i] = lines[i].rstrip()
+	
+	
+	seq_lines = lines[1:]
+	seq_lines = ''.join(seq_lines)
+
+	#Check if the sequence is empty.
+	if seq_lines != "":
+	
+		header_line = lines[0]
+		if name_regex.match(header_line):
+			uniprot_name = name_regex.match(header_line).group(1)
+		else:
+			uniprot_name = None
+		
+		try:
+			cur.execute('INSERT INTO uniprot VALUES (%s, %s, %s)', (uniprot_acc_number, uniprot_name, seq_lines))
+			return True
+		except:
+			print seq_lines
+			db.rollback()
+			print "ERROR adding Uniprot from the online database. Uniprot accession number: ", uniprot_acc_number
+			return False
+	else:
+		return False
+
+	cur.close()
+
 
 
 def add_this_snv(data_list):
@@ -669,14 +707,13 @@ def add_this_snv(data_list):
 
 	#Addition to the database
 	try:
-		cur.execute('INSERT INTO snv (ft_id,type,wt_aa,mutant_aa,uniprot_acc_number,uniprot_residue_id,db_snp) VALUES (%s,%s,%s,%s,%s,%s,%s)', data_list)
+		cur.execute('INSERT INTO snv (ft_id,type,wt_aa,mutant_aa,uniprot_acc_number,uniprot_position,gene_code,db_snp) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', data_list)
 		db.commit()
 
 	except MySQLdb.IntegrityError:
 		#Check if the SNV is already in the database (THE FILE HAS DUPLICATE ENTRIES FOR A SNV IF HAS MORE THAN ONE DISEASE)
 		cur.execute('SELECT EXISTS(SELECT 1 FROM snv WHERE ft_id=%s)', data_list[0])
 		check_already_added = cur.fetchone()[0]
-		
 		if check_already_added == 1:
 			db.rollback()
 			pass
@@ -887,45 +924,45 @@ def chain_interaction_interaction_type_import():
 			pdb_id = columns[5]
 			if len(pdb_id) != 4:
 				print(pdb_id)
-
-			inter_type = columns[4]
-			if (inter_type,) not in inter_types:
-				cur.execute('INSERT INTO interaction_type VALUES (%s)',(inter_type))
-				db.commit()
-				inter_types.append((inter_type,))
-			biological_unit =  int(columns[6])
 			# Create chain tuples
-			# New Order: pdb, pdb_chain, pdb_model, seq_identity, coverage, seq_start, seq_end, uniprot_acc, type, biological_unit
-			chain_1 = (pdb_id,columns[7],columns[8],columns[9],columns[10],columns[11],columns[12],columns[0],inter_type,biological_unit)
-			chain_2 = (pdb_id,columns[14],columns[15],columns[16],columns[17],columns[18],columns[19],columns[1],inter_type,biological_unit)
+			# New Order: pdb, pdb_chain, pdb_model, seq_identity, coverage, seq_start, seq_end, uniprot_acc
+			chain_1 = (pdb_id,columns[7],columns[8],columns[9],columns[10],columns[11],columns[12],columns[0])
+			chain_2 = (pdb_id,columns[14],columns[15],columns[16],columns[17],columns[18],columns[19],columns[1])
 			# Insert chains then add id
 			pks = []
-			# Chain 1
 			try:
-				cur.execute('INSERT INTO chain (pdb_id,pdb_chain,pdb_model,seq_identity,coverage,seq_start,seq_end,uniprot_acc_number,type,biological_unit) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', chain_1)
+				# Chain 1
+				try:
+					cur.execute('INSERT INTO chain (pdb_id,pdb_chain,pdb_model,seq_identity,coverage,seq_start,seq_end,uniprot_acc_number) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', chain_1)
+					db.commit()
+					# Append last modified row id i.e. chain 1
+					pks.append(cur.lastrowid)
+				except MySQLdb.IntegrityError:
+					cur.execute('SELECT id FROM chain WHERE pdb_id=%s AND pdb_chain=%s AND pdb_model=%s AND uniprot_acc_number=%s',(pdb_id,columns[7],columns[8],columns[0]))
+					pks.append(cur.fetchone()[0])
+				# Chain 2
+				try:
+					cur.execute('INSERT INTO chain (pdb_id,pdb_chain,pdb_model,seq_identity,coverage,seq_start,seq_end,uniprot_acc_number) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', chain_2)
+					db.commit()
+					# Append last modified row id i.e. chain 2
+					pks.append(cur.lastrowid)
+				except MySQLdb.IntegrityError:
+					cur.execute('SELECT id FROM chain WHERE pdb_id=%s AND pdb_chain=%s AND pdb_model=%s  AND uniprot_acc_number=%s',(pdb_id,columns[14],columns[15],columns[1]))
+					pks.append(cur.fetchone()[0])
+				# Interactions
+				inter_type = columns[4]
+				if (inter_type,) not in inter_types:
+					cur.execute('INSERT INTO interaction_type VALUES (%s)',(inter_type))
+					db.commit()
+					inter_types.append((inter_type,))
+				# New Order: chain_1_id, chain_2_id, type, filename
+				interaction = (pks[0],pks[1],inter_type,columns[-1])
+				cur.execute('INSERT INTO interaction (chain_1_id,chain_2_id,type,filename) VALUES (%s,%s,%s,%s)', interaction)
 				db.commit()
-				# Append last modified row id i.e. chain 1
-				pks.append(cur.lastrowid)
-			except MySQLdb.IntegrityError:
-				cur.execute('SELECT id FROM chain WHERE pdb_id=%s AND pdb_chain=%s AND pdb_model=%s AND uniprot_acc_number=%s AND type=%s AND biological_unit=%s',(pdb_id,columns[7],columns[8],columns[0],inter_type,biological_unit))
-				pks.append(cur.fetchone()[0])
-			# Chain 2
-			try:
-				cur.execute('INSERT INTO chain (pdb_id,pdb_chain,pdb_model,seq_identity,coverage,seq_start,seq_end,uniprot_acc_number,type,biological_unit) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', chain_2)
-				db.commit()
-				# Append last modified row id i.e. chain 2
-				pks.append(cur.lastrowid)
-			except MySQLdb.IntegrityError:
-				cur.execute('SELECT id FROM chain WHERE pdb_id=%s AND pdb_chain=%s AND pdb_model=%s  AND uniprot_acc_number=%s AND type=%s AND biological_unit=%s',(pdb_id,columns[14],columns[15],columns[1],inter_type,biological_unit))
-				pks.append(cur.fetchone()[0])
-			# Interactions
-			
-			# New Order: chain_1_id, chain_2_id, type, filename
-			interaction = (pks[0],pks[1],inter_type,columns[-1])
-			cur.execute('INSERT INTO interaction (chain_1_id,chain_2_id,type,filename) VALUES (%s,%s,%s,%s)', interaction)
-			db.commit()
+			except:
+				db.rollback()
 	cur.close()
-	print("Populated chain, interaction and interaction_type tables")
+	print("Populated chain, interactionn and interaction_type tables")
 			
 
 def chain_residue_position_mapping_import():
@@ -1283,7 +1320,6 @@ def pfam_import():
 	print("Populated pfam_hmm, uniprot_pfam_mapping and active_site_residue tables")
 	cur.close()
 	
-
 ##METHOD CALLS:
 
 create_tables()
@@ -1294,22 +1330,22 @@ snv_type_import()
 
 amino_acid_import()
 
-uniprot_residue_import()
-
 #snv_import()
+
+uniprot_residue_import()
 
 disease_import()
 
-snv_disease_import()
+#snv_disease_import()
 
-chain_interaction_interaction_type_import()
+#chain_interaction_interaction_type_import()
 
-chain_residue_position_mapping_import()
+#chain_residue_position_mapping_import()
 
-interface_residue_import()
+#interface_residue_import()
 
-accessibility_import()
+#accessibility_import()
 
-pfam_import()
+#pfam_import()
 
-db.close()
+#db.close()

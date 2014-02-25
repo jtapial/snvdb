@@ -1,6 +1,9 @@
 CREATE TABLE uniprot (
 acc_number CHAR(6) NOT NULL,
+name VARCHAR(250),
 sequence TEXT,
+gene_code CHAR(15),
+genbank_id CHAR(15),
 PRIMARY KEY (acc_number)
 );
 CREATE TABLE amino_acid (
@@ -107,14 +110,12 @@ wt_aa CHAR(1) NOT NULL,
 mutant_aa CHAR(1) NOT NULL,
 uniprot_acc_number CHAR(6) NOT NULL,
 uniprot_residue_id INT NOT NULL,
-gene_code VARCHAR(15),
 db_snp VARCHAR(15),
 PRIMARY KEY (ft_id),
 FOREIGN KEY (type) REFERENCES snv_type (type),
 FOREIGN KEY (wt_aa) REFERENCES amino_acid (one_letter_code),
 FOREIGN KEY (mutant_aa) REFERENCES amino_acid (one_letter_code),
 FOREIGN KEY (uniprot_acc_number) REFERENCES uniprot (acc_number),
-FOREIGN KEY (gene_code) REFERENCES gene (symbol),
 FOREIGN KEY (uniprot_residue_id) REFERENCES uniprot_residue (id)
 );
 CREATE TABLE snv_disease (
@@ -174,9 +175,4 @@ PRIMARY KEY (id),
 FOREIGN KEY (ref_chain_id) REFERENCES chain (id),
 FOREIGN KEY (target_chain_id) REFERENCES chain (id),
 UNIQUE (ref_chain_id,target_chain_id,target_chain_letter)
-);
-CREATE TABLE gene (
-symbol VARCHAR(15) NOT NULL,
-genbank_id VARCHAR(15) NOT NULL,
-PRIMARY KEY (symbol)
 );
