@@ -61,13 +61,13 @@
 	{% for cresidue in snv_partner1 %}
 		Jmol.script(myJmol,'select {{cresidue.position}}:A; color ' + color1 +';');
 	{% empty %}
-		alert("Partner 1 has no Snvs")
+		alert("Partner 1 has no Snvs that can be mapped to this structure")
 	{% endfor %}
 	// Mapping snvs on chain_2 onto structure
 	{% for cresidue in snv_partner2 %}
 		Jmol.script(myJmol,'select {{cresidue.position}}:B; color ' + color2 +';');
 	{% empty %}
-		alert("Partner 2 has no Snvs")
+		alert("Partner 2 has no Snvs that can be mapped to this structure")
 	{% endfor %}
 	};
 	function reset_structure(){

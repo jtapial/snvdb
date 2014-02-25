@@ -341,7 +341,7 @@ class Snv(models.Model):
 	mutant_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="mutant_aa")
 	uniprot = models.CharField(max_length=6L,db_column="uniprot_acc_number")
 	uniprot_residue = models.ForeignKey(UniprotResidue,db_column='uniprot_residue_id',related_name='snvs')
-	gene_code = models.CharField(max_length=10L, blank=True)
+	#gene_code = models.CharField(max_length=10L, blank=True)
 	db_snp = models.CharField(max_length=15L, blank=True)
 
 	class Meta:
