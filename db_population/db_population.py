@@ -887,45 +887,45 @@ def chain_interaction_interaction_type_import():
 			pdb_id = columns[5]
 			if len(pdb_id) != 4:
 				print(pdb_id)
+
+			inter_type = columns[4]
+			if (inter_type,) not in inter_types:
+				cur.execute('INSERT INTO interaction_type VALUES (%s)',(inter_type))
+				db.commit()
+				inter_types.append((inter_type,))
+			biological_unit =  int(columns[6])
 			# Create chain tuples
-			# New Order: pdb, pdb_chain, pdb_model, seq_identity, coverage, seq_start, seq_end, uniprot_acc
-			chain_1 = (pdb_id,columns[7],columns[8],columns[9],columns[10],columns[11],columns[12],columns[0])
-			chain_2 = (pdb_id,columns[14],columns[15],columns[16],columns[17],columns[18],columns[19],columns[1])
+			# New Order: pdb, pdb_chain, pdb_model, seq_identity, coverage, seq_start, seq_end, uniprot_acc, type, biological_unit
+			chain_1 = (pdb_id,columns[7],columns[8],columns[9],columns[10],columns[11],columns[12],columns[0],inter_type,biological_unit)
+			chain_2 = (pdb_id,columns[14],columns[15],columns[16],columns[17],columns[18],columns[19],columns[1],inter_type,biological_unit)
 			# Insert chains then add id
 			pks = []
+			# Chain 1
 			try:
-				# Chain 1
-				try:
-					cur.execute('INSERT INTO chain (pdb_id,pdb_chain,pdb_model,seq_identity,coverage,seq_start,seq_end,uniprot_acc_number) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', chain_1)
-					db.commit()
-					# Append last modified row id i.e. chain 1
-					pks.append(cur.lastrowid)
-				except MySQLdb.IntegrityError:
-					cur.execute('SELECT id FROM chain WHERE pdb_id=%s AND pdb_chain=%s AND pdb_model=%s AND uniprot_acc_number=%s',(pdb_id,columns[7],columns[8],columns[0]))
-					pks.append(cur.fetchone()[0])
-				# Chain 2
-				try:
-					cur.execute('INSERT INTO chain (pdb_id,pdb_chain,pdb_model,seq_identity,coverage,seq_start,seq_end,uniprot_acc_number) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)', chain_2)
-					db.commit()
-					# Append last modified row id i.e. chain 2
-					pks.append(cur.lastrowid)
-				except MySQLdb.IntegrityError:
-					cur.execute('SELECT id FROM chain WHERE pdb_id=%s AND pdb_chain=%s AND pdb_model=%s  AND uniprot_acc_number=%s',(pdb_id,columns[14],columns[15],columns[1]))
-					pks.append(cur.fetchone()[0])
-				# Interactions
-				inter_type = columns[4]
-				if (inter_type,) not in inter_types:
-					cur.execute('INSERT INTO interaction_type VALUES (%s)',(inter_type))
-					db.commit()
-					inter_types.append((inter_type,))
-				# New Order: chain_1_id, chain_2_id, type, filename
-				interaction = (pks[0],pks[1],inter_type,columns[-1])
-				cur.execute('INSERT INTO interaction (chain_1_id,chain_2_id,type,filename) VALUES (%s,%s,%s,%s)', interaction)
+				cur.execute('INSERT INTO chain (pdb_id,pdb_chain,pdb_model,seq_identity,coverage,seq_start,seq_end,uniprot_acc_number,type,biological_unit) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', chain_1)
 				db.commit()
-			except:
-				db.rollback()
+				# Append last modified row id i.e. chain 1
+				pks.append(cur.lastrowid)
+			except MySQLdb.IntegrityError:
+				cur.execute('SELECT id FROM chain WHERE pdb_id=%s AND pdb_chain=%s AND pdb_model=%s AND uniprot_acc_number=%s AND type=%s AND biological_unit=%s',(pdb_id,columns[7],columns[8],columns[0],inter_type,biological_unit))
+				pks.append(cur.fetchone()[0])
+			# Chain 2
+			try:
+				cur.execute('INSERT INTO chain (pdb_id,pdb_chain,pdb_model,seq_identity,coverage,seq_start,seq_end,uniprot_acc_number,type,biological_unit) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', chain_2)
+				db.commit()
+				# Append last modified row id i.e. chain 2
+				pks.append(cur.lastrowid)
+			except MySQLdb.IntegrityError:
+				cur.execute('SELECT id FROM chain WHERE pdb_id=%s AND pdb_chain=%s AND pdb_model=%s  AND uniprot_acc_number=%s AND type=%s AND biological_unit=%s',(pdb_id,columns[14],columns[15],columns[1],inter_type,biological_unit))
+				pks.append(cur.fetchone()[0])
+			# Interactions
+			
+			# New Order: chain_1_id, chain_2_id, type, filename
+			interaction = (pks[0],pks[1],inter_type,columns[-1])
+			cur.execute('INSERT INTO interaction (chain_1_id,chain_2_id,type,filename) VALUES (%s,%s,%s,%s)', interaction)
+			db.commit()
 	cur.close()
-	print("Populated chain, interactionn and interaction_type tables")
+	print("Populated chain, interaction and interaction_type tables")
 			
 
 def chain_residue_position_mapping_import():
@@ -1296,7 +1296,7 @@ amino_acid_import()
 
 uniprot_residue_import()
 
-snv_import()
+#snv_import()
 
 disease_import()
 
