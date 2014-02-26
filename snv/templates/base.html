@@ -4,8 +4,13 @@
     <title>{% block pagetitle%}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap -->
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 	<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:500' rel='stylesheet' type='text/css'>
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  	<script type="text/javascript" src="//code.jquery.com/jquery-1.11.0.js"></script>
+  	<!-- Include all compiled plugins (below), or include individual files as needed -->
+  	<script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+	<!-- CSS -->
 	<style  type="text/css">
 		 <!--/* Move down content because we have a fixed navbar that is 50px tall */ -->
 		body {
@@ -66,14 +71,11 @@
 		<h1>{% block title %}{% endblock %}</h1>
 
 	{% block content %}{% endblock %}
-	</div>
+	</div><!-- END CONTAINER -->
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
 	{% block extraplugin %}{% endblock %}
-  </body>
+	</body>
 </html>
 
 

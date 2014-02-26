@@ -9,16 +9,16 @@ word-wrap:break-word;
 
 {% block title %}SNV FT ID: {{ snv.ft_id }}{% endblock %}
 {% block content %}
+<!-- #######################################    INFO   ############################################################################-->
 <div class = "well">
     <ul>
-    	{% if snv.uniprot_residue.all %}
+    	{% if snv.uniprot_residue %}
     		<li><strong>Related protein: </strong><a href="{% url 'uniprot-view' pk=snv.uniprot %}">{{snv.uniprot}}</a></li>
     	{% else %}
     		<li><strong>Related protein: </strong><a class="text-danger">{{snv.uniprot}}</a> <i>(Proteins with names in red cannot be displayed)</i></li>
     	{% endif %}
 		<li><strong>Position:</strong>{{snv.uniprot_position}}</li>
 		<li><strong>Mutation:</strong>{{snv.wt_aa.three_letter_code}} ({{snv.wt_aa.one_letter_code}}) <span class="glyphicon glyphicon-arrow-right"></span> {{snv.mutant_aa.three_letter_code}} ({{snv.mutant_aa.one_letter_code}})</li>
-    	<li><strong>Related gene: </strong>{{snv.gene_code}} <a href="https://www.ncbi.nlm.nih.gov/gene/{{snv.get_genbank_id}}">(link)</a></li>
     	<li><strong>Type: </strong>{{snv.type.type}}</li>
 
     	{% if snv.db_snp %}
@@ -32,44 +32,48 @@ word-wrap:break-word;
 
 
 
+<!-- #######################################    DISORDERS   ############################################################################-->
 <h3>Disorders associated to this SNV:</h3>
 {% if snv.type.type == "Disease" %}
 <div>	
 	<table class="table table-condensed table-hover">
+	<thead>
 		<tr>
-			<td><strong>Disorder name</strong></td>
-			<td><strong>OMIM code</strong></td>
+			<th>Disorder name</th>
+			<th>OMIM code</th>
 		</tr>
-	
+	</thead>
+	<tbody>
 		{% for item in snv.diseases.all %}
-
+	
 		<tr>
 			<td><a href="{% url 'disease-view' pk=item.mim %}">{{item.name}}</a></td>
 			<td>{{item.mim}} <a href="http://omim.org/entry/{{item.mim}}">(link)</a></td>
 		</tr>
 
 		{% endfor %}
+	</tbody>
 	</table>
-
-		
 {% else %}
 <p>No disorders found to be related to this SNV.</p>
 
 {% endif %}
 
-
+<!-- #######################################    MAPPING SNVS   ############################################################################-->
 <h3>Mapping mutated SNV to the sequence</h3>
 <div class = "well">
-{% if snv.uniprot_residue.all %}
+{% if snv.uniprot_residue %}
 <p style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">{{marked_seq|safe}}</p>
 {% else %}
 <p>Sorry, No sequence data available in our database...</p>
 {% endif %}
 </div>
 
+<!-- #######################################    OTHER SNVS   ############################################################################-->
 <h3>Other SNVs sharing the same position</h3>
 {% if sim_snv %}
 		<table class="table table-condensed table-hover">
+		<thead>
 			<tr>
 				<th>FT id</th>
 				<th>Type</th>
@@ -78,8 +82,9 @@ word-wrap:break-word;
 				<th>dbSNP id</th>
 				<th>Directly associated disorder</th>
 				<th>OMIM code</th>
-				
-				
+			</tr>
+		</thead>				
+		<tbody>		
 			{% for item in sim_snv %}
 			<tr>
 				<td><a href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</td>
@@ -109,6 +114,7 @@ word-wrap:break-word;
 				{% endif %}
 			</tr>
 			{% endfor %}
+		</tbody>
 		</table>
 {% else %}
 <p>No other SNV sharing the same position found</p>

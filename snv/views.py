@@ -20,9 +20,6 @@ from django.core.urlresolvers import reverse #for edit & create
 
 
 
-
-
-
 class UniprotList(ListView):
 	model = Uniprot
 	template_name = 'Uniprot_list.html'
@@ -34,12 +31,16 @@ class UniprotView(DetailView):
 	def get_context_data(self, **kwargs):
 		# Call the base implementation first to get a context
 		data = super(UniprotView, self).get_context_data(**kwargs)
-		# Add in a QuerySet of all the ralated snv
-		obtained_data = self.object.get_Snv()		
-		data['snv_list']= obtained_data[0]
-		data['snv_statistic']=obtained_data[1]
-		data['mapped_seq']= self.object.get_mapping_seq()
-		data['chains']=self.object.get_graphic()
+		data['chains']  =self.object.get_graphic()
+		interact_snvs = self.object.interactions() #also initialise data for marking
+		data['interactions'] = interact_snvs[0]
+		data['mapped_seq']   = interact_snvs[1]
+ 		snvs_data   = self.object.get_Snv()		
+		data['snv_list']= snvs_data[0]
+		data['snv_statistic']=snvs_data[1]
+		
+		data['marked_reg'] = interact_snvs[2]
+		data['markscript'] = interact_snvs[3]
 		return data
 	
 class DiseaseView(DetailView):
@@ -144,10 +145,5 @@ def search(request):
 		                    {'diseases': disease, 'query': q})
 	else:
 		return TemplateResponse(request, 'home.html', {'error': 'Please input your query'})
-		#return ValidationError('Invalid value')
-		#return HttpResponse('Please submit a search term.')
-		#url = reverse('home', kwargs={'error': 'Please input your query'})
-
-		#return HttpResponseRedirect(url)
 
 ######################################################################

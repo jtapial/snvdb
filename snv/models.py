@@ -36,8 +36,11 @@ def get_color(snv_list):
 class Uniprot(models.Model):
 	acc_number = models.CharField(max_length=6L, primary_key=True)
 	sequence = models.TextField(blank=True)
+
+
 	class Meta:
 		db_table = 'uniprot'
+		
 
 	def get_Snv(self):	#Return a list of all related snvs and their statistics
 		snvlist=[]
@@ -64,7 +67,7 @@ class Uniprot(models.Model):
 			mod_seq = mod_seq+self.sequence[curr_pos]
 		return mod_seq
 	####################################################################
-	#This method returns html code for SVG graphics
+	# Returns html code for SVG graphics and pdb alignment
 	####################################################################
 	def get_graphic(self):
 		outset = []
@@ -80,13 +83,13 @@ class Uniprot(models.Model):
 			#Alighment Method
 			chain_res_set = list(chain.residues.all().extra(order_by = ['id']))
 			res = None			
-			if(chain_res_set):			
+			mapping = None
+
+			while chain_res_set: # pop until we find a residue that align within uniprot sequence			
 				res = chain_res_set.pop(0)
-#################################################
-				if(not res.uniprot_residue.all()):
-					res = chain_res_set.pop(0)
-###############################################
-				mapping = res.uniprot_residue.all()[0].position
+				if res.uniprot_residue.all():
+					mapping = res.uniprot_residue.all()[0].position
+					break
 
 			align_code = '<code style="background-color:#428bca ; color:white;">Seq 1:</code> '
 			#Do each line for 50 letters
@@ -101,7 +104,7 @@ class Uniprot(models.Model):
 					align_code = align_code+self.sequence[curr_pos]	
 
 					if ((((curr_pos+1)%cutoff)==0 and curr_pos>0) or curr_pos==length-1 ): #Second line
-						align_code+='</br><code style="background-color:#5bc0de ; color:white;">Seq 2:</code> '
+						align_code+='<br><code style="background-color:#5bc0de ; color:white;">Seq 2:</code> '
 						#do until second line position == first line position						
 						while second_line <= curr_pos:
 							if ((second_line%10==0) and (second_line > 0)):				
@@ -113,15 +116,17 @@ class Uniprot(models.Model):
 									color='#FF6600'
 								align_code+= '<mark style="background-color:'+color+'">'+res.amino_acid.one_letter_code+'</mark>'
 
-								if(chain_res_set):
+								while chain_res_set: # pop until we find a residue that align within uniprot sequence			
 									res = chain_res_set.pop(0)
-									mapping = res.uniprot_residue.all()[0].position
+									if res.uniprot_residue.all():
+										mapping = res.uniprot_residue.all()[0].position
+										break
 							else:
 								align_code +='.'
 												
 							second_line+=1						
 						if(second_line<length):
-							align_code+='</br><code style="background-color:#428bca ; color:white;">Seq 1:</code> '
+							align_code+='<br><code style="background-color:#428bca ; color:white;">Seq 1:</code> '
 						
 			outset.append({'obj':chain,'graphic':graphic_code,'alignent':align_code})	 	
 		return outset
@@ -136,57 +141,6 @@ class Uniprot(models.Model):
 			if len(y) > 0:
 				return chain
 
-	###################################################################
-	#This method returns html code for a sequence with mapped snvs 
-	###################################################################
-	def get_mapping_seq(self):
-		seq=self.sequence
-		mod_seq=''		
-		snvlist=self.get_Snv()[0]
-		mod = {}
-		for snv in snvlist:
-			if snv.uniprot_residue.position in mod:
-				mod[snv.uniprot_residue.position].append(snv)
-			else:
-				mod[snv.uniprot_residue.position]=[snv]
-		
-		if len(mod)==0:
-			return '<p>No SNV Found</p>'		
-		sorted_mod = sorted(mod.items(), key=lambda t: t[0]) #list of snv [pos0,pos1] pos0 = residue number, pos1 = snv obj 
-		pos = sorted_mod.pop(0)		
-		for curr_pos in range(len(seq)):
-			if((curr_pos)%10 ==0):
-				mod_seq = mod_seq + ' '		
-			if(curr_pos<pos[0]-1):
-				mod_seq = mod_seq + seq[curr_pos]
-			else: 
-				pos_mute = ''			
-				color = get_color(pos[1])
-				if color == 'purple':#multiple mutation case
-					html = ''
-					for item in pos[1]:					
-						pos_mute=pos_mute + item.mutant_aa.one_letter_code +'('+item.type.type+') '	
-						html = html+"<p><a href = '"+item.get_absolute_url()+"' target='_blank'>ID: "+item.ft_id+", Mutation: "+item.mutant_aa.one_letter_code +" ("+item.type.type+") </a></p>"
-					mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="#" style="color:white;" class="open-AddBookDialog" data-id="'+html+'" data-toggle="modal" data-target=".bs-modal-sm"  title="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
-				else:#One mutation case
-					url = pos[1][0].get_absolute_url()
-					pos_mute=pos_mute + pos[1][0].mutant_aa.one_letter_code +'('+pos[1][0].type.type+') '	
-					mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="'+url+'" target="_blank"style="color:white;" title="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
-
-					
-				
-				if(len(sorted_mod)>0):
-					pos = sorted_mod.pop(0)				
-				else:				
-					while curr_pos <len(seq)-1:
-						curr_pos+=1
-						if((curr_pos)%10 ==0):
-							mod_seq = mod_seq + '  '							
-						mod_seq = mod_seq+seq[curr_pos]
-						
-					break		
-		return mod_seq
-	###########################################################
 	def get_color(self):
 		if self.type.type =='Disease':
 			return  set('red')
@@ -207,10 +161,16 @@ class Uniprot(models.Model):
 				partners.append(partner.uniprot)
 		# Return list of Uniprot objects
 		return set(partners)
-
+	###############################################
+	# Returns Interaction Set with SVG graphic             [COMBINED WITH SNVS MAPPING]
+	################################################
 	def interactions(self):
 		chains = self.chains.all()
 		output = []
+		interactionset = []
+		interaction_reg_mark = [{'name':'default','info':'Default setting, No interaction marked','region':[],'id':'default','sequence':'','checked':'checked'}]
+		script = ''
+
 		for chain in chains:
 			i1 = chain.interactions_1.all()
 			i2 = chain.interactions_2.all()
@@ -218,9 +178,184 @@ class Uniprot(models.Model):
 				output.append(interaction)
 			for interaction in i2:
 				output.append(interaction)
-		#Return a list of Interaction objects
-		return set(output)
+		outset = set(output) # eliminate redundancy
+		for interact in outset: #for each interaction
+			#get interface
+			cu = [interact.chain_1.uniprot,interact.chain_2.uniprot]
+			
+			chains_set=[[],[]]
+			interact_res = [[],[]]
 
+			_ischain1=False
+			if interact.chain_1.uniprot.acc_number == self.acc_number:
+				_ischain1=True
+
+			for item in interact.interface_residues.all():
+
+				if item.chain_residue.uniprot_residue.all()[0].uniprot.acc_number == interact.chain_1.uniprot.acc_number:
+					chains_set[0].append(item)
+					#Homodimer case
+					if interact.chain_1.uniprot.acc_number == interact.chain_2.uniprot.acc_number:
+						chains_set[1].append(item)
+				else:
+					chains_set[1].append(item)
+
+
+
+
+			#post process for each chains
+			chain_reg = [None,None]
+			res_pos = [[],[]]
+
+			for i in range(2):#do for chain1 & chain 2
+				region = []
+				if not chains_set[i]:#if no position found
+					chain_reg[i] = []
+					continue #skip
+
+				starting = chains_set[i].pop(0)
+				tmp = [int(starting.chain_residue.uniprot_residue.all()[0].position),int(starting.chain_residue.uniprot_residue.all()[0].position)+1]
+				res_pos[i].append(int(starting.chain_residue.uniprot_residue.all()[0].position))
+				for item in chains_set[i]:
+					res_pos[i].append(item.chain_residue.uniprot_residue.all()[0].position)
+
+					if int(item.chain_residue.uniprot_residue.all()[0].position) > tmp[1]:
+						region.append(tmp)
+						tmp = [int(item.chain_residue.uniprot_residue.all()[0].position),int(item.chain_residue.uniprot_residue.all()[0].position)+1]
+					else:
+						tmp[1] = int(item.chain_residue.uniprot_residue.all()[0].position)+1
+				region.append(tmp)				
+				chain_reg[i] = region
+										
+			#store marking region to Uniprot's local variable (to be used in SNVs mapping)
+			if _ischain1:
+				interaction_reg_mark.append({'name':str(interact.id),'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':''})
+			else:
+				interaction_reg_mark.append({'name':str(interact.id),'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':''})
+
+
+			#Create Graphic for each chain
+			maxlen = max(len(cu[0].sequence),len(cu[1].sequence))
+			graphic_code = ['','']
+			frame = 800
+			color_code = [['#428bca','#285379'],['#5bc0de','#499AB2']]
+			if not _ischain1:
+				color_code = [['#5bc0de','#499AB2'],['#428bca','#285379']]
+							
+			for i in range(2):
+				classname_main = str(interact.id)+'_'+cu[i].acc_number
+				graphic_code[i] = '<svg width= "850" height="40">'
+				graphic_code[i] +=  '<text x="5" y="15" font-weight="bold" fill="black">Partner '+str(i+1)+' : '+cu[i].acc_number+'</text>' 
+				graphic_code[i] += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'"width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="12" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+'" /></a>'              
+				java_code = '<script>$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'     
+				for region in chain_reg[i]:
+					classname = str(i)+str(region[0])+str(region[1])
+					content_data = ''
+					if region[1]-region[0] == 1: #1residue case
+						content_data = 'Residue '+str(region[0])
+					else:
+						content_data = 'Residue ' +str(region[0])+ ' to (and including) ' +str(region[1]-1)+ ' ('+str(region[1]-region[0])+' residues)'
+					#graphic_code[i] += '<a data-toggle="popover" data-content="'+str(region)+'" xlink:href="">'
+					graphic_code[i] +=  '<rect class ="'+classname+'" width="'+ str((region[1]-region[0])*frame/maxlen +1) +'" height="12" x="'+str((region[0])*frame/maxlen) +'" y="25" style="fill:#FF9933;" />'   			
+				#graphic_code +=  '<text x="30" y="40" font-weight="bold" fill="black">'+c2u.acc_number+'</text>' 
+				
+					java_code+= '$(".'+classname+'").popover({content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
+				graphic_code[i] +='</svg>'+java_code+'</script>'
+				
+	
+
+
+			#item.chain_residue.uniprot, item.chain_residue.position,'''
+			interactionset.append({'obj':interact,'code':graphic_code})
+		#Return a list of Interaction objects
+
+	###################################################################
+	# Returns html code for a sequence with mapped snvs 
+	###################################################################
+
+		seq=self.sequence
+		mod_seq=''		
+		snvlist=self.get_Snv()[0]
+		mod = {}#a dict containing snvs and position
+		for snv in snvlist:#get position of snvs into the dict
+			if snv.uniprot_residue.position in mod:
+				mod[snv.uniprot_residue.position].append(snv)
+			else:
+				mod[snv.uniprot_residue.position]=[snv]
+	
+		sorted_mod2 = sorted(mod.items(), key=lambda t: t[0]) #list of snv [pos0,pos1] pos0 = residue number, pos1 = snv obj 
+		sorted_mod = []
+
+		for option in interaction_reg_mark:#modified sequence for each interaction view
+			#get region to be marked
+			no_snv = False
+			mark_reg = option['region']
+			sorted_mod = list(sorted_mod2)
+			if(sorted_mod):
+				pos = sorted_mod.pop(0)
+			else:
+				no_snv = True	
+
+			mod_seq=''		
+			for curr_pos in range(len(seq)):
+				interpos = False
+				extraopt = ''
+				textcol = 'black'
+				letter = seq[curr_pos]
+
+				if(curr_pos+1 in mark_reg):
+					extraopt = 'text-decoration:underline overline;'
+					textcol = '#FFCC00'
+					letter = '<a href = "#" title = "Position '+str(curr_pos+1)+'" style="color:'+textcol+';'+extraopt+'">'+letter+'</a>'
+					interpos = True
+
+				if((curr_pos)%10 ==0):
+					mod_seq = mod_seq + ' '	
+				if(no_snv or curr_pos<pos[0]-1):
+					mod_seq = mod_seq + letter
+				else: 
+					if not interpos: 
+						textcol = 'white'
+					pos_mute = ''			
+					color = get_color(pos[1])
+					if color == 'purple':#multiple mutation case
+						html = ''
+						for item in pos[1]:					
+							pos_mute=pos_mute + item.mutant_aa.one_letter_code +'('+item.type.type+') '	
+							html = html+"<p><a href = '"+item.get_absolute_url()+"' target='_blank'>ID: "+item.ft_id+", Mutation: "+item.mutant_aa.one_letter_code +" ("+item.type.type+") </a></p>"
+						mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="#" style="color:'+textcol+';'+extraopt+'" class="open-AddBookDialog" data-id="'+html+'" data-toggle="modal" data-target=".bs-modal-sm"  title="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
+					else:#One mutation case
+						url = pos[1][0].get_absolute_url()
+						pos_mute=pos_mute + pos[1][0].mutant_aa.one_letter_code +'('+pos[1][0].type.type+') '	
+						mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="'+url+'" target="_blank" style="color:'+textcol+';'+extraopt+'" title="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
+
+					
+				
+					if(len(sorted_mod)>0):
+						pos = sorted_mod.pop(0)	
+			
+					else:
+						no_snv = True
+						'''
+										
+						while curr_pos <len(seq)-1:
+							curr_pos+=1
+							if((curr_pos)%10 ==0):
+								mod_seq = mod_seq + '  '							
+							mod_seq = mod_seq+seq[curr_pos]
+						
+						break
+						'''
+			option['sequence'] = mod_seq
+			#print 'success'
+
+		script = '<script type="text/javascript">$(document).ready(function(){ $(".default").show();$(\'input[type="radio"]\').click(function(){'
+		for item in interaction_reg_mark:
+			script += 'if($(this).attr("id")=="'+item['id']+'"){$(".box").hide();$(".'+item['id']+'").show();}'
+		script+='});});</script>'	
+	
+		return [interactionset, mod_seq,interaction_reg_mark,script]
+	###########################################################
 	def get_absolute_url(self):
 		return reverse('uniprot-view', kwargs={'pk': self.acc_number})
 
@@ -341,7 +476,7 @@ class Snv(models.Model):
 	mutant_aa = models.ForeignKey(AminoAcid,related_name="+",db_column="mutant_aa")
 	uniprot = models.CharField(max_length=6L,db_column="uniprot_acc_number")
 	uniprot_residue = models.ForeignKey(UniprotResidue,db_column='uniprot_residue_id',related_name='snvs')
-	gene_code = models.CharField(max_length=10L, blank=True)
+	#gene_code = models.CharField(max_length=10L, blank=True)
 	db_snp = models.CharField(max_length=15L, blank=True)
 
 	class Meta:
@@ -355,15 +490,15 @@ class Snv(models.Model):
 			for curr_pos in range(len(pre_seq)): #run through all position
 				if curr_pos%10 ==0:
 					mod_seq = mod_seq + '  '
-				if curr_pos==self.uniprot_position-1:
+				if curr_pos==self.uniprot_residue.position-1:
 					color = get_color([self])
-					mod_seq =  mod_seq+'<mark style="background-color:'+color+'"><a style="color:white;" title="Position:'+str(self.uniprot_position)+', Original Amino Acid:'+self.wt_aa.one_letter_code+' ">'+self.mutant_aa.one_letter_code+'</a></mark>'				 		
+					mod_seq =  mod_seq+'<mark style="background-color:'+color+'"><a style="color:white;" title="Position:'+str(self.uniprot_residue.position)+', Original Amino Acid:'+self.wt_aa.one_letter_code+' ">'+self.mutant_aa.one_letter_code+'</a></mark>'				 		
 				else:				
 					mod_seq = mod_seq + pre_seq[curr_pos]	
 		return mod_seq
 
 	def get_similar_snv(self):
-		snvlist = list(set(Snv.objects.filter(uniprot=self.uniprot).filter(uniprot_position=self.uniprot_position))-set([self]))
+		snvlist = list( set(self.uniprot_residue.snvs.all()) - set([self]))
 		return snvlist
 	
 	def get_absolute_url(self):
