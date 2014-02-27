@@ -10,6 +10,8 @@ from decimal import *
 import urllib
 import urllib2
 from Bio import Entrez
+import fnmatch
+from itertools import izip
 # Database connection object
 # Will prompt for 
 db = MySQLdb.connect(host=raw_input('MySQL Host: '),
@@ -17,7 +19,14 @@ user=raw_input('MySQL Username: '),
 passwd=getpass.getpass('MySQL Password: '),
 db=raw_input('MySQL DB: '))
 
+## HELPER METHODS ##
 
+def is_numeric(x):
+		try:
+			float(x)
+			return True
+		except:
+			return False
 
 ##METHOD DEFINITION:
 
@@ -932,13 +941,9 @@ def chain_residue_position_mapping_import():
 	#Script to populate chain_residue and position_mapping tables
 	#(formerly "import_mapping")
 
-	## Parse Mapping Files
-
-	## TODO
-	# Populate chain residues using mapping file 
-	# Each interaction unique to filename
-	# Then use A or B to define whether it is chain 1 or chain 2
-	# Then write residue at a time the chain residue and mapping table
+	# Populate chain_residue, position_mapping and position_transform tables
+	# Position transform populated with adjustment values for chains with different labeled but identically mapped sequences.
+	#
 
 	print("Populating chain_residue and position_mapping tables")
 
@@ -959,11 +964,14 @@ def chain_residue_position_mapping_import():
 			# Get chain_id of the chain being mapped
 			try:
 				if partner_id == "A":
-					cur.execute('SELECT chain_1_id FROM interaction WHERE filename=%s',(pdb_filename))
-					chain_id = cur.fetchone()[0]
+					cur.execute('SELECT chain_1_id,id FROM interaction WHERE filename=%s',(pdb_filename))
+					results = cur.fetchone()
+					chain_id = results[0]
 				elif partner_id == "B":
-					cur.execute('SELECT chain_2_id FROM interaction WHERE filename=%s',(pdb_filename))
-					chain_id = cur.fetchone()[0]
+					cur.execute('SELECT chain_2_id,id FROM interaction WHERE filename=%s',(pdb_filename))
+					results = cur.fetchone()
+					chain_id = results[0]
+				interaction_id = results[1]
 			except TypeError:
 				print(pdb_filename)
 				raise
@@ -976,33 +984,149 @@ def chain_residue_position_mapping_import():
 				print(file_uniprot)
 				print(chain_uniprot)
 				print(filename)
-			# Open mapping file and iterate over each line
-			mapping_file = open(mapping_path+filename)
-			for line in mapping_file:
-				columns = line.split()
-				# If line is data line not header
-				if len(columns) == 5 or len(columns) == 6:
-					pdb_residue = columns[1]
-					uni_residue = columns[2]
-					pdb_res_position = columns[-2]
-					uni_res_position = columns[-1]
+			
+			# Check whether there are already chain residues for this chain
+			if cur.execute('SELECT id FROM chain_residue WHERE chain_id=%s',(chain_id)) == 0:
+				# Open mapping file and iterate over each line
+				mapping_file = open(mapping_path+filename)
+				for line in mapping_file:
+					columns = line.split()
+					# If line is data line not header
+					if len(columns) == 5 or len(columns) == 6:
+						pdb_residue = columns[1]
+						uni_residue = columns[2]
+						pdb_res_position = columns[-2]
+						uni_res_position = columns[-1]
 
-					if pdb_residue != "-":
-						try:
-							cur.execute('INSERT INTO chain_residue (chain_id, chain_position, amino_acid) VALUES (%s,%s,%s)', (chain_id, pdb_res_position, pdb_residue))
-							db.commit()
-							# Get id of inserted chain residue
-							chain_res_id = cur.lastrowid
-							if uni_residue != "-":
-								# Get id of uniprot residue to be mapped
-								cur.execute('SELECT id FROM uniprot_residue WHERE uniprot_acc_number=%s AND uniprot_position=%s',(chain_uniprot,uni_res_position))
-								uniprot_res_id = cur.fetchone()[0]
-								# Insert position mapping of residue ids
-								cur.execute('INSERT INTO position_mapping (uniprot_residue_id,chain_residue_id) VALUES (%s,%s)',(uniprot_res_id,chain_res_id))
+						if pdb_residue != "-":
+							try:
+								cur.execute('INSERT INTO chain_residue (chain_id, chain_position, amino_acid) VALUES (%s,%s,%s)', (chain_id, pdb_res_position, pdb_residue))
 								db.commit()
-						except MySQLdb.IntegrityError:
-							db.rollback()
-			mapping_file.close()
+								# Get id of inserted chain residue
+								chain_res_id = cur.lastrowid
+								if uni_residue != "-":
+									# Get id of uniprot residue to be mapped
+									cur.execute('SELECT id FROM uniprot_residue WHERE uniprot_acc_number=%s AND uniprot_position=%s',(chain_uniprot,uni_res_position))
+									uniprot_res_id = cur.fetchone()[0]
+									# Insert position mapping of residue ids
+									cur.execute('INSERT INTO position_mapping (uniprot_residue_id,chain_residue_id) VALUES (%s,%s)',(uniprot_res_id,chain_res_id))
+									db.commit()
+							except MySQLdb.IntegrityError:
+								db.rollback()
+				mapping_file.close()
+				cur.execute('INSERT INTO position_transform (interaction_id,chain_id,value) VALUES (%s,%s,0)',(interaction_id,chain_id))
+				db.commit()
+
+			else:
+				# If there are chain residues
+				# Check that sequences match
+				# Get sequence from input file
+				# Attempt to open input file
+
+				# Get a filename for which the transform value is 0
+				# Therefore is the reference numbering system
+				cur.execute('SELECT interaction_id FROM position_transform WHERE value=0 AND chain_id=%s',(chain_id))
+				ref_transform = cur.fetchone()
+				ref_interaction_id = ref_transform[0]
+				# Find filename and chain ids for that interaction
+				cur.execute('SELECT filename,chain_1_id,chain_2_id FROM interaction WHERE id=%s',(ref_interaction_id))
+				ref_interaction = cur.fetchone()
+				# Set A or B dependent on part of interaction
+				ref_base_filename = ref_interaction[0]
+				if ref_interaction[1] == chain_id:
+					ref_partner = "A"
+				elif ref_interaction[2] == chain_id:
+					ref_partner = "B"
+				else:
+					print("No Partner")
+					print(ref_base_filename)
+					print(ref_interaction)
+				# Get ref full file
+				ref_match = fnmatch.filter(files,"*"+ref_partner+"__"+ref_base_filename+"*.out")
+				if len(ref_match) == 1:
+					ref_file = open(mapping_path+ref_match[0])
+				else:
+					print('More than one filename match')
+					print(ref_match)
+					print(ref_base_filename)
+					print(ref_partner)
+				trans_file = open(mapping_path+filename)
+
+				# Check whether every line in file is identical
+				diff_count = 0
+				for ref,trans in izip(ref_file,trans_file):
+					if ref != trans:
+						diff_count += 1
+				# If files have no differences insert transform of 0
+				if diff_count == 0:
+					cur.execute('INSERT INTO position_transform (chain_id,interaction_id,value) VALUES (%s,%s,0)',(chain_id,interaction_id))
+					db.commit()
+				else:
+					# Setup lists to hold sequences and positions
+					ref_sequence = []
+					ref_positions = []
+					trans_sequence = []
+					trans_positions = []
+
+					ref_file2 = open(mapping_path+ref_match[0])
+					trans_file2 = open(mapping_path+filename)
+
+					# Get all amino acid 1 letter codes
+					#cur.execute('SELECT one_letter_code FROM amino_acid')
+					#one_letter_codes = cur.fetchall()
+
+					for ref,trans in izip(ref_file2,trans_file2):
+
+						# Get positions
+						ref_position = ref[19:23].strip()
+						trans_position = trans[19:23].strip()
+						# Get amino acids
+						ref_aa = ref[7]
+						trans_aa = trans[7]							
+						if ref_aa != "-" and ref_aa != "l":
+							if is_numeric(ref_position):
+								ref_positions.append(int(ref_position))
+							else:
+								ref_positions.append(ref_position)
+								print("Non-numeric position")
+								print(ref_position)
+							ref_sequence.append(ref_aa)
+						if trans_aa != '-' and ref_aa != 'l':
+							if is_numeric(trans_position):
+								trans_positions.append(int(trans_position))
+							else:
+								trans_positions.append(trans_position)
+								print("Non-numeric position")
+								print(trans_position)
+							trans_sequence.append(trans_aa)
+					if ref_sequence == trans_sequence:
+						if ref_positions != trans_positions:
+							value = ref_positions[0] - trans_positions[0]
+							amended_positions = []
+							for p in trans_positions:
+								amended_positions.append(p+value)
+							if amended_positions == ref_positions:
+								cur.execute('INSERT INTO position_transform (chain_id,interaction_id,value) VALUES (%s,%s,%s)',(chain_id,interaction_id,value))
+								db.commit()
+							else:
+								print('Positions do not match')
+								print(filename)
+								print(ref_positions)
+								print(trans_positions)
+								print(amended_positions)
+						else:
+							print('Something else is different between files')
+							print(ref_filename)
+							print(filename)
+					else:
+						print("Non-matching sequences")
+						print(ref_sequence)
+						print(trans_sequence)
+							
+				
+
+
+				
 
 	cur.close()
 	print("Populated chain_residue and position_mapping tables")
@@ -1026,23 +1150,29 @@ def interface_residue_import():
 		#Check for file extension
 
 			pdb_filename = filename[:-4]
-
+			#Get information from the DB: chain IDs and interaction ID
 			cur.execute('SELECT id,chain_1_id,chain_2_id FROM interaction WHERE filename=%s', (pdb_filename))
 			interaction = cur.fetchone()
-			#Get information from the DB: chain IDs and interaction ID
-
-
-			interaction_id = interaction[0]
+			
 			# Get interaction id
+			interaction_id = interaction[0]
+
+			# Get transform values and map them to chain ids
+			cur.execute('SELECT chain_id,value FROM position_transform WHERE interaction_id=%s',(interaction_id))
+			chain2value = {}
+			for record in cur.fetchall():
+				chain2value[int(record[0])] = int(record[1])
 			
 			in_file = open(pdbinter_path + filename,"r")
 
 			for line in in_file:
 				splitline = line.split()
+				#Parse lines to get the "partner ID" (the A/B parameter in the pdbinter file, from which we will get the chain id by querying the DB) and the chain_position of each residue
 
 				chain_position = splitline[0]
 				partner_id = splitline[2]
-				#Parse lines to get the "partner ID" (the A/B parameter in the pdbinter file, from which we will get the chain id by querying the DB) and the chain_position of each residue
+
+
 
 				#This is the if construction to get the chain_ID from the "parther_ID" that we parsed from the file
 				if partner_id == "A":
@@ -1051,10 +1181,20 @@ def interface_residue_import():
 				elif partner_id == "B":
 					chain_id = interaction[2]
 				
-				# Get chain_residue_id for this position
 
-				cur.execute('SELECT id FROM chain_residue WHERE chain_id=%s AND chain_position=%s',(chain_id,chain_position))
-				chain_residue = cur.fetchone()
+				# Adjust chain_position using transform table
+				try:
+					if chain2value[int(chain_id)] != 0:
+						transformed_position = int(chain_position) + chain2value[int(chain_id)]
+					else:
+						transformed_position = chain_position
+					# Get chain_residue_id for this position
+
+					cur.execute('SELECT id FROM chain_residue WHERE chain_id=%s AND chain_position=%s',(chain_id,transformed_position))
+					chain_residue = cur.fetchone()
+				# KeyError shows there are no chain residues
+				except KeyError:
+					chain_residue = None
 				# Some chains have no residues due to malformed pdbs preventing alignments
 				# Discard interfaces as no way of mapping
 				if chain_residue != None:
@@ -1116,12 +1256,7 @@ def accessibility_import():
 	# RELA Area Residue (Unbound) [33:37]
 	# RELA Area Residue (Bound) [57:61]
 
-	def is_numeric(x):
-		try:
-			float(x)
-			return True
-		except:
-			return False
+	
 
 	print("Populating accessibility table")
 
@@ -1164,37 +1299,56 @@ def accessibility_import():
 				print(file_uniprot)
 				print(chain_uniprot)
 				print(filename)
-			# Open Accessibility file
-			access_file = open(access_path+filename)
-			for line in access_file:
-				# Check it is a DATA line
-				if line[:4] == "DATA":
-					# Extract variables from line
-					amino_acid = three2one[line[11:15].strip().upper()]
-					pdb_position = line[6:11].strip()
-					apo_rel_area = line[33:37].strip()
-					complex_rel_area = line[57:61].strip()
-					disulphide_bridge = line[19]
-					# Get chain_residue_id
-					cur.execute('SELECT id FROM chain_residue WHERE chain_id=%s AND chain_position=%s',(chain_id,pdb_position))
-					chain_residue = cur.fetchone()
-					# Some chains have no residues due to malformed pdbs preventing alignments
-					# Discard accessibilities if this is the case
-					if chain_residue != None:
-						chain_residue_id = chain_residue[0]
-						# Attempt to insert or rollback
-						try:
-							cur.execute('''INSERT INTO accessibility 
-								(interaction_id, 
-								chain_residue_id,
-								bound_acc,
-								unbound_acc,
-								disulphide_bridge_no)
-								VALUES (%s,%s,%s,%s,%s)''',
-								(interaction_id,chain_residue_id,apo_rel_area,complex_rel_area,disulphide_bridge))
-							db.commit()
-						except MySQLdb.IntegrityError:
-							db.rollback()
+
+
+			# Check chain has any residues
+			residues = cur.execute('SELECT id FROM chain_residue WHERE chain_id=%s',(chain_id))
+			if residues != 0:
+				# Get transform value
+				cur.execute('SELECT value FROM position_transform WHERE chain_id=%s AND interaction_id=%s',(chain_id,interaction_id))
+				transform_value = int(cur.fetchone()[0])
+
+				# Open Accessibility file
+				access_file = open(access_path+filename)
+				for line in access_file:
+					# Check it is a DATA line
+					if line[:4] == "DATA":
+						# Extract variables from line
+						amino_acid = three2one[line[11:15].strip().upper()]
+						pdb_position = line[6:11].strip()
+						apo_rel_area = line[33:37].strip()
+						complex_rel_area = line[57:61].strip()
+						disulphide_bridge = line[19]
+						# Transform position value
+						if transform_value != 0:
+							transformed_position = int(pdb_position) + transform_value
+						else:
+							transformed_position = pdb_position
+						# Get chain_residue_id
+						results_length = cur.execute('SELECT id FROM chain_residue WHERE chain_id=%s AND chain_position=%s',(chain_id,transformed_position))
+						chain_residue = cur.fetchone()
+						# Some chains have no residues due to malformed pdbs preventing alignments
+						# Discard accessibilities if this is the case
+						if results_length != 0:
+							chain_residue_id = chain_residue[0]
+							# Attempt to insert or rollback
+							try:
+								cur.execute('''INSERT INTO accessibility 
+									(interaction_id, 
+									chain_residue_id,
+									bound_acc,
+									unbound_acc,
+									disulphide_bridge_no)
+									VALUES (%s,%s,%s,%s,%s)''',
+									(interaction_id,chain_residue_id,apo_rel_area,complex_rel_area,disulphide_bridge))
+								db.commit()
+							except MySQLdb.IntegrityError:
+								db.rollback()
+						else:
+							print('Unable to find matching residue')
+							print(chain_id)
+							print(pdb_position)
+							print(transformed_position)
 	cur.close()
 
 	print("Populated accessibility table")
@@ -1286,30 +1440,30 @@ def pfam_import():
 
 ##METHOD CALLS:
 
-create_tables()
+#create_tables()
 
-uniprot_import()
+#uniprot_import()
 
-snv_type_import()
+#snv_type_import()
 
-amino_acid_import()
+#amino_acid_import()
 
-uniprot_residue_import()
+#uniprot_residue_import()
 
 #snv_import()
 
-disease_import()
+#disease_import()
 
-snv_disease_import()
+#snv_disease_import()
 
-chain_interaction_interaction_type_import()
+#chain_interaction_interaction_type_import()
 
-chain_residue_position_mapping_import()
+#chain_residue_position_mapping_import()
 
-interface_residue_import()
+#interface_residue_import()
 
 accessibility_import()
 
-pfam_import()
+#pfam_import()
 
 db.close()
