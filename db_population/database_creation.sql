@@ -176,3 +176,13 @@ FOREIGN KEY (ref_chain_id) REFERENCES chain (id),
 FOREIGN KEY (target_chain_id) REFERENCES chain (id),
 UNIQUE (ref_chain_id,target_chain_id,target_chain_letter)
 );
+CREATE TABLE position_transform (
+id INT AUTO_INCREMENT NOT NULL,
+interaction_id INT NOT NULL,
+chain_id INT NOT NULL,
+value INT NOT NULL,
+PRIMARY KEY (id),
+FOREIGN KEY (interaction_id) REFERENCES interaction (id),
+FOREIGN KEY (chain_id) REFERENCES chain (id),
+UNIQUE (interaction_id,chain_id)
+);
