@@ -471,6 +471,18 @@ class ChainResidue(models.Model):
     class Meta:
         db_table = 'chain_residue'
 
+    def get_transformed_position(self,interaction):
+    	
+    	transform = PositionTransform.objects.get(chain=self.chain,interaction=interaction)
+
+    	if transform.value != 0:
+    		position = unicode(int(self.position) + transform.value)
+    	else:
+    		position = self.position
+
+    	return position
+
+
 class PositionMapping(models.Model):
     id = models.IntegerField(primary_key=True)
     uniprot_residue = models.ForeignKey(UniprotResidue,db_column='uniprot_residue_id',related_name='+')
@@ -481,12 +493,24 @@ class PositionMapping(models.Model):
 class Accessibility(models.Model):
     id = models.IntegerField(primary_key=True)
     interaction = models.ForeignKey(Interaction,db_column='interaction_id',related_name='+')
-    chain_residues = models.ForeignKey(ChainResidue,db_column='chain_residue_id',related_name='accessibilities')
+    chain_residue = models.ForeignKey(ChainResidue,db_column='chain_residue_id',related_name='accessibilities')
     bound_acc = models.CharField(max_length=10L)
     unbound_acc = models.CharField(max_length=10L)
     disulphide_bridge_no = models.IntegerField()
     class Meta:
         db_table = 'accessibility'
+
+    def get_position(self):
+    	cr = self.chain_residue
+    	transform = PositionTransform.objects.get(chain=cr.chain,interaction=self.interaction)
+
+    	if transform.value != 0:
+    		position = unicode(int(cr.position) + transform.value)
+    	else:
+    		position = cr.position
+
+    	return position
+
 
 class InterfaceResidue(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -494,6 +518,17 @@ class InterfaceResidue(models.Model):
     interaction = models.ForeignKey(Interaction,db_column='interaction_id',related_name='interface_residues')
     class Meta:
         db_table = 'interface_residue'
+
+    def get_position(self):
+    	cr = self.chain_residue
+    	transform = PositionTransform.objects.get(chain=cr.chain,interaction=self.interaction)
+
+    	if transform.value != 0:
+    		position = unicode(int(cr.position) + transform.value)
+    	else:
+    		position = cr.position
+
+    	return position
 
 class SnvType(models.Model):
     type = models.CharField(max_length=20L, primary_key=True)
@@ -626,6 +661,13 @@ class SuperpositionMapping(models.Model):
     class Meta:
         db_table = 'combined_uniprot_mapping'
 
+class PositionTransform(models.Model):
+    id = models.IntegerField(primary_key=True)
+    interaction = models.ForeignKey(Interaction,db_column='interaction_id',related_name="transforms")
+    chain = models.ForeignKey(Chain,db_column='chain_id',related_name="transforms")
+    value = models.IntegerField()
+    class Meta:
+        db_table = 'position_transform'
 
 
 
