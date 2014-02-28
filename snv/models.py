@@ -15,10 +15,12 @@ from django.core.urlresolvers import reverse
 from Bio import Entrez
 
 ##############################
-#     GLOBAL METHOD
+##############################
+##     GLOBAL METHOD
+##############################
 ##############################
 
-#This method gets a list of SNVs and return appropriate color code to display
+# get a list of SNVs and return appropriate color code to display
 def get_color(snv_list):
 	if len(snv_list)==1:
 		if snv_list[0].type.type =='Disease':
@@ -29,9 +31,41 @@ def get_color(snv_list):
 			return 'blue'
 	return 'purple'			
 
+###########################################################################
+# Return SVG graphic code and Java Script (User need to add </svg> tag manually) 
+###########################################################################
+def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interactid,maxlen,chain_reg,special):
+	h_frame = str(25 + height)
+	height = str(height)
+	frame = 800
+	color_code = [['#428bca','#285379'],['#5bc0de','#499AB2']] #darkblue / lightblue
+	if not _ischain1:
+		color_code = [['#5bc0de','#499AB2'],['#428bca','#285379']]
+	if special:
+		color_code = [['#5bc0de','#499AB2'],['#5bc0de','#499AB2']]
+	classname_main = str(interactid)+'_'+cu[i].acc_number+classsuffix
+	graphic_code = '<svg width= "850" height="'+h_frame+'">'+ header
+	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'"width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+'" /></a>'              
+	java_code = '$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'     
+	for region in chain_reg:
+		classname = str(i)+str(region[0])+str(region[1])+classsuffix
+		content_data = ''
+		if region[1]-region[0] == 1: #1residue case
+			content_data = 'Residue '+str(region[0])
+		else:
+			content_data = 'Residue ' +str(region[0])+ ' to ' +str(region[1]-1)+ ' ('+str(region[1]-region[0])+' residues)'
+		graphic_code +=  '<rect class ="'+classname+'" width="'+ str((region[1]-region[0])*frame/maxlen +1) +'" height="'+height+'" x="'+str((region[0])*frame/maxlen) +'" y="25" style="fill:#FF9933;" />'   			
+			
+		java_code+= '$(".'+classname+'").popover({content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
+		
+	return {'graphic_code':graphic_code,'java_code':java_code} 
+
+
 
 ##############################
-#     CLASSES
+##############################
+##         CLASSES
+##############################
 ############################## 
 class Uniprot(models.Model):
 	acc_number = models.CharField(max_length=6L, primary_key=True)
@@ -41,12 +75,14 @@ class Uniprot(models.Model):
 	class Meta:
 		db_table = 'uniprot'
 		
-
-	def get_Snv(self):	#Return a list of all related snvs and their statistics
+	####################################################################
+	# Return a list of all related snvs and their statistics
+	####################################################################
+	def get_Snv(self):	
 		snvlist=[]
 		for item in self.residues.all():					
 			snvlist.extend(item.snvs.all())		
-		di = po = un = 0		
+		di = po = un = 0.0		
 		for item in snvlist:
 			if item.type.type == 'Disease':
 				di+=1
@@ -54,10 +90,13 @@ class Uniprot(models.Model):
 				po+=1
 			else:
 				un+=1
-		divider = len(snvlist)
+		divider = float(len(snvlist))
 		if divider==0:
 			divider = 1
-		return [snvlist,[len(snvlist),(di*100)/divider,(po*100)/divider,un*100/divider]]
+		stat1 = round(di*100/divider,1)
+		stat2 = round(po*100/divider,1)
+		stat3 = 100.0 - stat1 - stat2
+		return [snvlist,[len(snvlist),"%.1f"%stat1,"%.1f"%stat2,"%.1f"%stat3]]
 
 	def get_seq(self):
 		mod_seq = ''
@@ -67,7 +106,7 @@ class Uniprot(models.Model):
 			mod_seq = mod_seq+self.sequence[curr_pos]
 		return mod_seq
 	####################################################################
-	# Returns html code for SVG graphics and pdb alignment
+	# Return html code for SVG graphics and pdb alignment [ CHAIN ]
 	####################################################################
 	def get_graphic(self):
 		outset = []
@@ -161,6 +200,9 @@ class Uniprot(models.Model):
 				partners.append(partner.uniprot)
 		# Return list of Uniprot objects
 		return set(partners)
+	
+
+
 	###############################################
 	# Returns Interaction Set with SVG graphic             [COMBINED WITH SNVS MAPPING]
 	################################################
@@ -168,44 +210,40 @@ class Uniprot(models.Model):
 		chains = self.chains.all()
 		output = []
 		interactionset = []
-		interaction_reg_mark = [{'name':'default','info':'Default setting, No interaction marked','region':[],'id':'default','sequence':'','checked':'checked'}]
-		script = ''
-
+		header = '<text x="5" y="15" font-weight="bold" fill="black">'+self.acc_number+'</text>' 
+		svgcode = create_svg_interaction([self,self],False,0,header,36,'mapped','0',len(self.sequence),[],True)
+		interaction_reg_mark = [{'name':'default','info':'Default setting, No interaction marked','region':[],'id':'default','sequence':'','checked':'checked','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']}]
+		outset = []
+		#fetch and sort all related interactions
 		for chain in chains:
-			i1 = chain.interactions_1.all()
-			i2 = chain.interactions_2.all()
-			for interaction in i1:
-				output.append(interaction)
-			for interaction in i2:
-				output.append(interaction)
-		outset = set(output) # eliminate redundancy
-		for interact in outset: #for each interaction
+			output =list(chain.interactions_1.all()) + list(chain.interactions_1.all())
+			[outset.append(item) for item in output if item not in outset]  # eliminate redundancy
+		outset = sorted(outset, key=lambda x: x.id) # sort the interactions by id
+
+		#Process each interaction
+		for interact in outset: 
 			#get interface
-			cu = [interact.chain_1.uniprot,interact.chain_2.uniprot]
-			
+			cu = [interact.chain_1.uniprot,interact.chain_2.uniprot] 
 			chains_set=[[],[]]
 			interact_res = [[],[]]
 
 			_ischain1=False
+			_isHomo = False
 			if interact.chain_1.uniprot.acc_number == self.acc_number:
-				_ischain1=True
-
+				_ischain1= True
+			if interact.chain_1.uniprot.acc_number == interact.chain_2.uniprot.acc_number:
+				_isHomo = True
+			#Assign residues to either chain1 or chain2
 			for item in interact.interface_residues.all():
-
-				if item.chain_residue.uniprot_residue.all()[0].uniprot.acc_number == interact.chain_1.uniprot.acc_number:
+				if item.chain_residue.chain_id == interact.chain_1.id:
 					chains_set[0].append(item)
-					#Homodimer case
-					if interact.chain_1.uniprot.acc_number == interact.chain_2.uniprot.acc_number:
-						chains_set[1].append(item)
 				else:
 					chains_set[1].append(item)
 
 
-
-
 			#post process for each chains
-			chain_reg = [None,None]
-			res_pos = [[],[]]
+			chain_reg = [None,None] #Region markup for chain 1 and 2   
+			res_pos = [[],[]] #Residue positions for chain 1 and 2
 
 			for i in range(2):#do for chain1 & chain 2
 				region = []
@@ -228,46 +266,42 @@ class Uniprot(models.Model):
 				chain_reg[i] = region
 										
 			#store marking region to Uniprot's local variable (to be used in SNVs mapping)
-			if _ischain1:
-				interaction_reg_mark.append({'name':str(interact.id),'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':''})
+			if _isHomo: #Homo case, append both
+				maxlen = len(cu[0].sequence)
+				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' interaction ID: '+str(interact.id)+'</text>' 
+				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact.id,maxlen,chain_reg[0],True)
+
+				interaction_reg_mark.append({'name':str(interact.id)+'.1','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number+'1','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+
+				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact.id,maxlen,chain_reg[1],True)
+				interaction_reg_mark.append({'name':str(interact.id)+'.2','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number+'2','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				
+				
+			elif _ischain1:
+				maxlen = len(cu[0].sequence)
+				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' interaction ID: '+str(interact.id)+'</text>' 
+				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact.id,maxlen,chain_reg[0],False)
+				interaction_reg_mark.append({'name':str(interact.id),'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 			else:
-				interaction_reg_mark.append({'name':str(interact.id),'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':''})
+				maxlen = len(cu[1].sequence)
+				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' interaction ID: '+str(interact.id)+'</text>' 
+				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact.id,maxlen,chain_reg[1],False)
+				interaction_reg_mark.append({'name':str(interact.id),'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+
+
 
 
 			#Create Graphic for each chain
 			maxlen = max(len(cu[0].sequence),len(cu[1].sequence))
-			graphic_code = ['','']
-			frame = 800
-			color_code = [['#428bca','#285379'],['#5bc0de','#499AB2']]
-			if not _ischain1:
-				color_code = [['#5bc0de','#499AB2'],['#428bca','#285379']]
-							
+			graphic_code = ['','','',''] #1st[0] is for chain1, 2nd[1] is for chain2, 3rd[2] is for snv mapping, 4th[3] is for javacode to be combined with snvs
+
 			for i in range(2):
-				classname_main = str(interact.id)+'_'+cu[i].acc_number
-				graphic_code[i] = '<svg width= "850" height="40">'
-				graphic_code[i] +=  '<text x="5" y="15" font-weight="bold" fill="black">Partner '+str(i+1)+' : '+cu[i].acc_number+'</text>' 
-				graphic_code[i] += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'"width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="12" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+'" /></a>'              
-				java_code = '<script>$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'     
-				for region in chain_reg[i]:
-					classname = str(i)+str(region[0])+str(region[1])
-					content_data = ''
-					if region[1]-region[0] == 1: #1residue case
-						content_data = 'Residue '+str(region[0])
-					else:
-						content_data = 'Residue ' +str(region[0])+ ' to (and including) ' +str(region[1]-1)+ ' ('+str(region[1]-region[0])+' residues)'
-					#graphic_code[i] += '<a data-toggle="popover" data-content="'+str(region)+'" xlink:href="">'
-					graphic_code[i] +=  '<rect class ="'+classname+'" width="'+ str((region[1]-region[0])*frame/maxlen +1) +'" height="12" x="'+str((region[0])*frame/maxlen) +'" y="25" style="fill:#FF9933;" />'   			
-				#graphic_code +=  '<text x="30" y="40" font-weight="bold" fill="black">'+c2u.acc_number+'</text>' 
+				header = '<text x="5" y="15" font-weight="bold" fill="black">Partner '+str(i+1)+' : '+cu[i].acc_number+'</text>'
+				svgcode = create_svg_interaction(cu,_ischain1,i,header,12,'',interact.id,maxlen,chain_reg[i],False)
+				graphic_code[i] = svgcode['graphic_code']+'</svg><script>'+svgcode['java_code']+'</script>'
 				
-					java_code+= '$(".'+classname+'").popover({content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
-				graphic_code[i] +='</svg>'+java_code+'</script>'
-				
-	
-
-
-			#item.chain_residue.uniprot, item.chain_residue.position,'''
 			interactionset.append({'obj':interact,'code':graphic_code})
-		#Return a list of Interaction objects
+
 
 	###################################################################
 	# Returns html code for a sequence with mapped snvs 
@@ -302,8 +336,8 @@ class Uniprot(models.Model):
 				extraopt = ''
 				textcol = 'black'
 				letter = seq[curr_pos]
-
-				if(curr_pos+1 in mark_reg):
+			
+				if(curr_pos+1 in mark_reg):#mark interface site
 					extraopt = 'text-decoration:underline overline;'
 					textcol = '#FFCC00'
 					letter = '<a href = "#" title = "Position '+str(curr_pos+1)+'" style="color:'+textcol+';'+extraopt+'">'+letter+'</a>'
@@ -311,13 +345,21 @@ class Uniprot(models.Model):
 
 				if((curr_pos)%10 ==0):
 					mod_seq = mod_seq + ' '	
-				if(no_snv or curr_pos<pos[0]-1):
+				if(no_snv or curr_pos<pos[0]-1):#normal sequence
 					mod_seq = mod_seq + letter
-				else: 
+				else: #mark snvs
+					
+					 
 					if not interpos: 
 						textcol = 'white'
 					pos_mute = ''			
 					color = get_color(pos[1])
+					frame = 800
+					snvtype = pos[1][0].type.type
+					if color == 'purple':
+						snvtype = 'Multiple variations'
+					option['graphic_code']+= '<rect class ="snv'+str(curr_pos+1)+'" width="'+ str(1*frame/len(seq) +1) +'" height="18" x="'+str((curr_pos+1)*frame/len(seq)) +'" y="25" style="fill:'+color+';" />' 
+					option['java_code']+= '$(".snv'+str(curr_pos+1)+'").popover({content:"SNV position'+str(curr_pos+1)+', type: '+snvtype+'","placement": "top",trigger: "hover",container:"body"});'
 					if color == 'purple':#multiple mutation case
 						html = ''
 						for item in pos[1]:					
@@ -328,24 +370,14 @@ class Uniprot(models.Model):
 						url = pos[1][0].get_absolute_url()
 						pos_mute=pos_mute + pos[1][0].mutant_aa.one_letter_code +'('+pos[1][0].type.type+') '	
 						mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="'+url+'" target="_blank" style="color:'+textcol+';'+extraopt+'" title="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
-
-					
-				
+						#add svg graphic
+						
 					if(len(sorted_mod)>0):
 						pos = sorted_mod.pop(0)	
 			
 					else:
 						no_snv = True
-						'''
-										
-						while curr_pos <len(seq)-1:
-							curr_pos+=1
-							if((curr_pos)%10 ==0):
-								mod_seq = mod_seq + '  '							
-							mod_seq = mod_seq+seq[curr_pos]
-						
-						break
-						'''
+
 			option['sequence'] = mod_seq
 			#print 'success'
 
