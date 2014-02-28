@@ -48,9 +48,9 @@
 	// Mapping interface residues onto structure
 	{% for interface_res in interaction.interface_residues.all %}
 		{% if interface_res.chain_residue.chain == interaction.chain_1 %}
-			Jmol.script(myJmol, 'select {{interface_res.chain_residue.position}}:A; spacefill;');
+			Jmol.script(myJmol, 'select {{interface_res.get_position}}:A; spacefill;');
 		{% elif interface_res.chain_residue.chain == interaction.chain_2 %}
-			Jmol.script(myJmol, 'select {{interface_res.chain_residue.position}}:B; spacefill;');
+			Jmol.script(myJmol, 'select {{interface_res.get_position}}:B; spacefill;');
 		{% else %}
 		alert("Chain mapping failed");
 		{% endif %}
@@ -58,14 +58,14 @@
 	};
 	function map_snvs(color1,color2){
 	// Mapping snvs on chain_1 onto structure
-	{% for cresidue in snv_partner1 %}
-		Jmol.script(myJmol,'select {{cresidue.position}}:A; color ' + color1 +';');
+	{% for position in chain1_snv_positions %}
+		Jmol.script(myJmol,'select {{position}}:A; color ' + color1 +';');
 	{% empty %}
 		alert("Partner 1 has no Snvs that can be mapped to this structure")
 	{% endfor %}
 	// Mapping snvs on chain_2 onto structure
-	{% for cresidue in snv_partner2 %}
-		Jmol.script(myJmol,'select {{cresidue.position}}:B; color ' + color2 +';');
+	{% for position in chain2_snv_positions %}
+		Jmol.script(myJmol,'select {{position}}:B; color ' + color2 +';');
 	{% empty %}
 		alert("Partner 2 has no Snvs that can be mapped to this structure")
 	{% endfor %}
@@ -104,9 +104,14 @@
 				hide_partner("B");
 				$('#showhide2-btn').text('Show Partner 2');
 			}});
-		{% for mapping in interaction.chain_1.uniprot.pfam_mappings.all %}
-		$('#mapid{{mapping.id}}').click(function(){
-			color_range({{mapping.alignment_start_residue.position}},{{mapping.alignment_end_residue.position}},"blue","A");
+		{% for mapping,positions in chain1_pfam_positions.items %}
+		$('#map{{mapping.id}}A').click(function(){
+			color_range({{positions.0}},{{positions.1}},"blue","A");
+			});
+		{% endfor %}
+		{% for mapping,positions in chain2_pfam_positions.items %}
+		$('#map{{mapping.id}}B').click(function(){
+			color_range({{positions.0}},{{positions.1}},"blue","B");
 			});
 		{% endfor %}
 		});
@@ -119,8 +124,11 @@
 	<button type="button" id="snvs-btn" class="btn btn-default">Map Snvs</button>
 	<button type="button" id="showhide1-btn" class="btn btn-default" data-toggle="button">Hide Partner 1</button>
 	<button type="button" id="showhide2-btn" class="btn btn-default" data-toggle="button">Hide Partner 2</button>
-	{% for mapping in interaction.chain_1.uniprot.pfam_mappings.all %}
-	<button type="button" id='mapid{{mapping.id}}' class="btn btn-default">{{mapping.hmm.acc}}</button>
+	{% for mapping in chain1_pfam_positions.keys %}
+	<button type="button" id='map{{mapping.id}}A' class="btn btn-default">{{mapping.hmm.acc}}({{interaction.chain_1.id}})</button>
+	{% endfor %}
+	{% for mapping in chain2_pfam_positions.keys %}
+	<button type="button" id='map{{mapping.id}}B' class="btn btn-default">{{mapping.hmm.acc}}({{interaction.chain_2.id}})</button>
 	{% endfor %}
 </div>
 

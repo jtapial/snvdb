@@ -430,6 +430,28 @@ class Interaction(models.Model):
 
         return [set(cr_withsnv_partner1),set(cr_withsnv_partner2)]
 
+    def get_pfam_mapping_positions(self):
+    	#{chain_id:{mapping:[start_pdb_position,end_pdb_position]}}
+    	chain1_mapping2positions = {}
+    	chain2_mapping2positions = {}
+
+    	for mapping in self.chain_1.uniprot.pfam_mappings.all():
+			# Add to dictionary
+			# Will fail with KeyError if that chain doesn't have a dictionary
+			positions = mapping.get_pdb_positions(self.chain_1,self)
+			if len(positions) == 2:
+				chain1_mapping2positions[mapping] = positions
+    	for mapping in self.chain_2.uniprot.pfam_mappings.all():
+			# Add to dictionary
+			# Will fail with KeyError if that chain doesn't have a dictionary
+			positions = mapping.get_pdb_positions(self.chain_2,self)
+			if len(positions) == 2:
+				chain2_mapping2positions[mapping] = positions
+
+    	return chain1_mapping2positions,chain2_mapping2positions
+
+
+
 class ChainResidue(models.Model):
     id = models.IntegerField(primary_key=True)
     chain = models.ForeignKey(Chain,db_column='chain_id',related_name='residues')
@@ -613,6 +635,21 @@ class UniprotPfamMapping(models.Model):
     significance = models.IntegerField()
     class Meta:
         db_table = 'uniprot_pfam_mapping'
+
+    def get_pdb_positions(self,chain,interaction):
+    	pdbpositions = []
+
+    	for chain_residue in self.alignment_start_residue.chain_residues.all():
+    		if chain_residue.chain == chain:
+    			pdbpositions.append(chain_residue.get_transformed_position(interaction))
+    	for chain_residue in self.alignment_end_residue.chain_residues.all():
+    		if chain_residue.chain == chain:
+    			pdbpositions.append(chain_residue.get_transformed_position(interaction))
+
+    	if len(pdbpositions) == 2:
+    		return pdbpositions
+    	else:
+    		return []
 
 class ActiveSiteResidue(models.Model):
     id = models.IntegerField(primary_key=True)

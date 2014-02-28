@@ -1456,11 +1456,11 @@ def pfam_import():
 
 #snv_disease_import()
 
-#chain_interaction_interaction_type_import()
+chain_interaction_interaction_type_import()
 
-#chain_residue_position_mapping_import()
+chain_residue_position_mapping_import()
 
-#interface_residue_import()
+interface_residue_import()
 
 accessibility_import()
 

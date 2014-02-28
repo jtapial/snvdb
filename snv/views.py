@@ -75,14 +75,26 @@ class InteractionView(DetailView):
 	def get_context_data(self, **kwargs):
 
 		interaction = super(InteractionView, self).get_context_data(**kwargs)
-
+		# Get snvs
 		snvs = self.object.get_snvs()
+		# Get converted positions for snvs and add to list
+		chain1_snv_positions = []
+		for cr in snvs[0]:
+			chain1_snv_positions.append(cr.get_transformed_position(self.object))
+		chain2_snv_positions = []
+		for cr in snvs[1]:
+			chain2_snv_positions.append(cr.get_transformed_position(self.object))
+		# Pass snv position lists to interaction dictionary
+		interaction['chain1_snv_positions'] = chain1_snv_positions
+		interaction['chain2_snv_positions'] = chain2_snv_positions
 
-		interaction['snv_partner1'] = snvs[0]
-		interaction['snv_partner2'] = snvs[1]
 
-		chain_1_mappings = interaction.chain_1.uniprot.mappings
-		
+		# Will be 2 dictionaries with this format
+		# {mapping:[start_pdb_position,end_pdb_position]}
+		pfam_positions = self.object.get_pfam_mapping_positions()
+		interaction['chain1_pfam_positions'] = pfam_positions[0]
+		interaction['chain2_pfam_positions'] = pfam_positions[1]
+
 
 		return interaction
 
