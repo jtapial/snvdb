@@ -71,7 +71,7 @@ h3 span{ position:absolute; top:-70px;}
 		</tr>
 		{% for uniprot in uniprots %}
 		<tr>
-			<td>{{uniprot.0}}</td>
+			<td><a href={{BASE_URL}}/uniprot/{{uniprot.0}}>{{uniprot.0}}</a></td>
 			<td>{% for disease_item in uniprot.1 %}<a href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a></br>{% endfor %}</td>
 		</tr>
 		{% endfor %}
