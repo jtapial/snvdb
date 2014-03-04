@@ -7,6 +7,7 @@
 # Also note: You'll have to insert the output of 'django-admin.py sqlcustom [appname]'
 # into your database.
 from __future__ import unicode_literals
+from django.contrib.staticfiles import finders
 
 from django.db import models
 
@@ -30,6 +31,7 @@ def get_color(snv_list):
 		elif snv_list[0].type.type =='Unclassified':	
 			return 'blue'
 	return 'purple'			
+
 
 ###########################################################################
 # Return SVG graphic code and Java Script (User need to add </svg> tag manually) 
@@ -70,11 +72,18 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interactid,m
 class Uniprot(models.Model):
 	acc_number = models.CharField(max_length=6L, primary_key=True)
 	sequence = models.TextField(blank=True)
-
+	name = models.CharField(max_length=250L, blank=True)
+	gene_code = models.CharField(max_length=15L, blank=True)
+	genbank_id = models.CharField(max_length=15L, blank=True)
 
 	class Meta:
 		db_table = 'uniprot'
 		
+	def img_exists(self):
+		if finders.find('protein_previews_thumbnails/'+self.acc_number+'.jpeg'):
+			return True
+		return False
+
 	####################################################################
 	# Return a list of all related snvs and their statistics
 	####################################################################

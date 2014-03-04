@@ -33,14 +33,34 @@ padding-bottom: 90px
       <div class="container">
         <h1 style="font-size:450%;color: #fff; text-align:center;text-shadow:2px 2px #2963AF;">SNVdb</h1>
         <h3 style="color: #fff; text-align:center"> Uncover protein interactions, SNVs, and associated diseases...    </h3>
+
+		<!-- JAVA -->
+
+
+		<script type="text/javascript">
+			function explain(value){
+				if(document.getElementById("search_select").value=="1"){
+					document.getElementById("query").placeholder="Uniprot ID, protein name, GenBank ID, or GeneCode ID"
+				}
+				if(document.getElementById("search_select").value=="2"){
+					document.getElementById("query").placeholder="FT ID, or DB SNP ID"
+				}
+					if(document.getElementById("search_select").value=="3"){
+					document.getElementById("query").placeholder="Disease Name, or OMIM ID"
+				}
+			}
+			</script>
+
+
 		<!-- ############  Search form ######################-->
         
 		<form class="form-horizontal"  role="form" action="/search/" method="get">
 			<div class="form-group">
 				<p for="inputtype" class="col-sm-2 control-label" style="color: #fff">Select type</p>
+
 				<div class="col-sm-10">
-					 <select class="form-control" name = "search_select">
-						  <option value = '1'>Uniprot</option>
+					 <select class="form-control" name = "search_select" id = "search_select" onChange="explain(this)">
+						  <option value = '1'>Protein</option>
 						  <option value = '2'>SNV</option>
 						  <option value = '3'>Disease</option>
 					</select>  
@@ -50,7 +70,7 @@ padding-bottom: 90px
 			<div class="form-group">
 	 			<p for="inputQ" class="col-sm-2 control-label" style="color: #fff">Your query</p>
 				<div class="col-sm-10">
-					<input type="text" class="form-control" name = "q" placeholder="Enter your keyword here">
+					<input type="text" id = "query" class="form-control" name = "q" placeholder="Uniprot ID, protein name, GenBank ID, or GeneCode ID">
 				</div>
 			</div>
 

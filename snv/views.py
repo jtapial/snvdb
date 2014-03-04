@@ -138,14 +138,14 @@ def search(request):
 		q = request.GET['q']
 		option = request.GET['search_select']
 		if option =='1':
-			uniprot = Uniprot.objects.filter(acc_number__icontains=q)
+			uniprot = Uniprot.objects.filter(Q(acc_number__icontains=q)|Q(name__icontains=q)|Q(gene_code__icontains=q)|Q(genbank_id__icontains=q))
 			if uniprot.count() == 1:
 				return HttpResponseRedirect(reverse('uniprot-view', kwargs={'pk': uniprot[0].acc_number})) 
 			else:
 				return render(request, 'Uniprot_search_results.html',
 		                    {'uniprot': uniprot, 'query': q})
 		elif option =='2':
-			snv = Snv.objects.filter(Q(ft_id__icontains=q)|Q(gene_code__icontains=q)|Q(db_snp__icontains=q))
+			snv = Snv.objects.filter(Q(ft_id__icontains=q)|Q(db_snp__icontains=q))
 			if snv.count() == 1:
 				return HttpResponseRedirect(reverse('snv-view', kwargs={'pk': snv[0].ft_id})) 
 			else:

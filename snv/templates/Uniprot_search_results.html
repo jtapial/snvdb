@@ -26,7 +26,7 @@ background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last)
     <p>Found {{ uniprot|length }} Uniprot{{ uniprot|pluralize }}.</p>
     <ul class = "list-group">
         {% for item in uniprot %}
-        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}"> {{ item.acc_number}}</a> </li> 
+        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}">Uniprot ID: {{ item.acc_number}} {% if item.name %}| Name: {{item.name}} {% endif %}{% if item.gene_code %}| Gene Code: {{item.gene_code}} {% endif %}{% if item.genbank_id %}| GenBank ID: {{item.genbank_id}}{% endif %}</a> </li> 
         {% endfor %}
     </ul>
 {% else %}
