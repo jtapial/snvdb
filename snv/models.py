@@ -216,7 +216,7 @@ class Uniprot(models.Model):
 		outset = []
 		#fetch and sort all related interactions
 		for chain in chains:
-			output =list(chain.interactions_1.all()) + list(chain.interactions_1.all())
+			output =list(chain.interactions_1.all()) + list(chain.interactions_2.all())
 			[outset.append(item) for item in output if item not in outset]  # eliminate redundancy
 		outset = sorted(outset, key=lambda x: x.id) # sort the interactions by id
 
@@ -484,6 +484,8 @@ class Interaction(models.Model):
 
 
 
+
+
 class ChainResidue(models.Model):
     id = models.IntegerField(primary_key=True)
     chain = models.ForeignKey(Chain,db_column='chain_id',related_name='residues')
@@ -695,8 +697,20 @@ class SuperpositionMapping(models.Model):
     ref_chain = models.ForeignKey(Chain,db_column='ref_chain_id',related_name='superpositions_where_ref')
     target_chain = models.ForeignKey(Chain,db_column='target_chain_id',related_name='superpositions_where_target')
     target_chain_letter = models.CharField(max_length=1L)
+    target_interaction = models.ForeignKey(Interaction,db_column='target_interaction_id',related_name='superpositions_where_target')
     class Meta:
         db_table = 'combined_uniprot_mapping'
+
+    def get_interface_residues(self):
+    	# Find interaction
+    	# Get ref_chain interface residues
+    	
+    	ref_chain_interface = InterfaceResidue.objects.filter(chain=self.ref_chain).filter(interaction=self.target_interaction)
+    	if len(ref_chain_interface) == 0:
+    		if self.target_chain == self.target_interaction.chain_1:
+    			pass
+
+
 
 class PositionTransform(models.Model):
     id = models.IntegerField(primary_key=True)

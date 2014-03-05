@@ -171,9 +171,11 @@ id INT AUTO_INCREMENT NOT NULL,
 ref_chain_id INT NOT NULL,
 target_chain_id INT NOT NULL,
 target_chain_letter CHAR(1) NOT NULL,
+target_interaction_id INT NOT NULL,
 PRIMARY KEY (id),
 FOREIGN KEY (ref_chain_id) REFERENCES chain (id),
 FOREIGN KEY (target_chain_id) REFERENCES chain (id),
+FOREIGN KEY (target_interaction_id) REFERENCES interaction (id),
 UNIQUE (ref_chain_id,target_chain_id,target_chain_letter)
 );
 CREATE TABLE position_transform (
