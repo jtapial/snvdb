@@ -157,6 +157,7 @@ h3 span{ position:absolute; top:-70px;}
 			<div class="page-header"><h3><span id = "pfam"></span>PFAM Mapping</h3></div>
 			<p>Found {{uniprot.pfam_mappings.all | length}} PFAM Mapping entries</p>
 			{% if uniprot.pfam_mappings.all %}
+			<div class="table-responsive">
 			<table class="table table-condensed table-hover">
 				<thead>
 					<tr>
@@ -189,6 +190,7 @@ h3 span{ position:absolute; top:-70px;}
 
 				</tbody>
 			</table>
+			</div>
 			{% endif %}
 		</div>
 
@@ -207,6 +209,7 @@ h3 span{ position:absolute; top:-70px;}
 			<div class="page-header"><h3><span id = "chains"></span>Chains</h3></div>
 			<p>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}</p>
 			{% if uniprot.chains.all %}
+				<div class="table-responsive">
 				<table class="table table-condensed">
 					<tr>
 						<td><strong>PDB id</strong></td>
@@ -228,6 +231,8 @@ h3 span{ position:absolute; top:-70px;}
 						<td>{{item.obj.seq_end}}</td>
 					</tr>
 					<tr>
+					{% if item.alignent %}
+		
 						<td colspan="7">{{item.graphic|safe}}<br>
 
 						<div class="panel-group" id="accordion">
@@ -247,10 +252,15 @@ h3 span{ position:absolute; top:-70px;}
 						  </div>
 						</div>				
 						</td>
+					{% else %}
+					<td colspan="7" class="text-muted text-center" >No Alignment Data Found</td>
+				
+					{% endif %}
 					</tr>
 
 				{% endfor %}
 				</table>
+				</div>
 			{% else %}
 				<p>The protein has no registered chain entries</p>
 			{% endif %}
@@ -280,6 +290,7 @@ h3 span{ position:absolute; top:-70px;}
 				</script> 
 
 				<!-- END OF POP UP JAVA SCRIPT-->
+				<div class="table-responsive">
 				<table class="table table-condensed table-hover">
 				<thead>
 					<tr>
@@ -287,7 +298,7 @@ h3 span{ position:absolute; top:-70px;}
 						<th>Partner 1</th>
 						<th>Partner 2</th>
 						<th>Type</th>
-						<th>View Interaction</th>
+						<th></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -297,7 +308,7 @@ h3 span{ position:absolute; top:-70px;}
 							<td><a href="{% url 'uniprot-view' pk=item.obj.chain_1.uniprot.acc_number %}">{{item.obj.chain_1.uniprot.acc_number}}</a></td>
 							<td><a href="{% url 'uniprot-view' pk=item.obj.chain_2.uniprot.acc_number %}">{{item.obj.chain_2.uniprot.acc_number}}</a></td>
 							<td>{{item.obj.inter_type.inter_type}}</td>
-							<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.obj.id %}')">View 3D Interaction</button> <input type="button" class="btn btn-success btn-sm" value = "Download PDB" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')" /></td>
+							<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.obj.id %}')">View 3D Interaction</button> <button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interface-view' pk=item.obj.id %}')">View Interface</button> <button class="btn btn-success btn-sm" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')"><span class = "glyphicon glyphicon-download"></span> Download PDB</button></td>
 						</tr>
 						<tr>
 							<td colspan="5">
@@ -309,6 +320,7 @@ h3 span{ position:absolute; top:-70px;}
 					{% endfor %}
 				</tbody>			
 				</table>
+				</div>
 			{% else %}
 				<p>The protein has no associated interaction entries</p>
 			{% endif %}
@@ -414,7 +426,7 @@ h3 span{ position:absolute; top:-70px;}
 
 
 
-
+			<div class="table-responsive">
 			<table class="table table-condensed table-hover">
 				<thead>
 					<tr>
@@ -462,6 +474,7 @@ h3 span{ position:absolute; top:-70px;}
 					{% endfor %}
 				</tbody>	
 			</table>
+			</div>
 			{% else %}
 			<p>The protein has no associated SNV entries</p>
 			{% endif %}

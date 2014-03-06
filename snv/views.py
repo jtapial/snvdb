@@ -98,6 +98,18 @@ class InteractionView(DetailView):
 
 		return interaction
 
+
+class InterfaceView(DetailView):
+	model = Interaction
+	template_name = 'Interface_view.html'
+
+	def get_context_data(self, **kwargs):
+
+		interface = super(InterfaceView, self).get_context_data(**kwargs)
+		# Add more code here
+
+		return interface
+
 class SuperpositionView(View):
 
 	def get(self,request,uniprot_acc):

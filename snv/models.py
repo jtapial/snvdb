@@ -139,11 +139,12 @@ class Uniprot(models.Model):
 					mapping = res.uniprot_residue.all()[0].position
 					break
 
-			align_code = '<code style="background-color:#428bca ; color:white;">Seq 1:</code> '
+			align_code = ''
 			#Do each line for 50 letters
 			cutoff = 50
 
 			if res is not None:
+				align_code = '<code style="background-color:#428bca ; color:white;">Seq 1:</code> '
 				second_line=0
 				for curr_pos in range(length):	
 					if((curr_pos)%10 ==0):#First Line
@@ -264,6 +265,9 @@ class Uniprot(models.Model):
 				tmp = [int(starting.chain_residue.uniprot_residue.all()[0].position),int(starting.chain_residue.uniprot_residue.all()[0].position)+1]
 				res_pos[i].append(int(starting.chain_residue.uniprot_residue.all()[0].position))
 				for item in chains_set[i]:
+					if len(item.chain_residue.uniprot_residue.all())==0:#skip one that doesn't have a mapped uniprot position
+						continue
+
 					res_pos[i].append(item.chain_residue.uniprot_residue.all()[0].position)
 
 					if int(item.chain_residue.uniprot_residue.all()[0].position) > tmp[1]:
@@ -271,6 +275,7 @@ class Uniprot(models.Model):
 						tmp = [int(item.chain_residue.uniprot_residue.all()[0].position),int(item.chain_residue.uniprot_residue.all()[0].position)+1]
 					else:
 						tmp[1] = int(item.chain_residue.uniprot_residue.all()[0].position)+1
+
 				region.append(tmp)				
 				chain_reg[i] = region
 										
