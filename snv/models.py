@@ -47,7 +47,7 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interactid,m
 		color_code = [['#5bc0de','#499AB2'],['#5bc0de','#499AB2']]
 	classname_main = str(interactid)+'_'+cu[i].acc_number+classsuffix
 	graphic_code = '<svg width= "850" height="'+h_frame+'">'+ header
-	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'"width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+'" /></a>'              
+	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'" width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+';" /></a>'              
 	java_code = '$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'     
 	for region in chain_reg:
 		classname = str(i)+str(region[0])+str(region[1])+classsuffix
@@ -225,7 +225,7 @@ class Uniprot(models.Model):
 		outset = []
 		#fetch and sort all related interactions
 		for chain in chains:
-			output =list(chain.interactions_1.all()) + list(chain.interactions_1.all())
+			output =list(chain.interactions_1.all()) + list(chain.interactions_2.all())
 			[outset.append(item) for item in output if item not in outset]  # eliminate redundancy
 		outset = sorted(outset, key=lambda x: x.id) # sort the interactions by id
 

@@ -135,7 +135,7 @@ def search_form(request):
 
 def search(request):
 	if 'q' in request.GET and request.GET['q']:
-		q = request.GET['q']
+		q = request.GET['q'].strip(' \t\n\r')
 		option = request.GET['search_select']
 		if option =='1':
 			uniprot = Uniprot.objects.filter(Q(acc_number__icontains=q)|Q(name__icontains=q)|Q(gene_code__icontains=q)|Q(genbank_id__icontains=q))
