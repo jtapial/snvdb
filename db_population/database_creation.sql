@@ -188,3 +188,22 @@ FOREIGN KEY (interaction_id) REFERENCES interaction (id),
 FOREIGN KEY (chain_id) REFERENCES chain (id),
 UNIQUE (interaction_id,chain_id)
 );
+CREATE TABLE interface_atom (
+id INT AUTO_INCREMENT NOT NULL,
+interface_residue_id INT NOT NULL,
+label CHAR(4) NOT NULL,
+PRIMARY KEY (id),
+FOREIGN KEY (interface_residue_id) REFERENCES interface_residue (id),
+UNIQUE (interface_residue_id,label)
+);
+CREATE TABLE interface_atom_interaction (
+id INT AUTO_INCREMENT NOT NULL,
+interface_atom_id_l INT NOT NULL,
+interface_atom_id_r INT NOT NULL,
+type CHAR(3) NOT NULL,
+length DECIMAL(4,3) NOT NULL,
+PRIMARY KEY (id),
+FOREIGN KEY (interface_atom_id_l) REFERENCES interface_atom (id),
+FOREIGN KEY (interface_atom_id_r) REFERENCES interface_atom (id),
+UNIQUE (interface_atom_id_l,interface_atom_id_r)
+);
