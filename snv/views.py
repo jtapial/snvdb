@@ -116,9 +116,7 @@ class SuperpositionView(View):
 	def get(self,request,uniprot_acc):
 		uniprot = Uniprot.objects.get(acc_number=uniprot_acc)
 		ref_chain = uniprot.get_ref_chain()
-		print(ref_chain.id)
 		assignments = SuperpositionMapping.objects.filter(ref_chain=ref_chain)
-		print(assignments)
 		filename = uniprot.acc_number+"-interactions.pdb"
 		return render(request,'Superposition_view.html', {'uniprot':uniprot,'ref_chain':ref_chain,'assignments':assignments,'filename':filename})
 
