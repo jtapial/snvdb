@@ -16,112 +16,200 @@ input[type=radio]:checked + label {
         display: none;
 }
 
-h1{ position:relative; }
+.mydiv { background-color:yellow; display:none;}
+
+h1{ position:relative;}
 h1 span{ position:absolute; top:-70px;}
 h3{ position:relative; }
 h3 span{ position:absolute; top:-70px;}
+
+
+
 {% endblock %}
 {% load staticfiles %}
 {% block javascript %}<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">
-<!-- <script src="{{ STATIC_URL }}tooltip.js"></script> -->
+
+
 {% endblock %}
 
 {% block content %}
 
-<!-- ################## Uniprot BASIC VIEW ##################################-->
 <div class="row row-offcanvas row-offcanvas-right"> 
 	<div class="col-xs-12 col-sm-9"><!-- Left Canvas-->
 
+<!-- ################## Uniprot BASIC VIEW ##################################-->
+		<div><h1><span id = "basic"></span>ID: {{uniprot.acc_number}} {% if uniprot.name %}[{{uniprot.name}}]{% endif %}</h1></div>
 		<div class="row">
 			<div class="col-md-4">
-			{% if uniprot.img_exists %}
-			<img  src= "{{BASE_URL}}{% static 'protein_previews_thumbnails' %}/{{uniprot.acc_number}}.jpeg" alt="{{uniprot.acc_number}}" class="img-thumbnail" data-target="#myModalimg" >
-			<p class="text-center"><button  type="button" class="btn btn-link" data-toggle="modal" data-target="#myModalimg" data-ref= "{{BASE_URL}}{% static 'protein_previews' %}/{{uniprot.acc_number}}.png" ><span class="glyphicon glyphicon-zoom-in"></span> Enlarge</button></p>
+				{% if uniprot.img_exists %}
+				<img  src= "{{BASE_URL}}{% static 'protein_previews_thumbnails' %}/{{uniprot.acc_number}}.jpeg" alt="{{uniprot.acc_number}}" class="img-thumbnail" data-target="#myModalimg" >
+				<p class="text-center"><button  type="button" class="btn btn-link" data-toggle="modal" data-target="#myModalimg" data-ref= "{{BASE_URL}}{% static 'protein_previews' %}/{{uniprot.acc_number}}.png" ><span class="glyphicon glyphicon-zoom-in"></span> Enlarge</button></p>
 			
 
 
-			<script>
-			$(document).ready(function(){
-				$("button").click(function(){
-					var Url = $(this).data('ref');
-					$("#imgarea").html('<img src="' + Url + '" alt="description" class="img-responsive" alt="Responsive image"/>' );
+				<script>
+				$(document).ready(function(){
+					$("button").click(function(){
+						var Url = $(this).data('ref');
+						$("#imgarea").html('<img src="' + Url + '" alt="description" class="img-responsive" alt="Responsive image"/>' );
+					});
 				});
-			});
-			</script>
+				</script>
 
-			<!-- Modal -->
-			<div class="modal fade" id="myModalimg" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-			  <div class="modal-dialog modal-lg">
-				<div class="modal-content">
-				  <div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>      
-					<h4 class="modal-title" id="myModalLabel">ID: {{uniprot.acc_number}}</h4>
+				<!-- Modal -->
+				<div class="modal fade" id="myModalimg" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				  <div class="modal-dialog modal-lg">
+					<div class="modal-content">
+					  <div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>      
+						<h4 class="modal-title" id="myModalLabel">ID: {{uniprot.acc_number}}</h4>
+					  </div>
+					  <div class="modal-body">
+						<div id="imgarea"></div>
+					  </div>
+					  <div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					  </div>
+					</div>
 				  </div>
-				  <div class="modal-body">
-					<div id="imgarea"></div>
-				  </div>
-				  <div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				  </div>
-				</div>
-			  </div>
-			</div>
-			{% else %}
-			<img  src= "{{BASE_URL}}{% static 'noimg.png' %}" alt="{{uniprot.acc_number}}" class="img-thumbnail">
-			{% endif %}
-			</div>
+				</div><!-- END Modal -->
+				{% else %}
+				<img  src= "{{BASE_URL}}{% static 'noimg.png' %}" alt="{{uniprot.acc_number}}" class="img-thumbnail">
+				{% endif %}
+			</div> <!-- END col -->
 
 
 			<div class="col-md-8">
-				<h3><span id = "basic"></span>ID: {{uniprot.acc_number}} {% if uniprot.name %}[{{uniprot.name}}]{% endif %}</h3>
 				<p><strong>Summary</strong></p>
 				<p>Uniprot ID: {{uniprot.acc_number}} [<a data-toggle="popover" data-content="External link to Uniprot"  href="http://www.uniprot.org/uniprot/{{uniprot.acc_number}}" target='_blank' >link</a>]</p>
 				{% if uniprot.gene_code %}<p>Gene Code ID: {{uniprot.gene_code}}</p> 	{% endif %}
 				{% if uniprot.genbank_id %}<p>GenBank ID: {{uniprot.genbank_id}} [<a data-toggle="popover" data-content="External link to GenBank"  href="http://www.ncbi.nlm.nih.gov/protein/?term={{uniprot.genbank_id}}" target='_blank' >link</a>]</p>	{% endif %}				
 				<p>{{ uniprot.get_seq | length}} amino acids</p>
+				<p>{{uniprot.pfam_mappings.all | length}} PFAM entries</p>
 				<p>{{uniprot.chains.all | length}} chains </p>
 				<p>{{interactions | length}} interactions </p>
 
 				<p>{{snv_list|length}} SNVs </p>
 				{% if snv_list %}
 				<p>{{snv_statistic.1}}% Diseases, {{snv_statistic.2}}% Polymorphisms, {{snv_statistic.3}}% Unclassified</p>{% endif %}
-			</div>
+			</div> <!-- END col -->
 		  
+		</div><!-- END row -->
+
+<!-- #######################################    Display   ############################################################################-->
+		<div class="panel panel-info">
+		  <div class="panel-heading">
+			<h3 class="panel-title">Display</h3>
+		  </div>
+		  <div class="panel-body">
+			<label class="checkbox-inline">
+			  <input type='checkbox' id="chk_seq" style="vertical-align:middle;" checked> Sequence
+			</label>
+			<label class="checkbox-inline">
+			  <input type='checkbox' id="chk_pfam" style="vertical-align:middle;" checked> PFAM Mapping
+			</label>
+			<label class="checkbox-inline">
+			  <input type='checkbox' id="chk_chain" style="vertical-align:middle;" checked> Chains
+			</label>
+			<label class="checkbox-inline">
+			<input type='checkbox' id="chk_inter" style="vertical-align:middle;" checked> Interactions
+			</label>
+			<label class="checkbox-inline">
+			<input type='checkbox' id="chk_map" style="vertical-align:middle;" checked> SNVs/Interaction Mapping
+			</label>
+			<label class="checkbox-inline">
+			<input type='checkbox' id="chk_snv" style="vertical-align:middle;" checked> SNVs Data
+			</label>
+		  </div>
+		</div>
+		
+<!-- #######################################    Sequence   ############################################################################-->
+		<script>
+			$("#chk_seq").change(function() {
+				if($(this).is(":checked"))
+					$("#seqbox").fadeIn();
+				else
+					$("#seqbox").fadeOut();
+			});
+
+		</script>
+
+		<div id = "seqbox">
+			<div class="page-header"><h3><span id = "seq"></span>Sequence</h3></div>
+			<div class = "well">   
+		   		<p class="wrap" style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">{{ uniprot.get_seq }}</p>
+				<input type="button" class="btn btn-primary btn-lg" value = "FASTA" onclick="window.open('http://www.uniprot.org/uniprot/{{uniprot.acc_number}}.fasta','_blank','resizable=yes')" />
+
+			</div><!-- End Well -->
 		</div>
 
+<!-- #######################################    PFAM MAPPING   ############################################################################-->
+		<script>
+			$("#chk_pfam").change(function() {
+				if($(this).is(":checked"))
+					$("#pfambox").fadeIn();
+				else
+					$("#pfambox").fadeOut();
+			});
+
+		</script>
+		<div id = "pfambox">
+			<div class="page-header"><h3><span id = "pfam"></span>PFAM Mapping</h3></div>
+			<p>Found {{uniprot.pfam_mappings.all | length}} PFAM Mapping entries</p>
+			{% if uniprot.pfam_mappings.all %}
+			<div class="table-responsive">
+			<table class="table table-condensed table-hover">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>HMM Acc</th>
+						<th>Alignment</th>
+						<th>Envelope</th>
+						<th>Hmm</th>
+						<th>Bit Score</th>
+						<th>E-Value</th>
+						<th>Significant</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for item in uniprot.pfam_mappings.all %}
+					<tr>
+						<td>{{item.id}}</td>
+						<td><a href ="http://pfam.sanger.ac.uk/family/{{item.hmm.acc}}" target="_blank" data-toggle="popover" data-content="Name: {{item.hmm.name}}, Type: {{item.hmm.type}}, Length: {{item.hmm.length}}, Clan: {{item.hmm.clan}}" >{{item.hmm.acc}}</a></td>
+						<td>{{item.alignment_start_residue.position}}-{{item.alignment_end_residue.position}}</td>
+						<td>{{item.envelope_start_residue.position}}-{{item.envelope_end_residue.position}}</td>
+						<td>{{item.hmm_start}}-{{item.hmm_end}}</td>
+						<td>{{item.bit_score}}</td>
+						<td>{{item.e_value}}</td>
+						<td>{{item.significance}}</td>
+					</tr>
+				
+				{% endfor %}
 
 
 
-		<h3>Sequence</h3>
-		<div class = "well">   
-   			<p class="wrap" style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">{{ uniprot.get_seq }}</p>
-				<!-- Button trigger modal -->
-				<button class="btn btn-primary" data-toggle="modal" data-target="#myModal">
-				  Get raw sequence 
-				</button>
-			<!-- Modal -->
-			<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-			  <div class="modal-dialog">
-				<div class="modal-content">
-				  <div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>      
-					<h4 class="modal-title" id="myModalLabel">ID: {{uniprot.acc_number}}</h4>
-				  </div>
-				  <div class="modal-body" style ="word-wrap:break-word;" >
-					<input type="button" class="btn btn-primary btn-lg" value = "FASTA" onclick="window.open('http://www.uniprot.org/uniprot/{{uniprot.acc_number}}.fasta','_blank','resizable=yes')" />
-				  </div>
-				  <div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				  </div>
-				</div>
-			  </div>
+				</tbody>
+			</table>
 			</div>
-		</div><!-- End Well -->
-
+			{% endif %}
+		</div>
 
 <!-- #######################################    CHAINS   ############################################################################-->	
-		<h3><span id = "chains"></span>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}:</h3>
+		<script>
+			$("#chk_chain").change(function() {
+				if($(this).is(":checked"))
+					$("#chainbox").fadeIn();
+				else
+					$("#chainbox").fadeOut();
+			});
+
+		</script>
+
+		<div id = "chainbox">
+			<div class="page-header"><h3><span id = "chains"></span>Chains</h3></div>
+			<p>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}</p>
 			{% if uniprot.chains.all %}
+				<div class="table-responsive">
 				<table class="table table-condensed">
 					<tr>
 						<td><strong>PDB id</strong></td>
@@ -143,6 +231,8 @@ h3 span{ position:absolute; top:-70px;}
 						<td>{{item.obj.seq_end}}</td>
 					</tr>
 					<tr>
+					{% if item.alignent %}
+		
 						<td colspan="7">{{item.graphic|safe}}<br>
 
 						<div class="panel-group" id="accordion">
@@ -162,64 +252,93 @@ h3 span{ position:absolute; top:-70px;}
 						  </div>
 						</div>				
 						</td>
+					{% else %}
+					<td colspan="7" class="text-muted text-center" >No Alignment Data Found</td>
+				
+					{% endif %}
 					</tr>
 
 				{% endfor %}
 				</table>
+				</div>
 			{% else %}
 				<p>The protein has no registered chain entries</p>
 			{% endif %}
+		</div>
 
 <!-- #######################################    INTERACTION   ############################################################################-->
-		<h3><span id = "interactions"></span>Found {{interactions | length}} interaction entries for the protein {{uniprot.acc_number}}:</h3>
+		<script>
+			$("#chk_inter").change(function() {
+				if($(this).is(":checked"))
+					$("#interbox").fadeIn();
+				else
+					$("#interbox").fadeOut();
+			});
 
-	
-		{% if interactions %}
-			<!-- POP UP JAVA SCRIPT--> 
-			<script>
-				function myFunction(url)
-				{
-					cuteLittleWindow = window.open(url, "_blank", "location=no,width=600,height=850");
-				}
-			</script> 
+		</script>
 
-			<!-- END OF POP UP JAVA SCRIPT-->
-			<table class="table table-condensed table-hover">
-			<thead>
-				<tr>
-					<th>ID</th>
-					<th>Partner 1</th>
-					<th>Partner 2</th>
-					<th>Type</th>
-					<th>View Interaction</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for item in interactions %}
+		<div id = "interbox">
+			<div class="page-header"><h3><span id = "interactions"></span>Interactions</h3></div>	
+			{% if interactions %}
+				<p>Found {{interactions | length}} interaction entries for the protein {{uniprot.acc_number}}</p>
+				<!-- POP UP JAVA SCRIPT--> 
+				<script>
+					function myFunction(url)
+					{
+						cuteLittleWindow = window.open(url, "_blank", "location=no,width=600,height=850");
+					}
+				</script> 
+
+				<!-- END OF POP UP JAVA SCRIPT-->
+				<div class="table-responsive">
+				<table class="table table-condensed table-hover">
+				<thead>
 					<tr>
-						<td>{{item.obj.id}}</td>
-						<td><a href="{% url 'uniprot-view' pk=item.obj.chain_1.uniprot.acc_number %}">{{item.obj.chain_1.uniprot.acc_number}}</a></td>
-						<td><a href="{% url 'uniprot-view' pk=item.obj.chain_2.uniprot.acc_number %}">{{item.obj.chain_2.uniprot.acc_number}}</a></td>
-						<td>{{item.obj.inter_type.inter_type}}</td>
-						<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.obj.id %}')">View 3D Interaction</button> <input type="button" class="btn btn-success btn-sm" value = "Download PDB" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')" /></td>
+						<th>ID</th>
+						<th>Partner 1</th>
+						<th>Partner 2</th>
+						<th>Type</th>
+						<th></th>
 					</tr>
-					<tr>
-						<td colspan="5">
-							<p>{{item.code.0|safe}}</p>
-							<p>{{item.code.1|safe}}</p>
-						</td>
-					</tr>
+				</thead>
+				<tbody>
+					{% for item in interactions %}
+						<tr>
+							<td>{{item.obj.id}}</td>
+							<td><a href="{% url 'uniprot-view' pk=item.obj.chain_1.uniprot.acc_number %}">{{item.obj.chain_1.uniprot.acc_number}}</a></td>
+							<td><a href="{% url 'uniprot-view' pk=item.obj.chain_2.uniprot.acc_number %}">{{item.obj.chain_2.uniprot.acc_number}}</a></td>
+							<td>{{item.obj.inter_type.inter_type}}</td>
+							<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.obj.id %}')">View 3D Interaction</button> <button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interface-view' pk=item.obj.id %}')">View Interface</button> <button class="btn btn-success btn-sm" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')"><span class = "glyphicon glyphicon-download"></span> Download PDB</button></td>
+						</tr>
+						<tr>
+							<td colspan="5">
+								<p>{{item.code.0|safe}}</p>
+								<p>{{item.code.1|safe}}</p>
+							</td>
+						</tr>
 
-				{% endfor %}
-			</tbody>			
-			</table>
-		{% else %}
-			<p>The protein has no associated interaction entries</p>
-		{% endif %}
+					{% endfor %}
+				</tbody>			
+				</table>
+				</div>
+			{% else %}
+				<p>The protein has no associated interaction entries</p>
+			{% endif %}
+		</div>
 
 <!-- #######################################    SNV & Interaction MAPING   ############################################################################-->
-		<h3><span id = "map"></span>Mapping SNV and Interaction to the sequence</h3>
+		<script>
+			$("#chk_map").change(function() {
+				if($(this).is(":checked"))
+					$("#mapbox").fadeIn();
+				else
+					$("#mapbox").fadeOut();
+			});
 
+		</script>
+
+		<div id = "mapbox">
+			<div class="page-header"><h3><span id = "map"></span>SNVs and Interaction Mapping</h3></div>
 			<div class="alert alert-info">
 				<ul><li>Select marking options from a menu to mark the interaction regions.</li><li>Hover and click on each SNV position to see more detail. </li></ul>
 			</div>
@@ -249,11 +368,11 @@ h3 span{ position:absolute; top:-70px;}
 			{% endfor %}
 
 
-
 			{% if snv_list %}
 			<strong><p>Colour code:</p></strong>
 			<p><code style="background-color:red;color:white;">A</code> Disease, <code style="background-color:green;color:white;">A</code> Polymorphism, <code style="background-color:blue;color:white;">A</code> Unclassified, <code style="background-color:purple;color:white;">A</code> Multiple variations </p>     
 			{% endif %}
+		</div>
 
 		<!-- MODAL TO DISPLAY WHEN CLICKING ON MUTIPLE MUTATION POSSITION-->
 		<div style="display: none;" id="addBookDialog" class="modal fade bs-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
@@ -270,94 +389,110 @@ h3 span{ position:absolute; top:-70px;}
 			  </div><!-- /.modal-content -->
 			</div><!-- /.modal-dialog -->
 		</div><!-- /.modal -->
-
+		
 
 <!-- #######################################    SNV DATA  ############################################################################-->
-		<h3><span id = "snvs"></span>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}:</h3>
-		{% if snv_list %}
-		<p>SNVs statistics</p>
+		<script>
+			$("#chk_snv").change(function() {
+				if($(this).is(":checked"))
+					$("#snvbox").fadeIn();
+				else
+					$("#snvbox").fadeOut();
+			});
 
-		<div class="progress">
-		  <div class="progress-bar progress-bar-danger" role="progressbar" style="width: {{snv_statistic.1}}%" data-toggle="popover" data-content="Diseases">
-			{{snv_statistic.1}}% Diseases
-		  </div>
+		</script>
 
-		  <div class="progress-bar progress-bar-success" role="progressbar"  style="width: {{snv_statistic.2}}%" data-toggle="popover" data-content="Polymorphisms">
-			{{snv_statistic.2}}% Polymorphisms
-		  </div>
+		<div id = "snvbox">
+			<div class="page-header"><h3><span id = "snvs"></span>SNVs</h3></div>
 
-		  <div class="progress-bar progress-bar-info" role="progressbar" style="width: {{snv_statistic.3}}%" data-toggle="popover" data-content="Unclassified">
-			{{snv_statistic.3}}% Unclassified
-		  </div>
-		</div>
+			{% if snv_list %}
+			<p>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}</p>
+			<p>SNVs statistics</p>
+
+			<div class="progress">
+			  <div class="progress-bar progress-bar-danger" role="progressbar" style="width: {{snv_statistic.1}}%" data-toggle="popover" data-content="Diseases">
+				{{snv_statistic.1}}% Diseases
+			  </div>
+
+			  <div class="progress-bar progress-bar-success" role="progressbar"  style="width: {{snv_statistic.2}}%" data-toggle="popover" data-content="Polymorphisms">
+				{{snv_statistic.2}}% Polymorphisms
+			  </div>
+
+			  <div class="progress-bar progress-bar-info" role="progressbar" style="width: {{snv_statistic.3}}%" data-toggle="popover" data-content="Unclassified">
+				{{snv_statistic.3}}% Unclassified
+			  </div>
+			</div><!-- /.progress -->
 
 
 
 
-
-		<table class="table table-condensed table-hover">
-			<thead>
-				<tr>
-					<th>FT id</th>
-					<th>Type</th>
-					<th>Pos</th>
-					<th>Mutation</th>
-					<th>dbSNP id</th>
-					<th>Directly associated disorder</th>
-					<th>OMIM code</th>
-				</tr>
-			</thead>	
-			<tbody>		
-				{% for item in snv_list %}
-				<tr>
-					<td><a href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</a></td>
-					<td><code style="background-color:{% if item.type.type == 'Disease' %}red{% elif item.type.type == 'Polymorphism'%} green {% else %} blue {% endif %}; color:white;">{{item.type.type}} {{item.get_color.all}}</code></td>
-					<td>{{item.uniprot_residue.position}}</td>
-					<td>{{item.wt_aa.one_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.one_letter_code}}</td>
-					{% if item.db_snp %}
-					<td><a data-toggle="popover" data-content="External link to dbSNP"  href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{item.db_snp}}" target='_blank'>{{item.db_snp}}</a></td>
-					{% else %}
-					<td>No Data</td>
-					{% endif %}
-					{% if item.diseases.all %}
-					<td>
-						<table>
-						{% for element in item.diseases.all %}
-							<tr><td><a href="{% url 'disease-view' pk=element.mim %}" target='_blank'>{{element.name}}</a></td></tr>
-						{% endfor %}
-						</table>
-					</td>
-					<td>
-						<table>
-						{% for element in item.diseases.all %}
-							<tr><td><a data-toggle="popover" data-content="External link to OMIM"  href="http://omim.org/entry/{{element.mim}}" target='_blank'>{{element.mim}}</a></td></tr>
+			<div class="table-responsive">
+			<table class="table table-condensed table-hover">
+				<thead>
+					<tr>
+						<th>FT id</th>
+						<th>Type</th>
+						<th>Pos</th>
+						<th>Mutation</th>
+						<th>dbSNP id</th>
+						<th>Directly associated disorder</th>
+						<th>OMIM code</th>
+					</tr>
+				</thead>	
+				<tbody>		
+					{% for item in snv_list %}
+					<tr>
+						<td><a href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</a></td>
+						<td><code style="background-color:{% if item.type.type == 'Disease' %}red{% elif item.type.type == 'Polymorphism'%} green {% else %} blue {% endif %}; color:white;">{{item.type.type}} {{item.get_color.all}}</code></td>
+						<td>{{item.uniprot_residue.position}}</td>
+						<td>{{item.wt_aa.one_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.one_letter_code}}</td>
+						{% if item.db_snp %}
+						<td><a data-toggle="popover" data-content="External link to dbSNP"  href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{item.db_snp}}" target='_blank'>{{item.db_snp}}</a></td>
+						{% else %}
+						<td>N/A</td>
+						{% endif %}
+						{% if item.diseases.all %}
+						<td>
+							<table>
+							{% for element in item.diseases.all %}
+								<tr><td><a href="{% url 'disease-view' pk=element.mim %}" target='_blank'>{{element.name}}</a></td></tr>
 							{% endfor %}
-						</table>
-					</td>
-					{% else %}
-					<td>N/A</td>
-					<td>N/A</td>
-					{% endif %}
-				</tr>
-				{% endfor %}
-			</tbody>	
-		</table>
-		{% else %}
-		<p>The protein has no associated SNV entries</p>
-		{% endif %}
+							</table>
+						</td>
+						<td>
+							<table>
+							{% for element in item.diseases.all %}
+								<tr><td><a data-toggle="popover" data-content="External link to OMIM"  href="http://omim.org/entry/{{element.mim}}" target='_blank'>{{element.mim}}</a></td></tr>
+								{% endfor %}
+							</table>
+						</td>
+						{% else %}
+						<td>N/A</td>
+						<td>N/A</td>
+						{% endif %}
+					</tr>
+					{% endfor %}
+				</tbody>	
+			</table>
+			</div>
+			{% else %}
+			<p>The protein has no associated SNV entries</p>
+			{% endif %}
+		</div><!-- /.snvbox -->
 	</div><!--/ Left Canvas COL span-->
-
-
+	
 <!-- ################## NAVIGATION BAR ##################################-->
 	<div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
 		<div class="span3 bs-docs-sidebar">
 			<ul class="nav nav-list bs-sidenav affix">
 				<li><strong><span class="glyphicon glyphicon-search"></span> Quick Navigation</strong></li>
 				<li><a href="#basic"><span class="glyphicon glyphicon-chevron-right"></span> Basic information</a></li>
-				<li><a href="#chains"><span class="glyphicon glyphicon-chevron-right"></span> Chains</a></li>
-				<li><a href="#interactions"><span class="glyphicon glyphicon-chevron-right"></span> Interactions</a></li>
-				<li><a href="#map"><span class="glyphicon glyphicon-chevron-right"></span> SNVs & Interaction Mapping</a></li>
-				<li><a href="#snvs"><span class="glyphicon glyphicon-chevron-right"></span> Related SNVs</a></li>
+				<li><a href="#seq"><span class="glyphicon glyphicon-chevron-right"></span> Sequence</a></li>
+				<li><a href="#pfam"><span class="glyphicon glyphicon-chevron-right"></span> PFAM {% if uniprot.pfam_mappings.all %}<span class="badge">{{uniprot.pfam_mappings.all | length}}</span>{% endif %}</a></li>
+				<li><a href="#chains"><span class="glyphicon glyphicon-chevron-right"></span> Chains {% if uniprot.chains.all %}<span class="badge">{{uniprot.chains.all | length}}</span>{% endif %}</a></li>
+				<li><a href="#interactions"><span class="glyphicon glyphicon-chevron-right"></span> Interactions {% if interactions %}<span class="badge">{{interactions | length}}</span>{% endif %}</a></li>
+				<li><a href="#map"><span class="glyphicon glyphicon-chevron-right"></span> SNVs & Interaction Mapping </a></li>
+				<li><a href="#snvs"><span class="glyphicon glyphicon-chevron-right"></span> Related SNVs {% if snv_list %}<span class="badge">{{snv_list|length}}</span>{% endif %}</a></li>
 			</ul>
 		</div><!--/span-->
 	</div><!--/col-->
@@ -367,6 +502,7 @@ h3 span{ position:absolute; top:-70px;}
 
 {% block extraplugin %}
 <script type="text/javascript">
+			
 	$('[data-toggle="tooltip"]').tooltip({
 		'placement': 'top'
 	});
@@ -374,12 +510,12 @@ h3 span{ position:absolute; top:-70px;}
 		trigger: 'hover',
 		    'placement': 'top'
 	});
-
+/*
 	$('[data-toggle="modal"]').tooltip({
 		trigger: 'hover',
 		    'placement': 'bottom'
 	});
-
+*/
 	$('#userNameField').tooltip({
 		'show': true,
 		    'placement': 'bottom',

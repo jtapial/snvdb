@@ -47,7 +47,7 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interactid,m
 		color_code = [['#5bc0de','#499AB2'],['#5bc0de','#499AB2']]
 	classname_main = str(interactid)+'_'+cu[i].acc_number+classsuffix
 	graphic_code = '<svg width= "850" height="'+h_frame+'">'+ header
-	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'"width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+'" /></a>'              
+	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'" width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+';" /></a>'              
 	java_code = '$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'     
 	for region in chain_reg:
 		classname = str(i)+str(region[0])+str(region[1])+classsuffix
@@ -139,11 +139,12 @@ class Uniprot(models.Model):
 					mapping = res.uniprot_residue.all()[0].position
 					break
 
-			align_code = '<code style="background-color:#428bca ; color:white;">Seq 1:</code> '
+			align_code = ''
 			#Do each line for 50 letters
 			cutoff = 50
 
 			if res is not None:
+				align_code = '<code style="background-color:#428bca ; color:white;">Seq 1:</code> '
 				second_line=0
 				for curr_pos in range(length):	
 					if((curr_pos)%10 ==0):#First Line
@@ -264,6 +265,9 @@ class Uniprot(models.Model):
 				tmp = [int(starting.chain_residue.uniprot_residue.all()[0].position),int(starting.chain_residue.uniprot_residue.all()[0].position)+1]
 				res_pos[i].append(int(starting.chain_residue.uniprot_residue.all()[0].position))
 				for item in chains_set[i]:
+					if len(item.chain_residue.uniprot_residue.all())==0:#skip one that doesn't have a mapped uniprot position
+						continue
+
 					res_pos[i].append(item.chain_residue.uniprot_residue.all()[0].position)
 
 					if int(item.chain_residue.uniprot_residue.all()[0].position) > tmp[1]:
@@ -271,6 +275,7 @@ class Uniprot(models.Model):
 						tmp = [int(item.chain_residue.uniprot_residue.all()[0].position),int(item.chain_residue.uniprot_residue.all()[0].position)+1]
 					else:
 						tmp[1] = int(item.chain_residue.uniprot_residue.all()[0].position)+1
+
 				region.append(tmp)				
 				chain_reg[i] = region
 										

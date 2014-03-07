@@ -98,6 +98,18 @@ class InteractionView(DetailView):
 
 		return interaction
 
+
+class InterfaceView(DetailView):
+	model = Interaction
+	template_name = 'Interface_view.html'
+
+	def get_context_data(self, **kwargs):
+
+		interface = super(InterfaceView, self).get_context_data(**kwargs)
+		# Add more code here
+
+		return interface
+
 class SuperpositionView(View):
 
 	def get(self,request,uniprot_acc):
@@ -133,7 +145,7 @@ def search_form(request):
 
 def search(request):
 	if 'q' in request.GET and request.GET['q']:
-		q = request.GET['q']
+		q = request.GET['q'].strip(' \t\n\r')
 		option = request.GET['search_select']
 		if option =='1':
 			uniprot = Uniprot.objects.filter(Q(acc_number__icontains=q)|Q(name__icontains=q)|Q(gene_code__icontains=q)|Q(genbank_id__icontains=q))
