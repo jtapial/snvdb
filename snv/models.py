@@ -23,13 +23,9 @@ from Bio import Entrez
 
 # get a list of SNVs and return appropriate color code to display
 def get_color(snv_list):
+	color_code={'Disease':'red','Polymorphism':'green','Unclassified':'blue'}
 	if len(snv_list)==1:
-		if snv_list[0].type.type =='Disease':
-			return  'red'
-		elif snv_list[0].type.type =='Polymorphism':	
-			return 'green'
-		elif snv_list[0].type.type =='Unclassified':	
-			return 'blue'
+		return color_code[snv_list[0].type.type]
 	return 'purple'			
 
 
@@ -46,7 +42,7 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interactid,m
 	if special:
 		color_code = [['#5bc0de','#499AB2'],['#5bc0de','#499AB2']]
 	classname_main = str(interactid)+'_'+cu[i].acc_number+classsuffix
-	graphic_code = '<svg width= "850" height="'+h_frame+'">'+ header
+	graphic_code = '<svg viewBox="0 0 850 '+h_frame+'" perserveAspectRatio="xMinYMid"><style> .intersite:hover{fill:#FFCC00;}</style>'+ header
 	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'" width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+';" /></a>'              
 	java_code = '$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'     
 	for region in chain_reg:
@@ -56,9 +52,9 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interactid,m
 			content_data = 'Residue '+str(region[0])
 		else:
 			content_data = 'Residue ' +str(region[0])+ ' to ' +str(region[1]-1)+ ' ('+str(region[1]-region[0])+' residues)'
-		graphic_code +=  '<rect class ="'+classname+'" width="'+ str((region[1]-region[0])*frame/maxlen +1) +'" height="'+height+'" x="'+str((region[0])*frame/maxlen) +'" y="25" style="fill:#FF9933;" />'   			
+		graphic_code +=  '<rect class ="'+classname+' intersite" width="'+ str((region[1]-region[0])*frame/maxlen +1) +'" height="'+height+'" x="'+str((region[0])*frame/maxlen) +'" y="25" fill="#FF9933" />'   			
 			
-		java_code+= '$(".'+classname+'").popover({content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
+		java_code+= '$(".'+classname+'").popover({title:"Interface", content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
 		
 	return {'graphic_code':graphic_code,'java_code':java_code} 
 
@@ -121,7 +117,7 @@ class Uniprot(models.Model):
 		outset = []
 		for chain in self.chains.all():
 			length = len(self.sequence)
-			graphic_code = '<svg width="850" height="50">'
+			graphic_code = '<svg viewBox="0 0 850 50" perserveAspectRatio="xMinYMid">'
 			graphic_code += '<rect width="800" height="12" x="0" y="10" rx="5" ry="5" style="fill:#428bca;stroke-width:1;stroke:#285379" />'                   
 			graphic_code +=  '<text x="30" y="20" font-weight="bold" fill="white">'+self.acc_number+'</text> <text x="0" y="20" fill="white">|0</text><text x="200" y="20" fill="white">|'+str(length/4)+'</text><text x="400" y="20" fill="white">|'+str(length/2)+'</text><text x="600" y="20" fill="white">|'+str(length*3/4)+'</text><text x="800" y="20" fill="black">|'+str(length)+'</text>'
 			graphic_code += '<rect width="'+ str(int(float(chain.coverage)*800/100)) +'" height="12" x="'+str(float(chain.seq_start)/float(length)*800)+'" y="25" rx="5" ry="5" style="fill:#5bc0de;stroke-width:1;stroke:#499AB2" />'   			
@@ -189,7 +185,7 @@ class Uniprot(models.Model):
 			y = x.all()
 			if len(y) > 0:
 				return chain
-
+	'''
 	def get_color(self):
 		if self.type.type =='Disease':
 			return  set('red')
@@ -198,7 +194,7 @@ class Uniprot(models.Model):
 		elif self.type.type =='Unclassified':	
 			return 'blue'
 		return set('purple')	
-	
+	'''	
 
 
 	def interacting_partners(self):
@@ -210,8 +206,44 @@ class Uniprot(models.Model):
 				partners.append(partner.uniprot)
 		# Return list of Uniprot objects
 		return set(partners)
-	
 
+	def get_pfam_mapping(self):
+		return self.pfam_mappings.all().order_by('id')
+
+	###############################################
+	# Returns annotation graphics           
+	################################################	
+	def annotation(self):
+		h_frame = str(65)
+		height = str(50)
+		frame = 800
+		color_code = {'Family':'#FF3333','Domain':'#75A319','Motif':'#A347FF','Repeat':'#FF9933'}
+		range_val = [5,10,20,50,100,200,500,1000,2000,5000,10000]
+		length = len(self.sequence)
+		chosen_range = min(range_val, key=lambda x:abs(x-length/6))
+		java_code = ''
+		graphic_code = '<svg viewBox="0 0 850 '+h_frame+'" perserveAspectRatio="xMinYMid"><style> .annosite:hover{stroke-width:2;stroke:#FFFF00;}</style>'
+		graphic_code += '<rect width="'+str(frame)+'" height="'+height+'" x="5" y="0" style="fill:#E4E4E9;stroke-width:1;stroke:#CDCDD2;" />'
+		pos = 0
+		while pos <= length:
+			graphic_code += '<line x1="'+str(pos*frame/length +5)+'" y1="0" x2="'+str(pos*frame/length +5)+'" y2="55" style="stroke:#A4A4A8;stroke-width:1" stroke-dasharray="5,5" />'
+			graphic_code += '<text x="'+str(pos*frame/length)+'" y="65" font-size="10" fill="#A4A4A8">'+str(pos)+'</text>'
+			if pos==length:
+				break
+			if length-pos>chosen_range:
+				pos+=chosen_range
+			else:
+				pos=length
+		if self.pfam_mappings.all():
+			for region in self.pfam_mappings.all():
+				classname = self.acc_number +str(region.id)
+				content_data = 'Name: '+region.hmm.name+', Type: '+region.hmm.type+', Range: '+str(region.alignment_start_residue.position)+' - '+str(region.alignment_end_residue.position)
+				graphic_code += '<rect class ="'+classname+' annosite" width="'+ str((region.alignment_end_residue.position - region.alignment_start_residue.position)*frame/length)+'" height="15" x="'+str((region.alignment_start_residue.position)*frame/length) +'" y="18" rx="6" ry="6" style="fill:'+color_code[region.hmm.type]+';" />'
+				java_code+= '$(".'+classname+'").popover({content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
+		else:
+			graphic_code += '<text x="'+str(frame/3)+'" y="30" font-size="20" fill="#A4A4A8">No annotations found.</text>'
+		graphic_code += '</svg>'		
+		return {'graphic_code':graphic_code,'java_code':java_code} 
 
 	###############################################
 	# Returns Interaction Set with SVG graphic             [COMBINED WITH SNVS MAPPING]
@@ -344,7 +376,9 @@ class Uniprot(models.Model):
 			else:
 				no_snv = True	
 
-			mod_seq=''		
+			mod_seq=''	
+			option['graphic_code']+='<style> .dis:hover{fill:#FF3300;} .pol:hover{fill:#33CC33;} .unc:hover{fill:#0066CC;} .mul:hover{fill:#AC59AC;}</style>'
+			class_type = {'Disease':'dis','Polymorphism':'pol','Unclassified':'unc'}
 			for curr_pos in range(len(seq)):
 				interpos = False
 				extraopt = ''
@@ -369,11 +403,13 @@ class Uniprot(models.Model):
 					pos_mute = ''			
 					color = get_color(pos[1])
 					frame = 800
-					snvtype = pos[1][0].type.type
+					snvtype = pos[1][0].type.type 
+					snvclass = class_type[pos[1][0].type.type]
 					if color == 'purple':
 						snvtype = 'Multiple variations'
-					option['graphic_code']+= '<rect class ="snv'+str(curr_pos+1)+'" width="'+ str(1*frame/len(seq) +1) +'" height="18" x="'+str((curr_pos+1)*frame/len(seq)) +'" y="25" style="fill:'+color+';" />' 
-					option['java_code']+= '$(".snv'+str(curr_pos+1)+'").popover({content:"SNV position'+str(curr_pos+1)+', type: '+snvtype+'","placement": "top",trigger: "hover",container:"body"});'
+						snvclass = 'mul'
+					option['graphic_code']+= '<rect class ="snv'+str(curr_pos+1)+' '+snvclass+'" width="'+ str(1*frame/len(seq) +1) +'" height="18" x="'+str((curr_pos+1)*frame/len(seq)+5) +'" y="25" fill="'+color+'" />' 
+					option['java_code']+= '$(".snv'+str(curr_pos+1)+'").popover({title:"SNV",content:"Position '+str(curr_pos+1)+', type: '+snvtype+'","placement": "top",trigger: "hover",container:"body"});'
 					if color == 'purple':#multiple mutation case
 						html = ''
 						for item in pos[1]:					

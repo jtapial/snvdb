@@ -41,6 +41,7 @@ class UniprotView(DetailView):
 		
 		data['marked_reg'] = interact_snvs[2]
 		data['markscript'] = interact_snvs[3]
+		data['annotation'] = self.object.annotation()
 		return data
 	
 class DiseaseView(DetailView):

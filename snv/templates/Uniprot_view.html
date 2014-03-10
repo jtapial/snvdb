@@ -23,12 +23,13 @@ h1 span{ position:absolute; top:-70px;}
 h3{ position:relative; }
 h3 span{ position:absolute; top:-70px;}
 
-
+a.alignment:hover, visited, link, active {
+    text-decoration:none
+}
 
 {% endblock %}
 {% load staticfiles %}
 {% block javascript %}<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">
-
 
 {% endblock %}
 
@@ -84,8 +85,8 @@ h3 span{ position:absolute; top:-70px;}
 				<p>Uniprot ID: {{uniprot.acc_number}} [<a data-toggle="popover" data-content="External link to Uniprot"  href="http://www.uniprot.org/uniprot/{{uniprot.acc_number}}" target='_blank' >link</a>]</p>
 				{% if uniprot.gene_code %}<p>Gene Code ID: {{uniprot.gene_code}}</p> 	{% endif %}
 				{% if uniprot.genbank_id %}<p>GenBank ID: {{uniprot.genbank_id}} [<a data-toggle="popover" data-content="External link to GenBank"  href="http://www.ncbi.nlm.nih.gov/protein/?term={{uniprot.genbank_id}}" target='_blank' >link</a>]</p>	{% endif %}				
-				<p>{{ uniprot.get_seq | length}} amino acids</p>
-				<p>{{uniprot.pfam_mappings.all | length}} PFAM entries</p>
+				<p>{{uniprot.sequence | length}} amino acids</p>
+				<p>{{uniprot.pfam_mappings.all | length}} annotations</p>
 				<p>{{uniprot.chains.all | length}} chains </p>
 				<p>{{interactions | length}} interactions </p>
 
@@ -103,10 +104,10 @@ h3 span{ position:absolute; top:-70px;}
 		  </div>
 		  <div class="panel-body">
 			<label class="checkbox-inline">
-			  <input type='checkbox' id="chk_seq" style="vertical-align:middle;" checked> Sequence
+			<input type='checkbox' id="chk_map" style="vertical-align:middle;" checked> Overall graphics
 			</label>
 			<label class="checkbox-inline">
-			  <input type='checkbox' id="chk_pfam" style="vertical-align:middle;" checked> PFAM Mapping
+			  <input type='checkbox' id="chk_pfam" style="vertical-align:middle;" checked> Annotations
 			</label>
 			<label class="checkbox-inline">
 			  <input type='checkbox' id="chk_chain" style="vertical-align:middle;" checked> Chains
@@ -115,35 +116,77 @@ h3 span{ position:absolute; top:-70px;}
 			<input type='checkbox' id="chk_inter" style="vertical-align:middle;" checked> Interactions
 			</label>
 			<label class="checkbox-inline">
-			<input type='checkbox' id="chk_map" style="vertical-align:middle;" checked> SNVs/Interaction Mapping
-			</label>
-			<label class="checkbox-inline">
-			<input type='checkbox' id="chk_snv" style="vertical-align:middle;" checked> SNVs Data
+			<input type='checkbox' id="chk_snv" style="vertical-align:middle;" checked> SNVs
 			</label>
 		  </div>
 		</div>
-		
-<!-- #######################################    Sequence   ############################################################################-->
+
+
+<!-- #######################################    All Graphics   ############################################################################-->
 		<script>
-			$("#chk_seq").change(function() {
+			$("#chk_map").change(function() {
 				if($(this).is(":checked"))
-					$("#seqbox").fadeIn();
+					$("#mapbox").fadeIn();
 				else
-					$("#seqbox").fadeOut();
+					$("#mapbox").fadeOut();
 			});
 
 		</script>
 
-		<div id = "seqbox">
-			<div class="page-header"><h3><span id = "seq"></span>Sequence</h3></div>
-			<div class = "well">   
-		   		<p class="wrap" style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">{{ uniprot.get_seq }}</p>
-				<input type="button" class="btn btn-primary btn-lg" value = "FASTA" onclick="window.open('http://www.uniprot.org/uniprot/{{uniprot.acc_number}}.fasta','_blank','resizable=yes')" />
+		<div id = "mapbox">
+			<div class="page-header"><h3><span id = "map"></span>Overall graphics</h3></div>
+			<!-- JAVASCRIPT -->
+			{{markscript|safe}}
+			<!-- END JAVASCRIPT -->
+			Interface Site
+			<div class="btn-group">
+				{% for option in marked_reg %}
+				<input type="radio" name="options" id="{{option.id}}" {{option.checked}}><label class="btn btn-default btn-xs" for="{{option.id}}" data-toggle="popover" data-content="Show interface for {{option.info}}" >{{option.name}}</label>
+				{% endfor %}
+			</div>
 
-			</div><!-- End Well -->
+
+			{% for option in marked_reg %}
+			<div class="box {{option.id}}">
+				<div class="svg-container">{{option.graphic_code|safe}}</svg></div>
+				<div class="svg-container">{{annotation.graphic_code|safe}}</div>
+				<script type="text/javascript">
+					{{annotation.java_code|safe}}
+					{{option.java_code|safe}}
+				</script>				
+				<div class = "well">				
+					<p>You have selected <strong>{{option.info}}</strong></p><p  style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">{{option.sequence|safe}}</p>
+					<input type="button" class="btn btn-primary btn-sm" value = "FASTA" onclick="window.open('http://www.uniprot.org/uniprot/{{uniprot.acc_number}}.fasta','_blank','resizable=yes')" />
+				</div>				
+			</div>
+
+			{% endfor %}
+
+
+			{% if snv_list %}
+			<p><code style="background-color:red;color:white;">A</code> Disease, <code style="background-color:green;color:white;">A</code> Polymorphism, <code style="background-color:blue;color:white;">A</code> Unclassified, <code style="background-color:purple;color:white;">A</code> Multiple variations </p>     
+			{% endif %}
 		</div>
 
-<!-- #######################################    PFAM MAPPING   ############################################################################-->
+		<!-- MODAL TO DISPLAY WHEN CLICKING ON MUTIPLE MUTATION POSSITION-->
+		<div style="display: none;" id="addBookDialog" class="modal fade bs-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-sm">
+			  <div class="modal-content">
+
+				<div class="modal-header">
+				  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				  <h4 class="modal-title" id="mySmallModalLabel">Select the SNV you would like to see</h4>
+				</div>
+				<div class="modal-body">
+					<div id="myResults"></div>
+				</div>
+			  </div><!-- /.modal-content -->
+			</div><!-- /.modal-dialog -->
+		</div><!-- /.modal -->
+		
+
+
+<!-- #######################################    Annotations   ############################################################################-->
 		<script>
 			$("#chk_pfam").change(function() {
 				if($(this).is(":checked"))
@@ -154,17 +197,20 @@ h3 span{ position:absolute; top:-70px;}
 
 		</script>
 		<div id = "pfambox">
-			<div class="page-header"><h3><span id = "pfam"></span>PFAM Mapping</h3></div>
+			<div class="page-header"><h3><span id = "pfam"></span>Annotations</h3></div>
 			<p>Found {{uniprot.pfam_mappings.all | length}} PFAM Mapping entries</p>
 			{% if uniprot.pfam_mappings.all %}
+			<p>{{annotation.graphic_code|safe}}</p>
+			<script>
+				{{annotation.java_code|safe}}
+			</script>
+
 			<div class="table-responsive">
 			<table class="table table-condensed table-hover">
 				<thead>
 					<tr>
-						<th>ID</th>
 						<th>HMM Acc</th>
 						<th>Alignment</th>
-						<th>Envelope</th>
 						<th>Hmm</th>
 						<th>Bit Score</th>
 						<th>E-Value</th>
@@ -172,16 +218,14 @@ h3 span{ position:absolute; top:-70px;}
 					</tr>
 				</thead>
 				<tbody>
-				{% for item in uniprot.pfam_mappings.all %}
+				{% for item in uniprot.get_pfam_mapping %}
 					<tr>
-						<td>{{item.id}}</td>
 						<td><a href ="http://pfam.sanger.ac.uk/family/{{item.hmm.acc}}" target="_blank" data-toggle="popover" data-content="Name: {{item.hmm.name}}, Type: {{item.hmm.type}}, Length: {{item.hmm.length}}, Clan: {{item.hmm.clan}}" >{{item.hmm.acc}}</a></td>
 						<td>{{item.alignment_start_residue.position}}-{{item.alignment_end_residue.position}}</td>
-						<td>{{item.envelope_start_residue.position}}-{{item.envelope_end_residue.position}}</td>
 						<td>{{item.hmm_start}}-{{item.hmm_end}}</td>
 						<td>{{item.bit_score}}</td>
 						<td>{{item.e_value}}</td>
-						<td>{{item.significance}}</td>
+						<td>{% if item.significance == 1 %}Yes{% else %}No{% endif %}</td>
 					</tr>
 				
 				{% endfor %}
@@ -233,16 +277,13 @@ h3 span{ position:absolute; top:-70px;}
 					<tr>
 					{% if item.alignent %}
 		
-						<td colspan="7">{{item.graphic|safe}}<br>
-
-						<div class="panel-group" id="accordion">
+						<td colspan="7">
+						<div class="panel-group" id="accordion{{item.obj.id}}">
 						  <div class="panel panel-default">
 							<div class="panel-heading">
-							  <h4 class="panel-title">
-								<a data-toggle="collapse" data-parent="#accordion" href="#collapse{{item.obj.id}}">
-								  Show/Hide Alignment
+								<a class = "alignment" data-toggle="collapse" data-content = "Click to show/hide sequence alignment" data-parent="#accordion{{item.obj.id}}" href="#collapse{{item.obj.id}}">
+								  {{item.graphic|safe}}
 								</a>
-							  </h4>
 							</div>
 							<div id="collapse{{item.obj.id}}" class="panel-collapse collapse">
 							  <div class="panel-body" style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">
@@ -326,70 +367,7 @@ h3 span{ position:absolute; top:-70px;}
 			{% endif %}
 		</div>
 
-<!-- #######################################    SNV & Interaction MAPING   ############################################################################-->
-		<script>
-			$("#chk_map").change(function() {
-				if($(this).is(":checked"))
-					$("#mapbox").fadeIn();
-				else
-					$("#mapbox").fadeOut();
-			});
 
-		</script>
-
-		<div id = "mapbox">
-			<div class="page-header"><h3><span id = "map"></span>SNVs and Interaction Mapping</h3></div>
-			<div class="alert alert-info">
-				<ul><li>Select marking options from a menu to mark the interaction regions.</li><li>Hover and click on each SNV position to see more detail. </li></ul>
-			</div>
-
-			<!-- JAVASCRIPT -->
-			{{markscript|safe}}
-			<!-- END JAVASCRIPT -->
-
-			<div class="btn-group">
-				{% for option in marked_reg %}
-				<input type="radio" name="options" id="{{option.id}}" {{option.checked}}><label class="btn btn-default btn-xs" for="{{option.id}}" data-toggle="popover" data-content="Show interection site for {{option.info}}" >{{option.name}}</label>
-				{% endfor %}
-			</div>
-
-
-			{% for option in marked_reg %}
-			<div class="box {{option.id}}">
-				<p>{{option.graphic_code|safe}}</svg></p>
-				<script type="text/javascript">
-					{{option.java_code|safe}}
-				</script>				
-				<div class = "well">				
-					<p>You have selected <strong>{{option.info}}</strong></p><p  style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">{{option.sequence|safe}}</p>
-				</div>				
-			</div>
-
-			{% endfor %}
-
-
-			{% if snv_list %}
-			<strong><p>Colour code:</p></strong>
-			<p><code style="background-color:red;color:white;">A</code> Disease, <code style="background-color:green;color:white;">A</code> Polymorphism, <code style="background-color:blue;color:white;">A</code> Unclassified, <code style="background-color:purple;color:white;">A</code> Multiple variations </p>     
-			{% endif %}
-		</div>
-
-		<!-- MODAL TO DISPLAY WHEN CLICKING ON MUTIPLE MUTATION POSSITION-->
-		<div style="display: none;" id="addBookDialog" class="modal fade bs-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
-			<div class="modal-dialog modal-sm">
-			  <div class="modal-content">
-
-				<div class="modal-header">
-				  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-				  <h4 class="modal-title" id="mySmallModalLabel">Select the SNV you would like to see</h4>
-				</div>
-				<div class="modal-body">
-					<div id="myResults"></div>
-				</div>
-			  </div><!-- /.modal-content -->
-			</div><!-- /.modal-dialog -->
-		</div><!-- /.modal -->
-		
 
 <!-- #######################################    SNV DATA  ############################################################################-->
 		<script>
@@ -487,11 +465,10 @@ h3 span{ position:absolute; top:-70px;}
 			<ul class="nav nav-list bs-sidenav affix">
 				<li><strong><span class="glyphicon glyphicon-search"></span> Quick Navigation</strong></li>
 				<li><a href="#basic"><span class="glyphicon glyphicon-chevron-right"></span> Basic information</a></li>
-				<li><a href="#seq"><span class="glyphicon glyphicon-chevron-right"></span> Sequence</a></li>
-				<li><a href="#pfam"><span class="glyphicon glyphicon-chevron-right"></span> PFAM {% if uniprot.pfam_mappings.all %}<span class="badge">{{uniprot.pfam_mappings.all | length}}</span>{% endif %}</a></li>
+				<li><a href="#map"><span class="glyphicon glyphicon-chevron-right"></span> Overall graphics</a></li>
+				<li><a href="#pfam"><span class="glyphicon glyphicon-chevron-right"></span> Annotations {% if uniprot.pfam_mappings.all %}<span class="badge">{{uniprot.pfam_mappings.all | length}}</span>{% endif %}</a></li>
 				<li><a href="#chains"><span class="glyphicon glyphicon-chevron-right"></span> Chains {% if uniprot.chains.all %}<span class="badge">{{uniprot.chains.all | length}}</span>{% endif %}</a></li>
 				<li><a href="#interactions"><span class="glyphicon glyphicon-chevron-right"></span> Interactions {% if interactions %}<span class="badge">{{interactions | length}}</span>{% endif %}</a></li>
-				<li><a href="#map"><span class="glyphicon glyphicon-chevron-right"></span> SNVs & Interaction Mapping </a></li>
 				<li><a href="#snvs"><span class="glyphicon glyphicon-chevron-right"></span> Related SNVs {% if snv_list %}<span class="badge">{{snv_list|length}}</span>{% endif %}</a></li>
 			</ul>
 		</div><!--/span-->
@@ -516,6 +493,11 @@ h3 span{ position:absolute; top:-70px;}
 		    'placement': 'bottom'
 	});
 */
+	$('[data-toggle="collapse"]').popover({
+		trigger: 'hover',
+		    'placement': 'top'
+	});
+
 	$('#userNameField').tooltip({
 		'show': true,
 		    'placement': 'bottom',
