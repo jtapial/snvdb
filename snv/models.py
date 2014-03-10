@@ -735,6 +735,23 @@ class PositionTransform(models.Model):
         db_table = 'position_transform'
 
 
+class InterfaceAtom(models.Model):
+	id = models.IntegerField(primary_key=True)
+	interface_residue = models.ForeignKey(InterfaceResidue,db_column='interface_residue_id',related_name='atoms')
+	label = models.CharField(max_length=4L)
+	class Meta:
+		db_table = 'interface_atom'
+
+class InterfaceAtomInteraction(models.Model):
+	id = models.IntegerField(primary_key=True)
+	interface_atom = models.ForeignKey(InterfaceAtom,db_column='interface_atom_id_l',related_name='interactions')
+	partner_atom = models.ForeignKey(InterfaceAtom,db_column='interface_atom_id_r',related_name='partner_interactions')
+	type = models.CharField(max_length=3L)
+	length = models.DecimalField(max_digits=4,decimal_places=3)
+	class Meta:
+		db_table = 'interface_atom_interaction'
+
+
 
 
 
