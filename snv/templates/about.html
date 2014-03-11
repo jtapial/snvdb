@@ -6,26 +6,41 @@ background: -o-linear-gradient(#2E82D1, #7CC1EC); /* For Opera 11.1 to 12.0 */
 background: -moz-linear-gradient(#2E82D1, #7CC1EC); /* For Firefox 3.6 to 15 */
 background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last) */	
 }
+
 {% endblock %}
 {% block header %}
 <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
       <div class="container">
         <h1 style ="color:#fff">About us</h1>
-        <h3 style = "color:#E3FBFF">....</h3>
+        <h3 style = "color:#E3FBFF">Find out more about the SNVdb development team</h3>
       </div>
     </div>
 
 {% endblock %}    
 <!-- Contents -->
+{% block title %} <p>About us</p> {% endblock %}
+
+
 {% block content %}
 <h1>Info</h1>
 
-<p>Info</p>
-<p>Info</p>
-<p>Info</p>
-<p>Info</p>
-<p>Info</p>
+    <p>SNVdb has been developed in 2014 within the <a href="http://www.sbg.bio.ic.ac.uk/">Structural Bioinformatics Group</a> at the Centre for Integrative Systems Biology, Imperial College London.</p>
+
+    <p>The current development team consists of five members:</p>
+
+    <ul>
+    	<li>Professor Michael Sternberg (Director of the Centre for Bioinformatics and PI of the Structural Bioinformatics Group)</li>
+
+    	<li>Dr Alessia David (Postdoctoral Researcher)</li>
+
+    	<li>William Otterburn (MSc Student)</li>
+    	<li>Sirawit Ittisoponpisan (MSc Student)</li>
+    	<li>Javier Tapial (MSc Student)</li>
+    </ul>
+
+    <p><i>IN DEVELOPMENT</i></p>
+
 
 {% endblock %}
 
