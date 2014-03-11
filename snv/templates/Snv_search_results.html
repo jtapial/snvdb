@@ -18,15 +18,15 @@ background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last)
 
 {% endblock %}   
 <!-- Contents -->
-{% block title %} <p>You searched for: <strong>{{ query }}</strong></p> {% endblock %}
+
 
 {% block content %}
-
+<h1>You searched for: <strong>{{ query }}</strong></h1>
 {% if snves %}
-    <p>Found {{ snves|length }} SNV{{ snves|pluralize }}.</p>
+    <p>Found {{ snves|length }} SNV{{ snves|pluralize }} that match your keyword "<strong>{{ query }}</strong>".</p>
     <ul class = "list-group">
         {% for item in snves %}
-        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}">FT ID: {{ item.ft_id}} | GENE CODE: {{ item.gene_code}} | UNIPROT ACC NUMBER: {{ item.uniprot_acc_number}} | DB SNP ID: {{ item.db_snp}}</a> </li> 
+        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}">FT ID: {{ item.ft_id}} | DB SNP ID: {{ item.db_snp}}</a> </li> 
         {% endfor %}
     </ul>
 {% else %}
