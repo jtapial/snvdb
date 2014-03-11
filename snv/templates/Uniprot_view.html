@@ -84,7 +84,7 @@ a.alignment:hover, visited, link, active {
 				<p><strong>Summary</strong></p>
 				<p>Uniprot ID: {{uniprot.acc_number}} [<a data-toggle="popover" data-content="External link to Uniprot"  href="http://www.uniprot.org/uniprot/{{uniprot.acc_number}}" target='_blank' >link</a>]</p>
 				{% if uniprot.gene_code %}<p>Gene Code ID: {{uniprot.gene_code}}</p> 	{% endif %}
-				{% if uniprot.genbank_id %}<p>GenBank ID: {{uniprot.genbank_id}} [<a data-toggle="popover" data-content="External link to GenBank"  href="http://www.ncbi.nlm.nih.gov/protein/?term={{uniprot.genbank_id}}" target='_blank' >link</a>]</p>	{% endif %}				
+				{% if uniprot.genbank_id %}<p>GenBank ID: {{uniprot.genbank_id}} [<a data-toggle="popover" data-content="External link to GenBank"  href="http://www.ncbi.nlm.nih.gov/gene/?term={{uniprot.genbank_id}}" target='_blank' >link</a>]</p>	{% endif %}				
 				<p>{{uniprot.sequence | length}} amino acids</p>
 				<p>{{uniprot.pfam_mappings.all | length}} annotations</p>
 				<p>{{uniprot.chains.all | length}} chains </p>

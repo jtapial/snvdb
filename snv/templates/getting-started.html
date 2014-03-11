@@ -6,6 +6,15 @@ background: -o-linear-gradient(#2E82D1, #7CC1EC); /* For Opera 11.1 to 12.0 */
 background: -moz-linear-gradient(#2E82D1, #7CC1EC); /* For Firefox 3.6 to 15 */
 background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last) */	
 }
+
+
+h1{ position:relative;}
+h1 span{ position:absolute; top:-70px;}
+h2{ position:relative;}
+h2 span{ position:absolute; top:-70px;}
+h3{ position:relative; }
+h3 span{ position:absolute; top:-70px;}
+
 {% endblock %}
 {% block header %}
 <!-- Main jumbotron for a primary marketing message or call to action -->
@@ -18,15 +27,144 @@ background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last)
 
 {% endblock %}    
 <!-- Contents -->
-{% block title %} <p>A quick guide to use our website</p> {% endblock %}
 
 {% block content %}
 
-    <p>Info</p>
-<p>Info</p>
-<p>Info</p>
-<p>Info</p>
-<p>Info</p>
+<div class="page-header">
+	<h1>Search</h1>
+</div>
+
+<div class="content">
+	<p>The first step is to retrieve what you are actually interested in from all the information stored in the database. Depending on your needs, SNVdb offers three search modes: by Uniprot accession number, by SNV FTID or by disease name.</p>
+
+	<p>Just select your preferred search mode from the drop-down menu in the home page, and enter your query in the search bar below.</p>
+</div>
+
+<div class="page-header">
+	<h1>Select</h1>
+</div>
+
+<div class="content">
+	<p>If your search returns more than one entry from the database, you will be taken to the Search Results page. Simply click on your favourite entry from the list.</p>
+
+	<p>In case you mistyped something, you will be able to see the search term that you used and type the right word in.</p>
+</div>
+
+<div class="page-header">
+	<h1>Visualize</h1>
+</div>
+
+<div class="content">
+	<p>Finally, you can see your entry here. Depending on whether it is a protein, a SNV, a disease, an interaction or an interface, the page will look slightly different:</p>
+
+	<h2>Understanding Uniprot entries</h2>
+
+		<p>An Uniprot entry describes a protein in the database. It is defined by the ID number by which you can find the protein in Uniprot.</p>
+
+		<p>These entries are divided in five sections:</p>
+		<ul>
+			<li><a href="#uniprot-basic">Basic information</a></li>
+			<li><a href="#uniprot-overall">Overall graphics</a></li>
+			<li><a href="#uniprot-annotations">Annotations</a></li>
+			<li><a href="#uniprot-interactions">Interactions</a></li>
+			<li><a href="#uniprot-snvs">SNVs</a></li>
+		</ul>
+
+		<h3><span id="uniprot-basic"></span>Basic information</h3>
+
+		<p>Here you can find some useful data about the protein and the gene encoding for it (including links to NCBI/Gene and Uniprot) as well as the link to the raw sequence (with an option to export it as a FASTA file).</p>
+		<p>If the protein has any associated interactions, you can also find an image of the 3D structure of the protein.</p>
+		<p>Also, you can toggle each of the other sections on and off by clicking on the tick boxes in the "Display" box.</p>
+
+		<h3><span id="uniprot-overall"></span>Overall graphics</h3>
+
+		<p>Whilst the SNVs map to defined sequence positions for a given protein, the interface residues for each of its interacting partners vary.</p>
+		<p>In this section, you can see both things at the same time on a graph. The "Default" tab shows only the SNVs.</p>
+		<p>The top, blue rectangle represents the protein sequence, with the SNVs plotted in red, green, blue or purple (depending on their association with disease).</p>
+		<p>The grey rectangle shows the Pfam domains detected in the protein sequence, highlighting them in red and green, alternatively. Hover over each domain to see what kind of domain it is, along with some data associated with it.</p>
+		<p>To add the information about interface residues in the interaction with a particular partner, just go to the top of this section and click on the corresponding tab. The interface residues of the protein for a that partner will be highlighted in yellow.</p>
+		<p>Finally, hover over a highlighted residue to see some more information about it. If you click on a residue with a SNV, you will go to the SNV entry describing it.</p>
+		<p>All this information is also plotted residue by residue in the detailed alignment below.</p>
+			
+		<h3><span id="uniprot-annotations"></span>Annotations</h3>
+
+		<p>This section describes the Pfam domains that have been detected for the protein. The domain positions are plotted with respect to the protein sequence, and you can also see a list with the positions where the sequence matches the Pfam HMM for that domain, along with the statistical parameters that validate the domain.</p>
+		<p>If you want to find out more about that domain, and other proteins sharing the same domain, you can click on the external link to Pfam, where you will find more information about domains.</p>
+		
+
+		<h3><span id="uniprot-interactions"></span>Interactions</h3>
+
+		<p>Here we include a list of binary interactions for the protein of interest. For each one, you can see its ID on our database, the two proteins taking part in the interaction, and whether the structure of the complex has been experimentally determined or computationally modelled.</p>
+		<p>Under this information, the site displays a representation of the two proteins, with the interface residues marked in yellow.</p>
+		<p>There are also buttons that will lead you to the interaction entry (where you can see the 3D structure of the complex via JsMOL), the interface entry (where you can see the atom-atom interactions that hold the complex together) and the PDB file describing it.</p>
+		<p>If you prefer to have the PDB file to visualize it your preferred viewer (such as PyMOL), you can also download it from here.</p>
+
+		<h3><span id="uniprot-snvs"></span>SNVs</h3>
+
+		<p>Here you can find a list of SNVs that have an effect on the protein sequence. For each one, we show the position, the change on the sequence, the FT id and the rs id (so that you can find it in Uniprot and dbSNP).</p>
+		<p>If the SNV is associated with a disease, you can also see which disease it is, and the OMIM code describing it.</p>
+		<p>To find out more about each SNV, just click on the FT id link and we will take you to the SNV entry describing it on our database. We also provide some links to external databases (OMIM and dbSNP). If so many links seem a bit confusing, just hover on each link to see if it links to one of the entries in SNVdb, or it leads to an external database.</p>
+
+	<h2>Understanding SNV entries</h2>
+
+		<p>A SNV entry describes a single nucleotide variation affecting a particular protein. These entries are divided in four sections:</p>
+
+		<ul>
+			<li><a href="#snv-basic">Basic information</a></li>
+			<li><a href="#snv-disorders">Disorders associated to the SNV</a></li>
+			<li><a href="#snv-mapping">Mapping mutated SNV to the sequence</a></li>
+			<li><a href="#snv-others">Other SNVs sharing the same position</a></li>
+		</ul>
+
+		<h3><span id="snv-basic"></span>Basic information</h3>
+
+		<p>Here we provide some data about the SNV, such as the protein and position that it maps to, the change in sequence that it causes, and whether it is associated to any disease. If the SNV has a dbSNP id (rs ID), you can also see it here, and find a link to the dbSNP entry.</p>
+
+		<h3><span id="snv-disorders"></span>Disorders associated to the SNV</h3>
+
+		<p>This is a list of the diseases directly associated to this variation. You can find the link to the SNVdb disease entry and the OMIM code and link for each disease.</p>
+		
+		<h3><span id="snv-mapping"></span>Mapping mutated SNV to the sequence</h3>
+
+		<p>Here you can see the SNV in the protein sequence context. The residue corresponding to the SNV is highlighted.</p>
+
+		<h3><span id="snv-others"></span>Other SNVs sharing the same position</h3>
+
+		<p>If there are more SNVs mapping to this position in the protein, you can find a list here, along with some data and the link to the SNVdb entry for each SNV.</p>
+
+	<h2>Understanding disease entries</h2>
+
+		<p>A disease entry displays information about a particular disorder. These entries are divided in four sections:</p>
+
+		<ul>
+			<li><a href="#disease-basic">Basic information</a></li>
+			<li><a href="#disease-related-diseases">Related diseases summary
+</a></li>
+			<li><a href="#disease-related-snvs">Related SNVs list</a></li>
+			<li><a href="#disease-related-uniprots">Related Uniprots</a></li>
+		</ul>
+
+		<h3><span id="disease-basic"></span>Basic information</h3>
+
+		<p>Here we display the disease ID (which is the same as the OMIM ID) and the name of the disease.</p>
+
+		<h3><span id="disease-related-diseases"></span>Related diseases summary</h3>
+
+		<p>Here you can find diseases sharing some SNVs with the disease of interest. Just click on the links and see the disease entries for them.</p>
+
+		<h3><span id="disease-related-snvs"></span>Related Related SNVs list</h3>
+
+		<p>This is a list of the SNVs associated with this disease. Click on the link on the "ID" column and see the SNV entries for them.</p>
+
+		<h3><span id="disease-related-uniprots"></span>Related proteins and their associated diseases</h3>
+
+		<p>Some proteins are associated with more than one disease. If any of the proteins associated with the disease of interest are associated with other disorders, you will see them in this list.</p>
+
+	<h2>Understanding interface entries</h2>
+		<p><i>IN DEVELOPMENT</i></p>
+
+	<h2>Understanding interaction entries</h2>
+		<p><i>IN DEVELOPMENT</i></p>
 
 {% endblock %}
 
