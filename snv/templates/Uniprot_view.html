@@ -16,8 +16,6 @@ input[type=radio]:checked + label {
         display: none;
 }
 
-.mydiv { background-color:yellow; display:none;}
-
 h1{ position:relative;}
 h1 span{ position:absolute; top:-70px;}
 h3{ position:relative; }
@@ -196,8 +194,9 @@ a.alignment:hover, visited, link, active {
 		</script>
 		<div id = "pfambox">
 			<div class="page-header"><h3><span id = "pfam"></span>Annotations</h3></div>
-			<p>Found {{uniprot.pfam_mappings.all | length}} PFAM Mapping entries</p>
+
 			{% if uniprot.pfam_mappings.all %}
+			<p>Found {{uniprot.pfam_mappings.all | length}} PFAM Mapping entries.</p>
 			<p>{{annotation.graphic_code|safe}}</p>
 			<script>
 				{{annotation.java_code|safe}}
@@ -233,6 +232,8 @@ a.alignment:hover, visited, link, active {
 				</tbody>
 			</table>
 			</div>
+			{% else %}
+				<p>No annotation found in our database.</p>
 			{% endif %}
 		</div>
 
@@ -249,8 +250,9 @@ a.alignment:hover, visited, link, active {
 
 		<div id = "chainbox">
 			<div class="page-header"><h3><span id = "chains"></span>Chains</h3></div>
-			<p>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}</p>
+			
 			{% if uniprot.chains.all %}
+				<p>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}.</p>
 				<div class="table-responsive">
 				<table class="table table-condensed">
 					<tr>
@@ -301,7 +303,7 @@ a.alignment:hover, visited, link, active {
 				</table>
 				</div>
 			{% else %}
-				<p>The protein has no registered chain entries</p>
+				<p>The protein has no registered chain entries.</p>
 			{% endif %}
 		</div>
 
@@ -319,7 +321,7 @@ a.alignment:hover, visited, link, active {
 		<div id = "interbox">
 			<div class="page-header"><h3><span id = "interactions"></span>Interactions</h3></div>	
 			{% if interactions %}
-				<p>Found {{interactions | length}} interaction entries for the protein {{uniprot.acc_number}}</p>
+				<p>Found {{interactions | length}} interaction entries for the protein {{uniprot.acc_number}}.</p>
 				<!-- POP UP JAVA SCRIPT--> 
 				<script>
 					function myFunction(url)
@@ -361,7 +363,7 @@ a.alignment:hover, visited, link, active {
 				</table>
 				</div>
 			{% else %}
-				<p>The protein has no associated interaction entries</p>
+				<p>The protein has no associated interaction entries.</p>
 			{% endif %}
 		</div>
 
@@ -382,7 +384,7 @@ a.alignment:hover, visited, link, active {
 			<div class="page-header"><h3><span id = "snvs"></span>SNVs</h3></div>
 
 			{% if snv_list %}
-			<p>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}</p>
+			<p>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}.</p>
 			<p>SNVs statistics</p>
 
 			<div class="progress">
@@ -452,7 +454,7 @@ a.alignment:hover, visited, link, active {
 			</table>
 			</div>
 			{% else %}
-			<p>The protein has no associated SNV entries</p>
+			<p>The protein has no associated SNV entries.</p>
 			{% endif %}
 		</div><!-- /.snvbox -->
 	</div><!--/ Left Canvas COL span-->
