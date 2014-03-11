@@ -20,6 +20,9 @@
 		  padding-top: 50px;
 		  padding-bottom: 20px;
 		}
+		.sidebar-offcanvas {
+		  padding-top: 30px;
+		}
 		{% block css%}{% endblock %}
 	</style>
 	
@@ -55,11 +58,10 @@
       </div>
     </div>
 
-	{% block header%}
-	{% endblock %}
+	{% block header%}{% endblock %}
 
 	<div class="container">
-		<h1>{% block title %}{% endblock %}</h1>
+		<!--<h1>{% block title %}{% endblock %}</h1>-->
 
 	{% block content %}{% endblock %}
 	</div><!-- END CONTAINER -->

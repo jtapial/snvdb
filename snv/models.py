@@ -238,7 +238,7 @@ class Uniprot(models.Model):
 			for region in self.pfam_mappings.all():
 				classname = self.acc_number +str(region.id)
 				content_data = 'Name: '+region.hmm.name+', Type: '+region.hmm.type+', Range: '+str(region.alignment_start_residue.position)+' - '+str(region.alignment_end_residue.position)
-				graphic_code += '<rect class ="'+classname+' annosite" width="'+ str((region.alignment_end_residue.position - region.alignment_start_residue.position)*frame/length)+'" height="15" x="'+str((region.alignment_start_residue.position)*frame/length) +'" y="18" rx="6" ry="6" style="fill:'+color_code[region.hmm.type]+';" />'
+				graphic_code += '<a xlink:href = "http://pfam.sanger.ac.uk/family/'+region.hmm.acc+'" target="_blank" ><rect class ="'+classname+' annosite" width="'+ str((region.alignment_end_residue.position - region.alignment_start_residue.position)*frame/length)+'" height="15" x="'+str((region.alignment_start_residue.position)*frame/length) +'" y="18" rx="6" ry="6" style="fill:'+color_code[region.hmm.type]+';" /></a>'
 				java_code+= '$(".'+classname+'").popover({content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
 		else:
 			graphic_code += '<text x="'+str(frame/3)+'" y="30" font-size="20" fill="#A4A4A8">No annotations found.</text>'

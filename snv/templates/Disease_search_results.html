@@ -19,12 +19,10 @@ background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last)
 
 {% endblock %}    
 <!-- Contents -->
-{% block title %} <p>You searched for: <strong>{{ query }}</strong></p> {% endblock %}
-
 {% block content %}
-
+<h1>You searched for: <strong>{{ query }}</strong></h1>
 {% if diseases %}
-    <p>Found {{ diseases|length }} disease{{ diseases|pluralize }}.</p>
+    <p>Found {{ diseases|length }} disease{{ diseases|pluralize }} that match your keyword "<strong>{{ query }}</strong>".</p>
     <ul class = "list-group">
         {% for item in diseases %}
         <li class="list-group-item" > <a href="{{ item.get_absolute_url }}"> {{ item.mim}}  {{ item.name}}</a> </li> 

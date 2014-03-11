@@ -7,9 +7,10 @@ word-wrap:break-word;
 }
 {% endblock %}
 
-{% block title %}SNV FT ID: {{ snv.ft_id }}{% endblock %}
+
 {% block content %}
 <!-- #######################################    INFO   ############################################################################-->
+<h1>SNV FT ID: {{ snv.ft_id }}</h1>
 <div class = "well">
     <ul>
     	{% if snv.uniprot_residue %}
