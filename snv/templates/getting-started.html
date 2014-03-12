@@ -34,14 +34,13 @@ h3 span{ position:absolute; top:-70px;}
 		if ($(this).scrollTop()>270 )
 		 {
 		    $('#navbar').css({position:"fixed",top: "80px"});
+			
 		 }
 		else
 		 {
 			$('#navbar').css({position:"absolute",top: "30px"});
 		 }
 	 });
-
-
 
 </script>
 
@@ -58,6 +57,8 @@ h3 span{ position:absolute; top:-70px;}
 
 {% endblock %}    
 <!-- Contents -->
+
+
 
 
 {% block content %}
@@ -228,7 +229,11 @@ h3 span{ position:absolute; top:-70px;}
 <div>
  <h1 class="page-header"><span id="browser"></span>Browser and Device</h1>
   <p class="lead">This website is based on <a href = "http://getbootstrap.com" target="_blank">Bootstrap</a> framework which supports several desktop and mobile browsers. However, old browsers might not display our website correctly.</p>
-
+<div class="alert alert-info">
+  <h3>Recommendation</h3>
+	<p>Although our website can run on mobile devices, it is recommended that you browse our website using <strong>latest versions of web browsers</strong> shown above from your <strong>desktop PC</strong> with screen resolution <strong>not less than 970 px</strong> for the best display.</p>
+</div>
+  
   <h3 id="support-browsers">Supported browsers</h3>
   <p>Supported browsers and devices are shown below. This table is taken from the official <a href = "http://getbootstrap.com/getting-started/#support" target="_blank">Bootstrap</a> website.</p>
   <div class="table-responsive">
@@ -279,8 +284,7 @@ h3 span{ position:absolute; top:-70px;}
   </div>
   <p>Note that Internet Explorer 6 or lower are not supported. For Linux platform, the website should look and behave well enough in Chrome and Firefox.</p>
 
-  <h3 id="support-browsers">Recommendation</h3>
-	<p>Although our website can run on mobile devices, it is recommended that you browse our website using <strong>latest versions of web browsers</strong> shown above from your <strong>desktop PC</strong> with screen resolution <strong>not less than 970 px</strong> for the best display.</p>
+
 </div>
 
 

@@ -2,16 +2,15 @@
 {% extends 'base.html' %}
 
 {% block pagetitle %}SNVdb{% endblock %}
-{% block css%}
+{% block css %}
 .jumbotron {
 	background-image: url("{{ STATIC_URL }}bg2560x1600.jpg");
 	no-repeat center center fixed; 
+	background-size: cover;
 	-webkit-background-size: cover;
 	-moz-background-size: cover;
 	-o-background-size: cover;
-	background-size: cover;
-padding-top: 90px;
-padding-bottom: 90px			
+		
 }
 
 .btn-primary{color:#fff;background-color:#2A60A5;border-color:#265593} <!--default bg #428bca, border #357ebd -->
@@ -23,20 +22,67 @@ padding-bottom: 90px
 .btn-xlg{padding:14px 20px;font-size:24px;line-height:1.33;border-radius:10px}
 
 
+{% endblock %}
+
+
+{% block javascript %}
+
+<script type="text/javascript">
+	$(window).ready(function (){
+	
+	 	if($(window).width() <= 977){
+			$('.jumbotron').css({'padding-top': '30px'});
+			$('.jumbotron').css({'padding-bottom': '30px'}); 
+		  }else{
+			$('.jumbotron').css({'padding-top': '130px' });
+			$('.jumbotron').css({'padding-bottom': '130px'});
+		}
+	 
+	});
+
+	$(window).resize(function () {
+
+
+	 	if($(window).width() <= 977){
+			$('.jumbotron').css({'padding-top': '30px'});
+			$('.jumbotron').css({'padding-bottom': '30px'}); 
+		  }else{
+			$('.jumbotron').css({'padding-top': '130px' });
+			$('.jumbotron').css({'padding-bottom': '130px'}); 
+		}
+	});
+ 
+
+	//Check before searching
+	function checkbox(){
+
+		var searchtext = $.trim(document.getElementById("query").value);
+
+		if(searchtext==''){
+			alert('Enter any keyword');
+			$( "#query" ).focus();
+			return false;
+		}
+	}
+</script>
+
 
 {% endblock %}
+
+
 {% block header %}
+
 <!-- Main jumbotron for a primary marketing message or call to action -->
 <div class="site-wrapper">
 <div class="cover-container">
-    <div class="jumbotron">
+    <div id = "mainjumb" class="jumbotron">
       <div class="container">
-        <h1 style="font-size:450%;color: #fff; text-align:center;text-shadow:2px 2px #2963AF;">SNVdb</h1>
+        <h1 id = "headtext" style="font-size:600%;color: #fff; text-align:center;text-shadow:2px 2px #2963AF;">SNVdb</h1>
         <h3 style="color: #fff; text-align:center"> Uncover protein interactions, SNVs, and associated diseases...    </h3>
+		<div id="browserInfo"> </div>
+
 
 		<!-- JAVA -->
-
-
 		<script type="text/javascript">
 			function explain(value){
 				if(document.getElementById("search_select").value=="1"){
@@ -54,7 +100,7 @@ padding-bottom: 90px
 
 		<!-- ############  Search form ######################-->
         
-		<form class="form-horizontal"  role="form" action="/search/" method="get">
+		<form class="form-horizontal"  role="form" action="/search/" method="GET" onSubmit="return checkbox();">
 			<div class="form-group">
 				<p for="inputtype" class="col-sm-2 control-label" style="color: #fff">Select type</p>
 
@@ -93,12 +139,10 @@ padding-bottom: 90px
 </div>
 {% endblock %} 
 
-<!--##########################Content##########################-->
+
+
 {% block content %}
-
-
-
-
+<!--##########################Content##########################-->
       <!-- Example row of columns -->
       <div class="row">
         <div class="col-md-4">
@@ -118,7 +162,3 @@ padding-bottom: 90px
         </div>
       </div>
 {% endblock %}   
-
-      <hr>
- 
-<!-- Contents -->
