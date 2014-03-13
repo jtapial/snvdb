@@ -317,22 +317,22 @@ class Uniprot(models.Model):
 				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' interaction ID: '+str(interact.id)+'</text>' 
 				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact.id,maxlen,chain_reg[0],True)
 
-				interaction_reg_mark.append({'name':str(interact.id)+'.1','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number+'1','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[0].acc_number+'.1','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number+'1','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 
 				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact.id,maxlen,chain_reg[1],True)
-				interaction_reg_mark.append({'name':str(interact.id)+'.2','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number+'2','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[0].acc_number+'.2','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number+'2','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 				
 				
 			elif _ischain1:
 				maxlen = len(cu[0].sequence)
 				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' interaction ID: '+str(interact.id)+'</text>' 
 				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact.id,maxlen,chain_reg[0],False)
-				interaction_reg_mark.append({'name':str(interact.id),'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[1].acc_number,'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 			else:
 				maxlen = len(cu[1].sequence)
 				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' interaction ID: '+str(interact.id)+'</text>' 
 				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact.id,maxlen,chain_reg[1],False)
-				interaction_reg_mark.append({'name':str(interact.id),'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[0].acc_number,'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 
 
 
