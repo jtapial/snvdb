@@ -82,7 +82,7 @@ a.alignment:hover, visited, link, active {
 				{% if uniprot.gene_code %}<p>Gene Code ID: {{uniprot.gene_code}}</p> 	{% endif %}
 				{% if uniprot.genbank_id %}<p>GenBank ID: {{uniprot.genbank_id}} [<a data-toggle="popover" data-content="External link to GenBank"  href="http://www.ncbi.nlm.nih.gov/gene/?term={{uniprot.genbank_id}}" target='_blank' >link</a>]</p>	{% endif %}				
 				<p>{{uniprot.sequence | length}} amino acids</p>
-				<p>{{uniprot.pfam_mappings.all | length}} annotations</p>
+				<p>{{uniprot.pfam_mappings.all | length}} Pfam domains</p>
 				<p>{{uniprot.chains.all | length}} chains </p>
 				<p>{{interactions | length}} interactions </p>
 
@@ -103,7 +103,7 @@ a.alignment:hover, visited, link, active {
 			<input type='checkbox' id="chk_map" style="vertical-align:middle;" checked> Overall graphics
 			</label>
 			<label class="checkbox-inline">
-			  <input type='checkbox' id="chk_pfam" style="vertical-align:middle;" checked> Annotations
+			  <input type='checkbox' id="chk_pfam" style="vertical-align:middle;" checked> Pfam domains
 			</label>
 			<label class="checkbox-inline">
 			  <input type='checkbox' id="chk_chain" style="vertical-align:middle;" checked> Chains
@@ -182,7 +182,7 @@ a.alignment:hover, visited, link, active {
 		
 
 
-<!-- #######################################    Annotations   ############################################################################-->
+<!-- #######################################    Pfam domains   ############################################################################-->
 		<script>
 			$("#chk_pfam").change(function() {
 				if($(this).is(":checked"))
@@ -193,10 +193,10 @@ a.alignment:hover, visited, link, active {
 
 		</script>
 		<div id = "pfambox">
-			<div class="page-header"><h3><span id = "pfam"></span>Annotations</h3></div>
+			<div class="page-header"><h3><span id = "pfam"></span>Pfam domains</h3></div>
 
 			{% if uniprot.pfam_mappings.all %}
-			<p>Found {{uniprot.pfam_mappings.all | length}} PFAM Mapping entries.</p>
+			<p>Found {{uniprot.pfam_mappings.all | length}} Pfam mapping entries.</p>
 			<p>{{annotation.graphic_code|safe}}</p>
 			<script>
 				{{annotation.java_code|safe}}
@@ -233,7 +233,7 @@ a.alignment:hover, visited, link, active {
 			</table>
 			</div>
 			{% else %}
-				<p>No annotation found in our database.</p>
+				<p>No Pfam domains found in our database.</p>
 			{% endif %}
 		</div>
 
@@ -466,7 +466,7 @@ a.alignment:hover, visited, link, active {
 				<li><strong><span class="glyphicon glyphicon-search"></span> Quick Navigation</strong></li>
 				<li><a href="#basic"><span class="glyphicon glyphicon-chevron-right"></span> Basic information</a></li>
 				<li><a href="#map"><span class="glyphicon glyphicon-chevron-right"></span> Overall graphics</a></li>
-				<li><a href="#pfam"><span class="glyphicon glyphicon-chevron-right"></span> Annotations {% if uniprot.pfam_mappings.all %}<span class="badge">{{uniprot.pfam_mappings.all | length}}</span>{% endif %}</a></li>
+				<li><a href="#pfam"><span class="glyphicon glyphicon-chevron-right"></span> Pfam domains {% if uniprot.pfam_mappings.all %}<span class="badge">{{uniprot.pfam_mappings.all | length}}</span>{% endif %}</a></li>
 				<li><a href="#chains"><span class="glyphicon glyphicon-chevron-right"></span> Chains {% if uniprot.chains.all %}<span class="badge">{{uniprot.chains.all | length}}</span>{% endif %}</a></li>
 				<li><a href="#interactions"><span class="glyphicon glyphicon-chevron-right"></span> Interactions {% if interactions %}<span class="badge">{{interactions | length}}</span>{% endif %}</a></li>
 				<li><a href="#snvs"><span class="glyphicon glyphicon-chevron-right"></span> Related SNVs {% if snv_list %}<span class="badge">{{snv_list|length}}</span>{% endif %}</a></li>
