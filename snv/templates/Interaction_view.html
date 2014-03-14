@@ -14,8 +14,8 @@
 	<h3>Interaction summary:</h3>
 	<ul>
 		<li><strong>Type: </strong>{{interaction.inter_type.inter_type}}</li>
-		<li><strong>Protein 1: </strong><a href=""></a>{{interaction.chain_1.uniprot.acc_number}} | {{interaction.chain_1.uniprot.name}}</li>
-		<li><strong>Protein 2: </strong>{{interaction.chain_2.uniprot.acc_number}} | {{interaction.chain_2.uniprot.name}}</li>
+		<li><strong>Partner 1: </strong><a href=""></a>{{interaction.chain_1.uniprot.acc_number}} | {{interaction.chain_1.uniprot.name}}</li>
+		<li><strong>Partner 2: </strong>{{interaction.chain_2.uniprot.acc_number}} | {{interaction.chain_2.uniprot.name}}</li>
 		<li><strong>Chain 1 ID: </strong>{{interaction.chain_1.id}}</li>
 		<li><strong>Chain 2 ID: </strong>{{interaction.chain_2.id}}</li>
 		<li><strong>Filename: </strong>{{interaction.filename}}</li>
@@ -73,7 +73,7 @@
 					{% endfor %}
 					};
 					function reset_structure(){
-						Jmol.script(myJmol,'zap; set highResolution ON; set sheetSmoothing 1; load {{BASE_URL}}{% static interaction.filename %}; wireframe off; spacefill off; select protein; cartoons on; color chain;');
+						Jmol.script(myJmol,'zap; set highResolution ON; load {{BASE_URL}}{% static interaction.filename %}; wireframe off; spacefill off; select protein; cartoons on; color chain;');
 					};
 					function show_partner(partner){
 						Jmol.script(myJmol, 'hide hidden and not :'+partner+';');
@@ -85,10 +85,49 @@
 						Jmol.script(myJmol, 'select '+start+'-'+end+':'+partner+'; color '+color+';')
 					};
 
+					function map_this_snv(chain_name,position){
+						
+						Jmol.script(myJmol,'select '+position+':'+chain_name+'; color fuchsia')
+
+
+					};
+					function reset_structure(){
+						Jmol.script(myJmol,'zap; set highResolution ON; load {{BASE_URL}}{% static interaction.filename %}; wireframe off; spacefill off; select protein; cartoons on; color chain;');
+					};
+					function show_partner(partner){
+						Jmol.script(myJmol, 'hide hidden and not :'+partner+';');
+					};
+					function hide_partner(partner){
+						Jmol.script(myJmol, 'hide hidden or :'+partner+';');
+					};
+					function color_range(start,end,color,partner){
+						Jmol.script(myJmol, 'select '+start+'-'+end+':'+partner+'; color '+color+';')
+					};
 					$(document).ready(function(){
 						// Bootstrap button calls
 						$('#ir-btn').click(function(){interface_residues("pink","purple")});
 						$('#snvs-btn').click(function(){map_snvs("orange","red")});
+
+						/* Listeners for map_this_snv here */
+						{% for snv, chain_residues in snvdict1.items %}
+							{% for value in chain_residues %}
+								{% if value.0.chain == interaction.chain_1 %}
+									$('#{{snv.ft_id}}-A-btn').click(function(){map_this_snv("A",{{value.1}})});
+								
+								{% endif %}
+							{% endfor %}
+						{% endfor %}
+
+						{% for snv, chain_residues in snvdict2.items %}
+							{% for value in chain_residues %}
+								{% if value.0.chain == interaction.chain_2 %}
+									$('#{{snv.ft_id}}-B-btn').click(function(){map_this_snv("B",{{value.1}})});
+								
+								{% endif %}
+							{% endfor %}
+						{% endfor %}
+
+
 						$('#reset-btn').click(function(){reset_structure()});
 						$('#showhide1-btn').click(function(){
 							if ($('#showhide1-btn').hasClass('active')){
@@ -117,7 +156,7 @@
 							});
 						{% endfor %}
 						});
-					
+											
 					</script>
 			</td>
 
@@ -130,10 +169,31 @@
 				</div>
 			</td>
 
+			{% if snvdict1 or snvdict2 %}
+
 			<td>
-				<div class="btn-group-vertical">
-					<button type="button" id="snvs-btn" class="btn btn-default">Map Snvs</button>
+				<div class="dropdown">
+					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">SNVs <span class="caret"></span></button>
+					<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+					    <li role="presentation"><a role="menuitem" tabindex="-1" id="snvs-btn" href="#">Map all SNVs</a></li>
+					    <li role="presentation" class="divider"></li>
+					    <li role="presentation" class="dropdown-header">Map partner 1 SNV:</li>
+					    {% for item in snvdict1 %}
+					    	<li role="presentation"><a role="menuitem" id="{{item.ft_id}}-A-btn" tabindex="-1" id="snvs-btn" href="#">{{item.ft_id}}</a></li>
+					    {% empty %}
+					    	<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No SNVs in chain 1-</a></li>
+					    {% endfor %}
+					    <li role="presentation" class="dropdown-header">Map partner 2 SNV:</li>
+					    {% for item in snvdict2 %}
+					    	<li role="presentation"><a role="menuitem" id="{{item.ft_id}}-B-btn" tabindex="-1" id="snvs-btn" href="#">{{item.ft_id}}</a></li>
+					    {% empty %}
+					    	<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No SNVs in chain 2-</a></li>
+					    {% endfor %}
+					</ul>
 				</div>
+			
+			{% endif %}
+				
 			</td>
 
 			
