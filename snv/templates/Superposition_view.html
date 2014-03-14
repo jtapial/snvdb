@@ -6,8 +6,9 @@
 {% block javascript %}
 <script type="text/javascript" src="{{BASE_URL}}{% static 'jsmol/jsmol/JSmol.min.js'%}"></script> 
 {% endblock %}
-{% block title %}Reference Uniprot Accession: {{ uniprot.acc_number }}{% endblock %}
+
 {% block content %}
+<h1>Reference Uniprot Accession: {{ uniprot.acc_number }}</h1>
 <div align="center">
 <script type="text/javascript">
 		var Info = {

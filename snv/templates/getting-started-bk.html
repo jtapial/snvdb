@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% block css%}
+.jumbotron {
+background: -webkit-linear-gradient(#2E82D1, #7CC1EC); /* For Safari */
+background: -o-linear-gradient(#2E82D1, #7CC1EC); /* For Opera 11.1 to 12.0 */
+background: -moz-linear-gradient(#2E82D1, #7CC1EC); /* For Firefox 3.6 to 15 */
+background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last) */	
+}
+
+h1{ position:relative;}
+h1 span{ position:absolute; top:-70px;}
+h3{ position:relative; }
+h3 span{ position:absolute; top:-70px;}
+
+{% endblock %}
+{% block javascript%}
+
+<script type="text/javascript">
+	$(window).resize(function() {
+	  if($(window).width() < 753){
+		$('#navbar').hide();
+	  }else{ 
+		$('#navbar').show();}
+	});
+
+   $(window).scroll(function() {
+	
+		if ($(this).scrollTop()>270 )
+		 {
+		    $('#navbar').css({position:"fixed",top: "80px"});
+		 }
+		else
+		 {
+			$('#navbar').css({position:"absolute",top: "30px"});
+		 }
+	 });
+
+
+
+</script>
+
+{% endblock %}
+
+{% block header %}
+<!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container">
+        <h1 style ="color:#fff">Getting Started</h1>
+        <h3 style = "color:#E3FBFF">How to use our web</h3>
+      </div>
+    </div>
+
+{% endblock %}    
+<!-- Contents -->
+
+
+{% block content %}
+<div class="row row-offcanvas row-offcanvas-right"> 
+	<div class="col-xs-12 col-sm-9"><!-- Left Canvas-->
+
+
+<h1>A quick guide to use our website</h1>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+<p>Info</p>
+
+<!--########################### COMPATIBILITY ############################-->
+<div>
+ <h1 class="page-header"><span id="browser"></span>Browser and Device</h1>
+  <p class="lead">This website is based on <a href = "http://getbootstrap.com" target="_blank">Bootstrap</a> framework which supports several desktop and mobile browsers. However, old browsers might not display our website correctly.</p>
+
+  <h3 id="support-browsers">Supported browsers</h3>
+  <p>Supported browsers and devices are shown below. This table is taken from the official <a href = "http://getbootstrap.com/getting-started/#support" target="_blank">Bootstrap</a> website.</p>
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <td></td>
+          <th>Chrome</th>
+          <th>Firefox</th>
+          <th>Internet Explorer</th>
+          <th>Opera</th>
+          <th>Safari</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Android</th>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-danger"><span class="glyphicon glyphicon-remove"></span> <span class="sr-only">Not Supported</span></td>
+          <td class="text-muted" rowspan="3" style="vertical-align: middle;">N/A</td>
+          <td class="text-danger"><span class="glyphicon glyphicon-remove"></span> <span class="sr-only">Not Supported</span></td>
+          <td class="text-muted">N/A</td>
+        </tr>
+        <tr>
+          <th>iOS</th>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-muted">N/A</td>
+          <td class="text-danger"><span class="glyphicon glyphicon-remove"></span> <span class="sr-only">Not Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+        </tr>
+        <tr>
+          <th>Mac OS X</th>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+        </tr>
+        <tr>
+          <th>Windows</th>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-danger"><span class="glyphicon glyphicon-remove"></span> <span class="sr-only">Not Supported</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Note that Internet Explorer 6 or lower are not supported. For Linux platform, the website should look and behave well enough in Chrome and Firefox.</p>
+
+  <h3 id="support-browsers">Recommendation</h3>
+	<p>Although our website can run on mobile devices, it is recommended that you browse our website using <strong>latest versions of web browsers</strong> shown above from your <strong>desktop PC</strong> with screen resolution <strong>not less than 970 px</strong> for the best display.</p>
+</div>
+
+
+
+	</div><!--/ Left Canvas COL span-->
+	
+<!-- ################## NAVIGATION BAR ##################################-->
+	<div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+		<div id ="navbar" class="span3 bs-docs-sidebar">
+			<ul class="nav nav-list bs-sidenav">
+				<li><strong><span class="glyphicon glyphicon-search"></span> Quick Navigation</strong></li>
+				<li><a href="#basic"><span class="glyphicon glyphicon-chevron-right"></span> Item1</a></li>
+				<li><a href="#map"><span class="glyphicon glyphicon-chevron-right"></span> Item2</a></li>
+				<li><a href="#pfam"><span class="glyphicon glyphicon-chevron-right"></span> Item3</a></li>
+				<li><a href="#chains"><span class="glyphicon glyphicon-chevron-right"></span> Item4</a></li>
+				<li><a href="#interactions"><span class="glyphicon glyphicon-chevron-right"></span> Item5</a></li>
+				<li><a href="#browser"><span class="glyphicon glyphicon-chevron-right"></span> Browser and Device</a></li>
+			</ul>
+		</div><!--/span-->
+	</div><!--/col-->
+
+
+</div><!--/row-->
+
+{% endblock %}
+

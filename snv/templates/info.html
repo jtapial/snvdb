@@ -6,27 +6,77 @@ background: -o-linear-gradient(#2E82D1, #7CC1EC); /* For Opera 11.1 to 12.0 */
 background: -moz-linear-gradient(#2E82D1, #7CC1EC); /* For Firefox 3.6 to 15 */
 background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last) */	
 }
+
 {% endblock %}
+
 {% block header %}
 <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
       <div class="container">
-        <h1 style ="color:#fff">Info</h1>
-        <h3 style = "color:#E3FBFF">....</h3>
+        <h1 style ="color:#fff">What is SNVdb?</h1>
+        <h3 style = "color:#E3FBFF">Find out more about the aim of this site</h3>
       </div>
     </div>
 
-{% endblock %}    
+{% endblock %} 
+   
 <!-- Contents -->
-{% block title %} <p>Info1</p> {% endblock %}
 
 {% block content %}
+<div class="page-header">
+	<h1>What is the added value of SNVdb?</h1>
+</div>
+<div class="content">
+	<p>SNVdb is a novel biological database aiming to bridge the gap between a number of  databases with different types of information.</p>
 
-    <p>Info</p>
-<p>Info</p>
-<p>Info</p>
-<p>Info</p>
-<p>Info</p>
+	<p>This site allows the user to display human single nucleotide variations (SNVs) onto the three-dimensional structure of the proteins they map to, showing whether these variations can be a disrupting factor in the interaction with other proteins (i.e. they map to a residue involved in the interaction interface between the two interacting parners). The inclusion of disease association data about the SNVs allows the user to make informed hypothesis about the causal mechanism of these disorders</p>
+</div>
+
+<div class="page-header">
+	<h1>Where does all this information come from?</h1>
+</div>
+
+<div class="content">
+	<p>The main sources of information on which we rely are:</p>
+
+	<ul>
+		<li>Sequence databases:</li>
+		<ul>
+			<li><a href="http://www.uniprot.org/" target="_blank">Uniprot</a></li>
+			<li><a href="http://www.ncbi.nlm.nih.gov/gene/" target="_blank">NCBI/Gene</a></li>
+			<li><a href="http://www.ncbi.nlm.nih.gov/SNP/" target="_blank">dbSNP</a></li>
+		</ul>
+
+		<li>Protein domains and families databases:</li>
+		<ul>
+			<li><a href="http://pfam.sanger.ac.uk/" target="_blank">Pfam</a></li>
+		</ul>
+
+		<li>Disease databases:</li>
+		<ul>
+			<li><a href="http://omim.org/" target="_blank">OMIM</a></li>
+		</ul>
+
+		<li>Protein-protein interaction databases:</li>
+		<ul>
+			<li><a href="http://3did.irbbarcelona.org/" target="_blank">3did</a></li>
+
+		</ul>
+
+		<li>Protein structure databases:</li>
+		<ul>
+			<li><a href="http://www.rcsb.org/pdb/home/home.do" target="_blank">Protein Data Bank</a></li>
+		</ul>
+	</ul>
+</div>
+
+<div class="page-header">
+	<h1>What is the point of such a website?</h1>
+</div>
+
+<div class="content">
+	<p>By making this information publicly available, especially to researchers in the biomedical sciences field, our goal is to help targeting important proteins, interactions and SNVs underpinning human diseases, in order to facilitate the opening of new research avenues that can bring further understanding of the causes behind them.</p>
+</div>
 
 {% endblock %}
 

@@ -238,7 +238,7 @@ class Uniprot(models.Model):
 			for region in self.pfam_mappings.all():
 				classname = self.acc_number +str(region.id)
 				content_data = 'Name: '+region.hmm.name+', Type: '+region.hmm.type+', Range: '+str(region.alignment_start_residue.position)+' - '+str(region.alignment_end_residue.position)
-				graphic_code += '<rect class ="'+classname+' annosite" width="'+ str((region.alignment_end_residue.position - region.alignment_start_residue.position)*frame/length)+'" height="15" x="'+str((region.alignment_start_residue.position)*frame/length) +'" y="18" rx="6" ry="6" style="fill:'+color_code[region.hmm.type]+';" />'
+				graphic_code += '<a xlink:href = "http://pfam.sanger.ac.uk/family/'+region.hmm.acc+'" target="_blank" ><rect class ="'+classname+' annosite" width="'+ str((region.alignment_end_residue.position - region.alignment_start_residue.position)*frame/length)+'" height="15" x="'+str((region.alignment_start_residue.position)*frame/length) +'" y="18" rx="6" ry="6" style="fill:'+color_code[region.hmm.type]+';" /></a>'
 				java_code+= '$(".'+classname+'").popover({content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
 		else:
 			graphic_code += '<text x="'+str(frame/3)+'" y="30" font-size="20" fill="#A4A4A8">No annotations found.</text>'
@@ -314,25 +314,25 @@ class Uniprot(models.Model):
 			#store marking region to Uniprot's local variable (to be used in SNVs mapping)
 			if _isHomo: #Homo case, append both
 				maxlen = len(cu[0].sequence)
-				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' interaction ID: '+str(interact.id)+'</text>' 
+				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' when interacting with '+cu[1].acc_number+' ['+cu[1].name+']</text>' 
 				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact.id,maxlen,chain_reg[0],True)
 
-				interaction_reg_mark.append({'name':str(interact.id)+'.1','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number+'1','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[0].acc_number+'.1','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number+'1','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 
 				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact.id,maxlen,chain_reg[1],True)
-				interaction_reg_mark.append({'name':str(interact.id)+'.2','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number+'2','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[0].acc_number+'.2','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number+'2','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 				
 				
 			elif _ischain1:
 				maxlen = len(cu[0].sequence)
-				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' interaction ID: '+str(interact.id)+'</text>' 
+				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' when interacting with '+cu[1].acc_number+' ['+cu[1].name+']</text>' 
 				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact.id,maxlen,chain_reg[0],False)
-				interaction_reg_mark.append({'name':str(interact.id),'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[1].acc_number,'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 			else:
 				maxlen = len(cu[1].sequence)
-				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' interaction ID: '+str(interact.id)+'</text>' 
+				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[1].acc_number+' when interacting with '+cu[0].acc_number+' ['+cu[0].name+']</text>' 
 				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact.id,maxlen,chain_reg[1],False)
-				interaction_reg_mark.append({'name':str(interact.id),'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[0].acc_number,'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 
 
 
@@ -342,7 +342,7 @@ class Uniprot(models.Model):
 			graphic_code = ['','','',''] #1st[0] is for chain1, 2nd[1] is for chain2, 3rd[2] is for snv mapping, 4th[3] is for javacode to be combined with snvs
 
 			for i in range(2):
-				header = '<text x="5" y="15" font-weight="bold" fill="black">Partner '+str(i+1)+' : '+cu[i].acc_number+'</text>'
+				header = '<text x="5" y="15" font-weight="bold" fill="black">Partner '+str(i+1)+' : '+cu[i].acc_number+' ['+cu[i].name+'] </text>'
 				svgcode = create_svg_interaction(cu,_ischain1,i,header,12,'',interact.id,maxlen,chain_reg[i],False)
 				graphic_code[i] = svgcode['graphic_code']+'</svg><script>'+svgcode['java_code']+'</script>'
 				
@@ -408,7 +408,7 @@ class Uniprot(models.Model):
 					if color == 'purple':
 						snvtype = 'Multiple variations'
 						snvclass = 'mul'
-					option['graphic_code']+= '<rect class ="snv'+str(curr_pos+1)+' '+snvclass+'" width="'+ str(1*frame/len(seq) +1) +'" height="18" x="'+str((curr_pos+1)*frame/len(seq)+5) +'" y="25" fill="'+color+'" />' 
+					option['graphic_code']+= '<rect class ="snv'+str(curr_pos+1)+' '+snvclass+'" width="'+ str(1*frame/len(seq) +1) +'" height="18" x="'+str((curr_pos+1)*frame/len(seq)) +'" y="25" fill="'+color+'" />' 
 					option['java_code']+= '$(".snv'+str(curr_pos+1)+'").popover({title:"SNV",content:"Position '+str(curr_pos+1)+', type: '+snvtype+'","placement": "top",trigger: "hover",container:"body"});'
 					if color == 'purple':#multiple mutation case
 						html = ''

@@ -9,20 +9,22 @@ h3 span{ position:absolute; top:-70px;}
 {% endblock %}
 
 {% block javascript %}<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">{% endblock %}
-{% block title %}<span id = "basic"></span>{{disease.name}}{% endblock %}
+{% block title %}{% endblock %}
 {% block content %}
+
 <!-- ################## DISEASE BASIC VIEW ##################################-->
 
 <div class="row row-offcanvas row-offcanvas-right"> 
         <div class="col-xs-12 col-sm-9"><!-- Left Canvas-->
-
+<h1><span id = "basic"></span>{{disease.name}}</h1>
 
 <div class = "well">
 	<h4>Disease ID: {{disease.mim}} [<a href = "http://www.omim.org/entry/{{disease.mim}}" target = "_blank">Link</a>]</h4>
 	<h4>Disease Name: {{disease.name}}</h4>
 </div>
 
-<h3><span id = "summary"></span>Related Diseases Summary</h3>
+<!-- ################## DISEASES  ##################################-->
+<div class="page-header"><h3><span id = "summary"></span>Related Diseases Summary</h3></div>
 
 <div class = "well">
 	{% if diseases %}	
@@ -36,14 +38,40 @@ h3 span{ position:absolute; top:-70px;}
 	{% endif %}
 </div>
 
-<h3><span id = "snvs"></span>Related SNVs, Uniprots, and Diseases</h3>
+<!-- ################## All Uniprots ##################################-->
+<div class="page-header"><h3><span id = "uniprots"></span>Related Uniprots and their associated diseases</h3></div>
+	<p>Found {{ uniprots|length }} protein{{ uniprots|pluralize }} that are associated with {{disease.name}}.</p>
+	<table class="table table-condensed table-hover">
+	<thead>		
+		<tr>
+			<th>Uniprot</th>
+			<th>Associated diseases from this Uniprot</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for uniprot in uniprots %}
+		<tr>
+			<td><a href={{BASE_URL}}/uniprot/{{uniprot.0}}>{{uniprot.0}}</a></td>
+			<td>{% for disease_item in uniprot.1 %}<a href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a></br>{% endfor %}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+	</table>	
 
-	<p>Found {{ snv_list|length }} related SNV{{ snv_list|pluralize }}</p>
+
+	
+
+
+<!-- ################## SNVS ##################################-->
+<div class="page-header"><h3><span id = "snvs"></span>Related SNVs, Uniprots, and Diseases</h3></div>
+
+	<p>Found {{ snv_list|length }} SNV{{ snv_list|pluralize }} that are associated with {{disease.name}}.</p>
 	<p>Uniprot Acc Numbers marked with <span class="text-danger">red colour</span> are not available to view in detail</p>
 
 	{% if snv_list %}
 	
 	<table class="table table-condensed table-hover">
+	<thead>
 		<tr>
 			<th>ID</th>
 			<th>Uniprot</th>
@@ -51,6 +79,8 @@ h3 span{ position:absolute; top:-70px;}
 			<th>Mutation</th>
 			<th>Directly associated diseases</th>
 		</tr>
+	</thead>
+	<tbody>
   	{% for item in snv_list %}
 		<tr>
 			<td><a href = {{item.obj.get_absolute_url}} target ='_blank'>{{item.obj.ft_id}}</td>
@@ -60,25 +90,9 @@ h3 span{ position:absolute; top:-70px;}
 			<td>{% for disease_item in item.obj.diseases.all %}<a href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a></br>{% endfor %}</td>			
 		</tr>
 	{% endfor %}
+	</tbody>
 	</table>
-
-<h3><span id = "uniprots"></span>Related Uniprots and their associated diseases</h3>
-
-	<table class="table table-condensed table-hover">
-		<tr>
-			<th>Uniprot</th>
-			<th>Associated diseases from this Uniprot</th>
-		</tr>
-		{% for uniprot in uniprots %}
-		<tr>
-			<td><a href={{BASE_URL}}/uniprot/{{uniprot.0}}>{{uniprot.0}}</a></td>
-			<td>{% for disease_item in uniprot.1 %}<a href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a></br>{% endfor %}</td>
-		</tr>
-		{% endfor %}
-	</table>	
 	{% endif %}
-
-<!-- <td><ul class="list-unstyled">{% for disease_item in item.disease_set %}<li><a href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a></li>{% endfor %}</ul></td> -->
 
 
         </div><!--/span-->
@@ -87,10 +101,12 @@ h3 span{ position:absolute; top:-70px;}
         <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
           <div class="span3 bs-docs-sidebar">
 			<ul class="nav nav-list bs-sidenav affix">
+			  <li><strong><span class="glyphicon glyphicon-search"></span> Quick Navigation</strong></li>
 			  <li><a href="#basic"><span class="glyphicon glyphicon-chevron-right"></span> Basic information</a></li>
-			  <li><a href="#summary"><span class="glyphicon glyphicon-chevron-right"></span> Related diseases Summary</a></li>
-			  <li><a href="#snvs"><span class="glyphicon glyphicon-chevron-right"></span> Related SNVs list</a></li>
-			  <li><a href="#uniprots"><span class="glyphicon glyphicon-chevron-right"></span> Related Uniprot list</a></li>
+			  <li><a href="#summary"><span class="glyphicon glyphicon-chevron-right"></span> Related diseases Summary {% if diseases %}<span class="badge">{{diseases | length}}</span>{% endif %}</a></li>
+			  <li><a href="#uniprots"><span class="glyphicon glyphicon-chevron-right"></span> Related Uniprots {% if uniprots %}<span class="badge">{{uniprots | length}}</span>{% endif %}</a></li>
+			  <li><a href="#snvs"><span class="glyphicon glyphicon-chevron-right"></span> Related SNVs {% if snv_list %}<span class="badge">{{snv_list | length}}</span>{% endif %}</a></li>
+			  
 
 			</ul>
         </div><!--/span-->

@@ -11,7 +11,7 @@
   	<script type="text/javascript" src="//code.jquery.com/jquery-1.11.0.js"></script> <!-- old = 1.11.0 -->
   	<!-- Include all compiled plugins (below), or include individual files as needed -->
   	<script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-
+	<link href="{{STATIC_URL}}footer.css" rel="stylesheet">
 
 	<!-- CSS -->
 	<style  type="text/css">
@@ -19,6 +19,9 @@
 		body {
 		  padding-top: 50px;
 		  padding-bottom: 20px;
+		}
+		.sidebar-offcanvas {
+		  padding-top: 30px;
 		}
 		{% block css%}{% endblock %}
 	</style>
@@ -55,15 +58,19 @@
       </div>
     </div>
 
-	{% block header%}
-	{% endblock %}
+	{% block header%}{% endblock %}
 
 	<div class="container">
-		<h1>{% block title %}{% endblock %}</h1>
+		<!--<h1>{% block title %}{% endblock %}</h1>-->
 
 	{% block content %}{% endblock %}
 	</div><!-- END CONTAINER -->
 
+    <div id="footer">
+      <div class="container">
+        <p class="text-muted text-center">Structural Bioinformatics Group, Centre for Integrative Systems Biology, Imperial College London<br><a href="{% url 'home' %}">Home</a> | <a href='{% url 'info' %}'>Info</a>  | <a href="{% url 'getting-started' %}">Getting Started</a> | <a href="{% url 'about' %}">About Us</a></p>
+      </div>
+    </div>
 
 	{% block extraplugin %}{% endblock %}
 	</body>

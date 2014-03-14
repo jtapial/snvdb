@@ -4,134 +4,154 @@
 <script type="text/javascript" src="{{BASE_URL}}{% static 'jsmol/jsmol/JSmol.min.js'%}"></script> 
 {% endblock %}
 
-{% block title %}Interaction ID: {{interaction.id}} {% endblock %}
+
 {% block content %}
-
-<div class = "well">
-	
-	<h3>Interation Details:</h3>
-		<table>
-			<tr>
-				<td><strong>Type</strong></td>
-				<td><strong>Chain 1</strong></td>
-				<td><strong>Chain 2</strong></td>
-				<td><strong>Filename</strong></td>
-			</tr>
-			<tr>
-				<td>{{interaction.inter_type.inter_type}}</td>
-				<td>{{interaction.chain_1.id}}</td>
-				<td>{{interaction.chain_2.id}}</td>
-				<td>{{interaction.filename}}</td>
-			</tr>
-		</table>
+<div class="page-header">
+	<h1>Interaction ID: {{interaction.id}} </h1>
 </div>
 
-<div align="center">
-	<script type="text/javascript">
-		var Info = {
-  color: "#FFFFFF",  // white background (note this changes legacy default which was black)
-  height: 500,      // pixels (but it may be in percent)
-  width: 500,
-  use: "HTML5",         // "HTML5" or "Java" (case-insensitive)
-  j2sPath: "{{ BASE_URL }}/static/jsmol/jsmol/j2s",           // only used in the HTML5 modality
-  defaultModel: "",
-  script: null,
-  src: null,
-  readyFunction: null,
-  addSelectionOptions: false,
-  debug: false,
-  disableInitialConsole: true
-};	
-
-	Jmol.getApplet("myJmol", Info);
-	reset_structure();
-	function interface_residues(color1,color2){
-	// Mapping interface residues onto structure
-	{% for interface_res in interaction.interface_residues.all %}
-		{% if interface_res.chain_residue.chain == interaction.chain_1 %}
-			Jmol.script(myJmol, 'select {{interface_res.get_position}}:A; spacefill;');
-		{% elif interface_res.chain_residue.chain == interaction.chain_2 %}
-			Jmol.script(myJmol, 'select {{interface_res.get_position}}:B; spacefill;');
-		{% else %}
-		alert("Chain mapping failed");
-		{% endif %}
-	{% endfor %}
-	};
-	function map_snvs(color1,color2){
-	// Mapping snvs on chain_1 onto structure
-	{% for position in chain1_snv_positions %}
-		Jmol.script(myJmol,'select {{position}}:A; color ' + color1 +';');
-	{% empty %}
-		alert("Partner 1 has no Snvs that can be mapped to this structure")
-	{% endfor %}
-	// Mapping snvs on chain_2 onto structure
-	{% for position in chain2_snv_positions %}
-		Jmol.script(myJmol,'select {{position}}:B; color ' + color2 +';');
-	{% empty %}
-		alert("Partner 2 has no Snvs that can be mapped to this structure")
-	{% endfor %}
-	};
-	function reset_structure(){
-		Jmol.script(myJmol,'zap; load {{BASE_URL}}{% static interaction.filename %}; select all; spacefill off; select protein; wireframe 50; select all; color chain;');
-	};
-	function show_partner(partner){
-		Jmol.script(myJmol, 'hide hidden and not :'+partner+';');
-	};
-	function hide_partner(partner){
-		Jmol.script(myJmol, 'hide hidden or :'+partner+';');
-	};
-	function color_range(start,end,color,partner){
-		Jmol.script(myJmol, 'select '+start+'-'+end+':'+partner+'; color '+color+';')
-	};
-
-	$(document).ready(function(){
-		// Bootstrap button calls
-		$('#ir-btn').click(function(){interface_residues("pink","purple")});
-		$('#snvs-btn').click(function(){map_snvs("orange","red")});
-		$('#reset-btn').click(function(){reset_structure()});
-		$('#showhide1-btn').click(function(){
-			if ($('#showhide1-btn').hasClass('active')){
-				show_partner('A');
-				$('#showhide1-btn').text('Hide Partner 1');
-			} else {
-				hide_partner("A");
-				$('#showhide1-btn').text('Show Partner 1');
-			}});
-		$('#showhide2-btn').click(function(){
-			if ($('#showhide2-btn').hasClass('active')){
-				show_partner('B');
-				$('#showhide2-btn').text('Hide Partner 2');
-			} else {
-				hide_partner("B");
-				$('#showhide2-btn').text('Show Partner 2');
-			}});
-		{% for mapping,positions in chain1_pfam_positions.items %}
-		$('#map{{mapping.id}}A').click(function(){
-			color_range({{positions.0}},{{positions.1}},"blue","A");
-			});
-		{% endfor %}
-		{% for mapping,positions in chain2_pfam_positions.items %}
-		$('#map{{mapping.id}}B').click(function(){
-			color_range({{positions.0}},{{positions.1}},"blue","B");
-			});
-		{% endfor %}
-		});
-	
-	</script>
+<div class="content">
+	<h3>Interaction summary:</h3>
+	<ul>
+		<li><strong>Type: </strong>{{interaction.inter_type.inter_type}}</li>
+		<li><strong>Protein 1: </strong><a href=""></a>{{interaction.chain_1.uniprot.acc_number}} | {{interaction.chain_1.uniprot.name}}</li>
+		<li><strong>Protein 2: </strong>{{interaction.chain_2.uniprot.acc_number}} | {{interaction.chain_2.uniprot.name}}</li>
+		<li><strong>Chain 1 ID: </strong>{{interaction.chain_1.id}}</li>
+		<li><strong>Chain 2 ID: </strong>{{interaction.chain_2.id}}</li>
+		<li><strong>Filename: </strong>{{interaction.filename}}</li>
+	</ul>
 </div>
-<div class="btn-group">
-	<button type="button" id="reset-btn" class="btn btn-default">Reset</button>
-	<button type="button" id="ir-btn" class="btn btn-default">Interface Residues</button>
-	<button type="button" id="snvs-btn" class="btn btn-default">Map Snvs</button>
-	<button type="button" id="showhide1-btn" class="btn btn-default" data-toggle="button">Hide Partner 1</button>
-	<button type="button" id="showhide2-btn" class="btn btn-default" data-toggle="button">Hide Partner 2</button>
-	{% for mapping in chain1_pfam_positions.keys %}
-	<button type="button" id='map{{mapping.id}}A' class="btn btn-default">{{mapping.hmm.acc}}({{interaction.chain_1.id}})</button>
-	{% endfor %}
-	{% for mapping in chain2_pfam_positions.keys %}
-	<button type="button" id='map{{mapping.id}}B' class="btn btn-default">{{mapping.hmm.acc}}({{interaction.chain_2.id}})</button>
-	{% endfor %}
-</div>
+
+<div class="content">
+	<h3>Interaction structure:</h3>
+
+	<table class="table table-condensed">
+		<tr>
+			<td>
+					<script type="text/javascript">
+						var Info = {
+				  color: "#FFFFFF",  // white background (note this changes legacy default which was black)
+				  height: 500,      // pixels (but it may be in percent)
+				  width: 500,
+				  use: "HTML5",         // "HTML5" or "Java" (case-insensitive)
+				  j2sPath: "{{ BASE_URL }}/static/jsmol/jsmol/j2s",           // only used in the HTML5 modality
+				  defaultModel: "",
+				  script: null,
+				  src: null,
+				  readyFunction: null,
+				  addSelectionOptions: false,
+				  debug: false,
+				  disableInitialConsole: true
+				};	
+
+					Jmol.getApplet("myJmol", Info);
+					reset_structure();
+					function interface_residues(color1,color2){
+					// Mapping interface residues onto structure
+					{% for interface_res in interaction.interface_residues.all %}
+						{% if interface_res.chain_residue.chain == interaction.chain_1 %}
+							Jmol.script(myJmol, 'select {{interface_res.get_position}}:A; spacefill;');
+						{% elif interface_res.chain_residue.chain == interaction.chain_2 %}
+							Jmol.script(myJmol, 'select {{interface_res.get_position}}:B; spacefill;');
+						{% else %}
+						alert("Chain mapping failed");
+						{% endif %}
+					{% endfor %}
+					};
+					function map_snvs(color1,color2){
+					// Mapping snvs on chain_1 onto structure
+					{% for position in chain1_snv_positions %}
+						Jmol.script(myJmol,'select {{position}}:A; color ' + color1 +';');
+					{% empty %}
+						alert("Partner 1 has no Snvs that can be mapped to this structure")
+					{% endfor %}
+					// Mapping snvs on chain_2 onto structure
+					{% for position in chain2_snv_positions %}
+						Jmol.script(myJmol,'select {{position}}:B; color ' + color2 +';');
+					{% empty %}
+						alert("Partner 2 has no Snvs that can be mapped to this structure")
+					{% endfor %}
+					};
+					function reset_structure(){
+						Jmol.script(myJmol,'zap; set highResolution ON; set sheetSmoothing 1; load {{BASE_URL}}{% static interaction.filename %}; wireframe off; spacefill off; select protein; cartoons on; color chain;');
+					};
+					function show_partner(partner){
+						Jmol.script(myJmol, 'hide hidden and not :'+partner+';');
+					};
+					function hide_partner(partner){
+						Jmol.script(myJmol, 'hide hidden or :'+partner+';');
+					};
+					function color_range(start,end,color,partner){
+						Jmol.script(myJmol, 'select '+start+'-'+end+':'+partner+'; color '+color+';')
+					};
+
+					$(document).ready(function(){
+						// Bootstrap button calls
+						$('#ir-btn').click(function(){interface_residues("pink","purple")});
+						$('#snvs-btn').click(function(){map_snvs("orange","red")});
+						$('#reset-btn').click(function(){reset_structure()});
+						$('#showhide1-btn').click(function(){
+							if ($('#showhide1-btn').hasClass('active')){
+								show_partner('A');
+								$('#showhide1-btn').text('Hide Partner 1');
+							} else {
+								hide_partner("A");
+								$('#showhide1-btn').text('Show Partner 1');
+							}});
+						$('#showhide2-btn').click(function(){
+							if ($('#showhide2-btn').hasClass('active')){
+								show_partner('B');
+								$('#showhide2-btn').text('Hide Partner 2');
+							} else {
+								hide_partner("B");
+								$('#showhide2-btn').text('Show Partner 2');
+							}});
+						{% for mapping,positions in chain1_pfam_positions.items %}
+						$('#map{{mapping.id}}A').click(function(){
+							color_range({{positions.0}},{{positions.1}},"blue","A");
+							});
+						{% endfor %}
+						{% for mapping,positions in chain2_pfam_positions.items %}
+						$('#map{{mapping.id}}B').click(function(){
+							color_range({{positions.0}},{{positions.1}},"blue","B");
+							});
+						{% endfor %}
+						});
+					
+					</script>
+			</td>
+
+			<td>
+				<div class="btn-group-vertical">
+					<button type="button" id="reset-btn" class="btn btn-default">Reset</button>
+					<button type="button" id="ir-btn" class="btn btn-default">Interface Residues</button>
+					<button type="button" id="showhide1-btn" class="btn btn-default" data-toggle="button">Hide Partner 1</button>
+					<button type="button" id="showhide2-btn" class="btn btn-default" data-toggle="button">Hide Partner 2</button>
+				</div>
+			</td>
+
+			<td>
+				<div class="btn-group-vertical">
+					<button type="button" id="snvs-btn" class="btn btn-default">Map Snvs</button>
+				</div>
+			</td>
+
+			
+			<td>
+				<div class="btn-group-vertical">
+					{% for mapping in chain1_pfam_positions.keys %}
+					<button type="button" id='map{{mapping.id}}A' class="btn btn-default">{{mapping.hmm.acc}}({{interaction.chain_1.id}})</button>
+					{% endfor %}
+					{% for mapping in chain2_pfam_positions.keys %}
+					<button type="button" id='map{{mapping.id}}B' class="btn btn-default">{{mapping.hmm.acc}}({{interaction.chain_2.id}})</button>
+					{% endfor %}
+				</div>
+			</td>
+
+		</tr>
+	</table>
+
+
 
 
 {% endblock %}

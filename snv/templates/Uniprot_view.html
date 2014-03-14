@@ -16,8 +16,6 @@ input[type=radio]:checked + label {
         display: none;
 }
 
-.mydiv { background-color:yellow; display:none;}
-
 h1{ position:relative;}
 h1 span{ position:absolute; top:-70px;}
 h3{ position:relative; }
@@ -29,9 +27,7 @@ a.alignment:hover, visited, link, active {
 
 {% endblock %}
 {% load staticfiles %}
-{% block javascript %}<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">
-
-{% endblock %}
+{% block javascript %}<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">{% endblock %}
 
 {% block content %}
 
@@ -39,7 +35,7 @@ a.alignment:hover, visited, link, active {
 	<div class="col-xs-12 col-sm-9"><!-- Left Canvas-->
 
 <!-- ################## Uniprot BASIC VIEW ##################################-->
-		<div><h1><span id = "basic"></span>ID: {{uniprot.acc_number}} {% if uniprot.name %}[{{uniprot.name}}]{% endif %}</h1></div>
+		<h1><span id = "basic"></span>ID: {{uniprot.acc_number}} {% if uniprot.name %}[{{uniprot.name}}]{% endif %}</h1>
 		<div class="row">
 			<div class="col-md-4">
 				{% if uniprot.img_exists %}
@@ -84,9 +80,9 @@ a.alignment:hover, visited, link, active {
 				<p><strong>Summary</strong></p>
 				<p>Uniprot ID: {{uniprot.acc_number}} [<a data-toggle="popover" data-content="External link to Uniprot"  href="http://www.uniprot.org/uniprot/{{uniprot.acc_number}}" target='_blank' >link</a>]</p>
 				{% if uniprot.gene_code %}<p>Gene Code ID: {{uniprot.gene_code}}</p> 	{% endif %}
-				{% if uniprot.genbank_id %}<p>GenBank ID: {{uniprot.genbank_id}} [<a data-toggle="popover" data-content="External link to GenBank"  href="http://www.ncbi.nlm.nih.gov/protein/?term={{uniprot.genbank_id}}" target='_blank' >link</a>]</p>	{% endif %}				
+				{% if uniprot.genbank_id %}<p>GenBank ID: {{uniprot.genbank_id}} [<a data-toggle="popover" data-content="External link to GenBank"  href="http://www.ncbi.nlm.nih.gov/gene/?term={{uniprot.genbank_id}}" target='_blank' >link</a>]</p>	{% endif %}				
 				<p>{{uniprot.sequence | length}} amino acids</p>
-				<p>{{uniprot.pfam_mappings.all | length}} annotations</p>
+				<p>{{uniprot.pfam_mappings.all | length}} Pfam domains</p>
 				<p>{{uniprot.chains.all | length}} chains </p>
 				<p>{{interactions | length}} interactions </p>
 
@@ -107,7 +103,7 @@ a.alignment:hover, visited, link, active {
 			<input type='checkbox' id="chk_map" style="vertical-align:middle;" checked> Overall graphics
 			</label>
 			<label class="checkbox-inline">
-			  <input type='checkbox' id="chk_pfam" style="vertical-align:middle;" checked> Annotations
+			  <input type='checkbox' id="chk_pfam" style="vertical-align:middle;" checked> Pfam domains
 			</label>
 			<label class="checkbox-inline">
 			  <input type='checkbox' id="chk_chain" style="vertical-align:middle;" checked> Chains
@@ -186,7 +182,7 @@ a.alignment:hover, visited, link, active {
 		
 
 
-<!-- #######################################    Annotations   ############################################################################-->
+<!-- #######################################    Pfam domains   ############################################################################-->
 		<script>
 			$("#chk_pfam").change(function() {
 				if($(this).is(":checked"))
@@ -197,9 +193,10 @@ a.alignment:hover, visited, link, active {
 
 		</script>
 		<div id = "pfambox">
-			<div class="page-header"><h3><span id = "pfam"></span>Annotations</h3></div>
-			<p>Found {{uniprot.pfam_mappings.all | length}} PFAM Mapping entries</p>
+			<div class="page-header"><h3><span id = "pfam"></span>Pfam domains</h3></div>
+
 			{% if uniprot.pfam_mappings.all %}
+			<p>Found {{uniprot.pfam_mappings.all | length}} Pfam mapping entries.</p>
 			<p>{{annotation.graphic_code|safe}}</p>
 			<script>
 				{{annotation.java_code|safe}}
@@ -235,6 +232,8 @@ a.alignment:hover, visited, link, active {
 				</tbody>
 			</table>
 			</div>
+			{% else %}
+				<p>No Pfam domains found in our database.</p>
 			{% endif %}
 		</div>
 
@@ -251,8 +250,9 @@ a.alignment:hover, visited, link, active {
 
 		<div id = "chainbox">
 			<div class="page-header"><h3><span id = "chains"></span>Chains</h3></div>
-			<p>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}</p>
+			
 			{% if uniprot.chains.all %}
+				<p>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}.</p>
 				<div class="table-responsive">
 				<table class="table table-condensed">
 					<tr>
@@ -303,7 +303,7 @@ a.alignment:hover, visited, link, active {
 				</table>
 				</div>
 			{% else %}
-				<p>The protein has no registered chain entries</p>
+				<p>The protein has no registered chain entries.</p>
 			{% endif %}
 		</div>
 
@@ -321,7 +321,7 @@ a.alignment:hover, visited, link, active {
 		<div id = "interbox">
 			<div class="page-header"><h3><span id = "interactions"></span>Interactions</h3></div>	
 			{% if interactions %}
-				<p>Found {{interactions | length}} interaction entries for the protein {{uniprot.acc_number}}</p>
+				<p>Found {{interactions | length}} interaction entries for the protein {{uniprot.acc_number}}.</p>
 				<!-- POP UP JAVA SCRIPT--> 
 				<script>
 					function myFunction(url)
@@ -363,7 +363,7 @@ a.alignment:hover, visited, link, active {
 				</table>
 				</div>
 			{% else %}
-				<p>The protein has no associated interaction entries</p>
+				<p>The protein has no associated interaction entries.</p>
 			{% endif %}
 		</div>
 
@@ -384,7 +384,7 @@ a.alignment:hover, visited, link, active {
 			<div class="page-header"><h3><span id = "snvs"></span>SNVs</h3></div>
 
 			{% if snv_list %}
-			<p>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}</p>
+			<p>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}.</p>
 			<p>SNVs statistics</p>
 
 			<div class="progress">
@@ -454,7 +454,7 @@ a.alignment:hover, visited, link, active {
 			</table>
 			</div>
 			{% else %}
-			<p>The protein has no associated SNV entries</p>
+			<p>The protein has no associated SNV entries.</p>
 			{% endif %}
 		</div><!-- /.snvbox -->
 	</div><!--/ Left Canvas COL span-->
@@ -466,7 +466,7 @@ a.alignment:hover, visited, link, active {
 				<li><strong><span class="glyphicon glyphicon-search"></span> Quick Navigation</strong></li>
 				<li><a href="#basic"><span class="glyphicon glyphicon-chevron-right"></span> Basic information</a></li>
 				<li><a href="#map"><span class="glyphicon glyphicon-chevron-right"></span> Overall graphics</a></li>
-				<li><a href="#pfam"><span class="glyphicon glyphicon-chevron-right"></span> Annotations {% if uniprot.pfam_mappings.all %}<span class="badge">{{uniprot.pfam_mappings.all | length}}</span>{% endif %}</a></li>
+				<li><a href="#pfam"><span class="glyphicon glyphicon-chevron-right"></span> Pfam domains {% if uniprot.pfam_mappings.all %}<span class="badge">{{uniprot.pfam_mappings.all | length}}</span>{% endif %}</a></li>
 				<li><a href="#chains"><span class="glyphicon glyphicon-chevron-right"></span> Chains {% if uniprot.chains.all %}<span class="badge">{{uniprot.chains.all | length}}</span>{% endif %}</a></li>
 				<li><a href="#interactions"><span class="glyphicon glyphicon-chevron-right"></span> Interactions {% if interactions %}<span class="badge">{{interactions | length}}</span>{% endif %}</a></li>
 				<li><a href="#snvs"><span class="glyphicon glyphicon-chevron-right"></span> Related SNVs {% if snv_list %}<span class="badge">{{snv_list|length}}</span>{% endif %}</a></li>

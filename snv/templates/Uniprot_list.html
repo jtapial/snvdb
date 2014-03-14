@@ -12,9 +12,10 @@
 
 {% endblock %}    
 <!-- Contents -->
-{% block title %} Uniprot {% endblock %}
+
 
 {% block content %}
+<h1>Uniprot</h1>
 <p>{{ object_list.count }} items found</p>
 <ul class = "list-group">
   {% for item in object_list %}

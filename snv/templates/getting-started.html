@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% block pagetitle %}Getting Started{% endblock %}
 {% block css%}
 .jumbotron {
 background: -webkit-linear-gradient(#2E82D1, #7CC1EC); /* For Safari */
@@ -6,27 +7,307 @@ background: -o-linear-gradient(#2E82D1, #7CC1EC); /* For Opera 11.1 to 12.0 */
 background: -moz-linear-gradient(#2E82D1, #7CC1EC); /* For Firefox 3.6 to 15 */
 background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last) */	
 }
+
+h1{ position:relative;}
+h1 span{ position:absolute; top:-70px;}
+
+h2{ position:relative;}
+h2 span{ position:absolute; top:-70px;}
+
+h3{ position:relative; }
+h3 span{ position:absolute; top:-70px;}
+
 {% endblock %}
+
+{% block javascript%}
+
+<script type="text/javascript">
+	$(window).resize(function() {
+	  if($(window).width() < 753){
+		$('#navbar').hide();
+	  }else{ 
+		$('#navbar').show();}
+	});
+
+   $(window).scroll(function() {
+	
+		if ($(this).scrollTop()>270 )
+		 {
+		    $('#navbar').css({position:"fixed",top: "80px"});
+			
+		 }
+		else
+		 {
+			$('#navbar').css({position:"absolute",top: "30px"});
+		 }
+	 });
+
+</script>
+
+{% endblock %}
+
 {% block header %}
 <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
       <div class="container">
         <h1 style ="color:#fff">Getting Started</h1>
-        <h3 style = "color:#E3FBFF">How to use our web</h3>
+        <h3 style = "color:#E3FBFF">A quick guide to use our website</h3>
       </div>
     </div>
 
 {% endblock %}    
 <!-- Contents -->
-{% block title %} <p>A quick guide to use our website</p> {% endblock %}
+
+
+
 
 {% block content %}
+<div class="row row-offcanvas row-offcanvas-right"> 
+	<div class="col-xs-12 col-sm-9"><!-- Left Canvas-->
 
-    <p>Info</p>
-<p>Info</p>
-<p>Info</p>
-<p>Info</p>
-<p>Info</p>
+<!--########################### Overview ############################-->
+	<h1 class="page-header"><span id="basic"></span>3 Steps to View</h1>
+ <p class="lead">Viewing information can be very easy within only 3 simple steps!</p>
+		<h3>Search</h3>
+		<p>The first step is to retrieve what you are actually interested in from all the information stored in the database. Depending on your needs, SNVdb offers three search modes: by Uniprot accession number, by SNV FTID or by disease name.</p>
+
+		<p>Just select your preferred search mode from the drop-down menu in the home page, and enter your query in the search bar below.</p>
+
+
+		<h3>Select</h3>
+
+
+		<p>If your search returns more than one entry from the database, you will be taken to the Search Results page. Simply click on your favourite entry from the list.</p>
+
+		<p>In case you mistyped something, you will be able to see the search term that you used and type the right word in.</p>
+
+		<h3>Visualize</h3>
+
+		<p>Finally, you can see your entry here. Depending on whether it is a protein, a SNV, a disease, an interaction or an interface, the page will look slightly different:</p>
+
+			<div class="panel panel-default">
+			  <div class="panel-body">
+				<img src="{{STATIC_URL}}search.jpeg" class="img-responsive" alt="image"><img src="{{STATIC_URL}}select.jpeg" class="img-responsive" alt="image"><img src="{{STATIC_URL}}view.jpeg" class="img-responsive" alt="image">
+			  </div>
+			</div>
+
+<!--########################### Uniprot ############################-->
+
+		<h1 class="page-header"><span id="uniprot"></span>Understanding Uniprot entries</h1>
+
+			<p>An Uniprot entry describes a protein in the database. It is defined by the ID number by which you can find the protein in Uniprot.</p>
+		
+
+
+			<p>These entries are divided in five sections:</p>
+			<ul>
+				<li><a href="#uniprot-basic">Basic information</a></li>
+				<li><a href="#uniprot-overall">Overall graphics</a></li>
+				<li><a href="#uniprot-annotations">Annotations</a></li>
+				<li><a href="#uniprot-interactions">Interactions</a></li>
+				<li><a href="#uniprot-snvs">SNVs</a></li>
+			</ul>
+
+			<h3><span id="uniprot-basic"></span>Basic information</h3>
+
+			<p>Here you can find some useful data about the protein and the gene encoding for it (including links to NCBI/Gene and Uniprot) as well as the link to the raw sequence (with an option to export it as a FASTA file).</p>
+			<p>If the protein has any associated interactions, you can also find an image of the 3D structure of the protein.</p>
+			<p>Also, you can toggle each of the other sections on and off by clicking on the tick boxes in the "Display" box.</p>
+
+			<h3><span id="uniprot-overall"></span>Overall graphics</h3>
+
+			<p>Whilst the SNVs map to defined sequence positions for a given protein, the interface residues for each of its interacting partners vary.</p>
+			<p>In this section, you can see both things at the same time on a graph. The "Default" tab shows only the SNVs.</p>
+			<p>The top, blue rectangle represents the protein sequence, with the SNVs plotted in red, green, blue or purple (depending on their association with disease).</p>
+			<p>The grey rectangle shows the Pfam domains detected in the protein sequence, highlighting them in red and green, alternatively. Hover over each domain to see what kind of domain it is, along with some data associated with it.</p>
+			<p>To add the information about interface residues in the interaction with a particular partner, just go to the top of this section and click on the corresponding tab. The interface residues of the protein for a that partner will be highlighted in yellow.</p>
+			<p>Finally, hover over a highlighted residue to see some more information about it. If you click on a residue with a SNV, you will go to the SNV entry describing it.</p>
+			<p>All this information is also plotted residue by residue in the detailed alignment below.</p>
+			
+			<h3><span id="uniprot-annotations"></span>Annotations</h3>
+
+			<p>This section describes the Pfam domains that have been detected for the protein. The domain positions are plotted with respect to the protein sequence, and you can also see a list with the positions where the sequence matches the Pfam HMM for that domain, along with the statistical parameters that validate the domain.</p>
+			<p>If you want to find out more about that domain, and other proteins sharing the same domain, you can click on the external link to Pfam, where you will find more information about domains.</p>
+
+			<div class="panel panel-default">
+			  <div class="panel-body">
+				<img src="{{STATIC_URL}}anno.jpeg" class="img-responsive" alt="image">
+			  </div>
+			</div>
+
+
+			<h3><span id="uniprot-interactions"></span>Interactions</h3>
+
+			<p>Here we include a list of binary interactions for the protein of interest. For each one, you can see its ID on our database, the two proteins taking part in the interaction, and whether the structure of the complex has been experimentally determined or computationally modelled.</p>
+			<p>Under this information, the site displays a representation of the two proteins, with the interface residues marked in yellow.</p>
+			<p>There are also buttons that will lead you to the interaction entry (where you can see the 3D structure of the complex via JsMOL), the interface entry (where you can see the atom-atom interactions that hold the complex together) and the PDB file describing it.</p>
+			<p>If you prefer to have the PDB file to visualize it your preferred viewer (such as PyMOL), you can also download it from here.</p>
+			<div class="panel panel-default">
+			  <div class="panel-body">
+				<img src="{{STATIC_URL}}inter.jpeg" class="img-responsive" alt="image">
+			  </div>
+			</div>
+
+			<h3><span id="uniprot-snvs"></span>SNVs</h3>
+
+			<p>Here you can find a list of SNVs that have an effect on the protein sequence. For each one, we show the position, the change on the sequence, the FT id and the rs id (so that you can find it in Uniprot and dbSNP).</p>
+			<p>If the SNV is associated with a disease, you can also see which disease it is, and the OMIM code describing it.</p>
+			<p>To find out more about each SNV, just click on the FT id link and we will take you to the SNV entry describing it on our database. We also provide some links to external databases (OMIM and dbSNP). If so many links seem a bit confusing, just hover on each link to see if it links to one of the entries in SNVdb, or it leads to an external database.</p>
+
+			<div class="panel panel-default">
+			  <div class="panel-body">
+				<img src="{{STATIC_URL}}snvs.jpeg" class="img-responsive" alt="image">
+			  </div>
+			</div>
+
+<!--########################### SNVS ############################-->
+
+		<h1 class="page-header"><span id="snv"></span>Understanding SNV entries</h1>
+
+			<p>A SNV entry describes a single nucleotide variation affecting a particular protein. These entries are divided in four sections:</p>
+
+			<ul>
+				<li><a href="#snv-basic">Basic information</a></li>
+				<li><a href="#snv-disorders">Disorders associated to the SNV</a></li>
+				<li><a href="#snv-mapping">Mapping mutated SNV to the sequence</a></li>
+				<li><a href="#snv-others">Other SNVs sharing the same position</a></li>
+			</ul>
+
+			<h3><span id="snv-basic"></span>Basic information</h3>
+
+			<p>Here we provide some data about the SNV, such as the protein and position that it maps to, the change in sequence that it causes, and whether it is associated to any disease. If the SNV has a dbSNP id (rs ID), you can also see it here, and find a link to the dbSNP entry.</p>
+
+			<h3><span id="snv-disorders"></span>Disorders associated to the SNV</h3>
+
+			<p>This is a list of the diseases directly associated to this variation. You can find the link to the SNVdb disease entry and the OMIM code and link for each disease.</p>
+		
+			<h3><span id="snv-mapping"></span>Mapping mutated SNV to the sequence</h3>
+
+			<p>Here you can see the SNV in the protein sequence context. The residue corresponding to the SNV is highlighted.</p>
+
+			<h3><span id="snv-others"></span>Other SNVs sharing the same position</h3>
+
+			<p>If there are more SNVs mapping to this position in the protein, you can find a list here, along with some data and the link to the SNVdb entry for each SNV.</p>
+
+<!--########################### Disease ############################-->
+
+		<h1 class="page-header"><span id="disease"></span>Understanding disease entries</h1>
+
+			<p>A disease entry displays information about a particular disorder. These entries are divided in four sections:</p>
+
+			<ul>
+				<li><a href="#disease-basic">Basic information</a></li>
+				<li><a href="#disease-related-diseases">Related diseases summary</a></li>
+				<li><a href="#disease-related-snvs">Related SNVs list</a></li>
+				<li><a href="#disease-related-uniprots">Related Uniprots</a></li>
+			</ul>
+
+			<h3><span id="disease-basic"></span>Basic information</h3>
+
+			<p>Here we display the disease ID (which is the same as the OMIM ID) and the name of the disease.</p>
+
+			<h3><span id="disease-related-diseases"></span>Related diseases summary</h3>
+
+			<p>Here you can find diseases sharing some SNVs with the disease of interest. Just click on the links and see the disease entries for them.</p>
+
+			<h3><span id="disease-related-snvs"></span>Related Related SNVs list</h3>
+
+			<p>This is a list of the SNVs associated with this disease. Click on the link on the "ID" column and see the SNV entries for them.</p>
+
+			<h3><span id="disease-related-uniprots"></span>Related proteins and their associated diseases</h3>
+
+			<p>Some proteins are associated with more than one disease. If any of the proteins associated with the disease of interest are associated with other disorders, you will see them in this list.</p>
+
+		<h1 class="page-header"><span id="interface"></span>Understanding interface entries</h1>
+			<p><i>IN DEVELOPMENT</i></p>
+
+		<h1 class="page-header"><span id="interaction"></span>Understanding interaction entries</h1>
+			<p><i>IN DEVELOPMENT</i></p>
+
+<!--########################### COMPATIBILITY ############################-->
+<div>
+ <h1 class="page-header"><span id="browser"></span>Browser and Device</h1>
+  <p class="lead">This website is based on <a href = "http://getbootstrap.com" target="_blank">Bootstrap</a> framework which supports several desktop and mobile browsers. However, old browsers might not display our website correctly.</p>
+<div class="alert alert-info">
+  <h3>Recommendation</h3>
+	<p>Although our website can run on mobile devices, it is reccommended that you browse our website using <strong>latest versions of web browsers</strong> shown above from your <strong>desktop PC</strong> with screen resolution <strong>not less than 970 px</strong> for the best display.</p>
+</div>
+  
+  <h3 id="support-browsers">Supported browsers</h3>
+  <p>Supported browsers and devices are shown below. This table is taken from the official <a href = "http://getbootstrap.com/getting-started/#support" target="_blank">Bootstrap</a> website.</p>
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <td></td>
+          <th>Chrome</th>
+          <th>Firefox</th>
+          <th>Internet Explorer</th>
+          <th>Opera</th>
+          <th>Safari</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Android</th>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-danger"><span class="glyphicon glyphicon-remove"></span> <span class="sr-only">Not Supported</span></td>
+          <td class="text-muted" rowspan="3" style="vertical-align: middle;">N/A</td>
+          <td class="text-danger"><span class="glyphicon glyphicon-remove"></span> <span class="sr-only">Not Supported</span></td>
+          <td class="text-muted">N/A</td>
+        </tr>
+        <tr>
+          <th>iOS</th>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-muted">N/A</td>
+          <td class="text-danger"><span class="glyphicon glyphicon-remove"></span> <span class="sr-only">Not Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+        </tr>
+        <tr>
+          <th>Mac OS X</th>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+        </tr>
+        <tr>
+          <th>Windows</th>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-success"><span class="glyphicon glyphicon-ok"></span> <span class="sr-only">Supported</span></td>
+          <td class="text-danger"><span class="glyphicon glyphicon-remove"></span> <span class="sr-only">Not Supported</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Note that Internet Explorer 6 or lower are not supported. For Linux platform, the website should look and behave well enough in Chrome and Firefox.</p>
+
+
+</div>
+
+
+
+	</div><!--/ Left Canvas COL span-->	
+<!-- ################## NAVIGATION BAR ##################################-->
+	<div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+		<div id ="navbar" class="span3 bs-docs-sidebar">
+			<ul class="nav nav-list bs-sidenav">
+				<li><strong><span class="glyphicon glyphicon-search"></span> Quick Navigation</strong></li>
+				<li><a href="#basic"><span class="glyphicon glyphicon-chevron-right"></span> 3 Steps to View</a></li>
+				<li><a href="#uniprot"><span class="glyphicon glyphicon-chevron-right"></span> Uniprot Entries</a></li>
+				<li><a href="#snv"><span class="glyphicon glyphicon-chevron-right"></span> SNV Entries</a></li>
+				<li><a href="#disease"><span class="glyphicon glyphicon-chevron-right"></span> Disease Entries</a></li>
+				<li><a href="#interface"><span class="glyphicon glyphicon-chevron-right"></span> Interface Entries</a></li>
+				<li><a href="#interact"><span class="glyphicon glyphicon-chevron-right"></span> Interaction Entries</a></li>
+				<li><a href="#browser"><span class="glyphicon glyphicon-chevron-right"></span> Browser and Device</a></li>
+			</ul>
+		</div><!--/span-->
+	</div><!--/col-->
+
+
+</div><!--/row-->
+
 
 {% endblock %}
 
