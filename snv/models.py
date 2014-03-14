@@ -482,6 +482,12 @@ class Chain(models.Model):
         # Returns list of chains
         return(partners)
 
+    def get_interface_residues(self,interaction):
+    	interface_residues = []
+    	for cr in self.residues.all():
+    		if cr.interface_residues.filter(interaction=interaction).exists():
+    			interface_residues.append(cr.interface_residues.filter(interaction=interaction).all()[0])
+    	return interface_residues
 
 
 class InteractionType(models.Model):
@@ -550,7 +556,7 @@ class ChainResidue(models.Model):
     	transform = PositionTransform.objects.get(chain=self.chain,interaction=interaction)
 
     	if transform.value != 0:
-    		position = unicode(int(self.position) + transform.value)
+    		position = unicode(int(self.position) - transform.value)
     	else:
     		position = self.position
 
@@ -579,7 +585,7 @@ class Accessibility(models.Model):
     	transform = PositionTransform.objects.get(chain=cr.chain,interaction=self.interaction)
 
     	if transform.value != 0:
-    		position = unicode(int(cr.position) + transform.value)
+    		position = unicode(int(cr.position) - transform.value)
     	else:
     		position = cr.position
 
@@ -598,11 +604,33 @@ class InterfaceResidue(models.Model):
     	transform = PositionTransform.objects.get(chain=cr.chain,interaction=self.interaction)
 
     	if transform.value != 0:
-    		position = unicode(int(cr.position) + transform.value)
+    		position = unicode(int(cr.position) - transform.value)
     	else:
     		position = cr.position
 
     	return position
+
+
+    def get_interacting_residues(self):
+    	# return dictionary of interacting residue against bond type
+    	interacting_residues = {}
+
+    	# bond rank dictionary
+    	bond_rank = {'DSB':1,'HYB':2,'POL':3,'PHO':4,'UNK':5}
+
+    	for atom in self.atoms.all():
+    		for interaction in atom.interactions.all():
+    			partner_residue = interaction.partner_atom.interface_residue
+    			try:
+    				previous_bond_type = interacting_residues[partner_residue]
+    				# If old bond type was greater value than new replace with new
+    				if bond_rank[previous_bond_type] > bond_rank[interaction.type]:
+    					interacting_residues[partner_residue] = interaction.type
+    			except KeyError:
+    				interacting_residues[partner_residue] = interaction.type
+    	return interacting_residues
+
+
 
 class SnvType(models.Model):
     type = models.CharField(max_length=20L, primary_key=True)
