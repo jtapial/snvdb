@@ -42,7 +42,7 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interactid,m
 	if special:
 		color_code = [['#5bc0de','#499AB2'],['#5bc0de','#499AB2']]
 	classname_main = str(interactid)+'_'+cu[i].acc_number+classsuffix
-	graphic_code = '<svg viewBox="0 0 850 '+h_frame+'" perserveAspectRatio="xMinYMid"><style> .intersite:hover{fill:#FFCC00;}</style>'+ header
+	graphic_code = '<svg viewBox="0 0 850 '+h_frame+'" perserveAspectRatio="xMinYMid" width = "100%" height = "9.5%"><style> .intersite:hover{fill:#FFCC00;}</style>'+ header
 	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'" width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+';" /></a>'              
 	java_code = '$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'     
 	for region in chain_reg:
@@ -117,7 +117,7 @@ class Uniprot(models.Model):
 		outset = []
 		for chain in self.chains.all():
 			length = len(self.sequence)
-			graphic_code = '<svg viewBox="0 0 850 50" perserveAspectRatio="xMinYMid">'
+			graphic_code = '<svg viewBox="0 0 850 50" perserveAspectRatio="xMinYMid" width = "100%" height = "9.5%">'
 			graphic_code += '<rect width="800" height="12" x="0" y="10" rx="5" ry="5" style="fill:#428bca;stroke-width:1;stroke:#285379" />'                   
 			graphic_code +=  '<text x="30" y="20" font-weight="bold" fill="white">'+self.acc_number+'</text> <text x="0" y="20" fill="white">|0</text><text x="200" y="20" fill="white">|'+str(length/4)+'</text><text x="400" y="20" fill="white">|'+str(length/2)+'</text><text x="600" y="20" fill="white">|'+str(length*3/4)+'</text><text x="800" y="20" fill="black">|'+str(length)+'</text>'
 			graphic_code += '<rect width="'+ str(int(float(chain.coverage)*800/100)) +'" height="12" x="'+str(float(chain.seq_start)/float(length)*800)+'" y="25" rx="5" ry="5" style="fill:#5bc0de;stroke-width:1;stroke:#499AB2" />'   			
@@ -222,7 +222,7 @@ class Uniprot(models.Model):
 		length = len(self.sequence)
 		chosen_range = min(range_val, key=lambda x:abs(x-length/6))
 		java_code = ''
-		graphic_code = '<svg viewBox="0 0 850 '+h_frame+'" perserveAspectRatio="xMinYMid"><style> .annosite:hover{stroke-width:2;stroke:#FFFF00;}</style>'
+		graphic_code = '<svg viewBox="0 0 850 '+h_frame+'" perserveAspectRatio="xMinYMid" width = "100%" height = "9.5%"><style> .annosite:hover{stroke-width:2;stroke:#FFFF00;}</style>'
 		graphic_code += '<rect width="'+str(frame)+'" height="'+height+'" x="5" y="0" style="fill:#E4E4E9;stroke-width:1;stroke:#CDCDD2;" />'
 		pos = 0
 		while pos <= length:
