@@ -77,7 +77,11 @@ class InteractionView(DetailView):
 
 		interaction = super(InteractionView, self).get_context_data(**kwargs)
 		# Get snvs
-		snvs = self.object.get_snvs()
+		snvs = self.object.get_snv_chain_residues()
+		snvdict1 = snvs[2]
+		snvdict2 = snvs[3]
+		interaction["snvdict1"] = snvdict1
+		interaction["snvdict2"] = snvdict2
 		# Get converted positions for snvs and add to list
 		chain1_snv_positions = []
 		for cr in snvs[0]:
