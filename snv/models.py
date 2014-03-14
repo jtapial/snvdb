@@ -504,7 +504,7 @@ class Interaction(models.Model):
     class Meta:
         db_table = 'interaction'
 
-    def get_snvs(self):
+    def get_snv_chain_residues(self):
         cr_withsnv_partner1 = []
         for chain_residue in self.chain_1.residues.all():
             for ur in chain_residue.uniprot_residue.all():
