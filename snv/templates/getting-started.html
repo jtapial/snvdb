@@ -8,6 +8,13 @@ background: -moz-linear-gradient(#2E82D1, #7CC1EC); /* For Firefox 3.6 to 15 */
 background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last) */	
 }
 
+.e{
+	background-color:#FFFFFF;
+}
+.e:hover{
+   //background-color:#99CCFF;
+}
+
 h1{ position:relative;}
 h1 span{ position:absolute; top:-70px;}
 
@@ -65,6 +72,36 @@ h3 span{ position:absolute; top:-70px;}
 <div class="row row-offcanvas row-offcanvas-right"> 
 	<div class="col-xs-12 col-sm-9"><!-- Left Canvas-->
 
+
+<!--########################### Image Modal ############################-->
+				<script>
+				$(document).ready(function(){
+					$("img").click(function(){
+						var Url = $(this).data('ref');
+						$("#imgarea").html("<img src='" + Url + "' class='img-responsive' >" );
+						$("#myModalLabel").html($(this).data('head'));
+					});
+				});
+				</script>
+				<!-- Modal -->
+				<div class="modal fade" id="myModalimg" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				  <div class="modal-dialog modal-lg">
+					<div class="modal-content">
+					  <div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>      
+						<h4 class="modal-title" id="myModalLabel"></h4>
+					  </div>
+					  <div class="modal-body">
+						<div id="imgarea" style="text-align: center;"></div>
+					  </div>
+					  <div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					  </div>
+					</div>
+				  </div>
+				</div><!-- END Modal -->
+
+
 <!--########################### Overview ############################-->
 	<h1 class="page-header"><span id="basic"></span>3 Steps to View</h1>
  <p class="lead">Viewing information can be very easy within only 3 simple steps!</p>
@@ -81,15 +118,31 @@ h3 span{ position:absolute; top:-70px;}
 
 		<p>In case you mistyped something, you will be able to see the search term that you used and type the right word in.</p>
 
-		<h3>Visualize</h3>
+		<h3>Visualise</h3>
 
 		<p>Finally, you can see your entry here. Depending on whether it is a protein, a SNV, a disease, an interaction or an interface, the page will look slightly different:</p>
 
 			<div class="panel panel-default">
 			  <div class="panel-body">
-				<img src="{{STATIC_URL}}search.jpeg" class="img-responsive" alt="image"><img src="{{STATIC_URL}}select.jpeg" class="img-responsive" alt="image"><img src="{{STATIC_URL}}view.jpeg" class="img-responsive" alt="image">
+				
+				  <!-- columns -->
+				  <div class="row">
+					<div class="col-md-4 e">
+					  <img src="{{STATIC_URL}}search.jpeg"  class="img-thumbnail" data-toggle="modal" data-target="#myModalimg" data-head="Search" data-ref= "{{STATIC_URL}}search-l.jpg" alt="image">
+					  <p class="text-center">Search</p>
+					</div>
+					<div class="col-md-4 e">
+					  <img src="{{STATIC_URL}}select.jpeg"  class="img-thumbnail" data-toggle="modal" data-target="#myModalimg" data-head="Select" data-ref= "{{STATIC_URL}}select-l.jpg" alt="image">
+					  <p class="text-center">Select</p>
+				   </div>
+					<div class="col-md-4 e">
+					  <img src="{{STATIC_URL}}view.jpeg"  class="img-thumbnail"  data-toggle="modal" data-target="#myModalimg" data-head="Visualise" data-ref= "{{STATIC_URL}}view-l.jpg"  alt="image">
+					  <p class="text-center">Visualise</p>
+					</div>
+				  </div>
 			  </div>
 			</div>
+
 
 <!--########################### Uniprot ############################-->
 
@@ -112,7 +165,19 @@ h3 span{ position:absolute; top:-70px;}
 
 			<p>Here you can find some useful data about the protein and the gene encoding for it (including links to NCBI/Gene and Uniprot) as well as the link to the raw sequence (with an option to export it as a FASTA file).</p>
 			<p>If the protein has any associated interactions, you can also find an image of the 3D structure of the protein.</p>
+			<div class="panel panel-default">
+			  <div class="panel-body">
+				<img src="{{STATIC_URL}}basic2.jpg" class="img-responsive" alt="image">
+			  </div>
+			</div>	
+
 			<p>Also, you can toggle each of the other sections on and off by clicking on the tick boxes in the "Display" box.</p>
+			<div class="panel panel-default">
+			  <div class="panel-body">
+				<img src="{{STATIC_URL}}tickbox.jpg" class="img-responsive" alt="image">
+			  </div>
+			</div>
+
 
 			<h3><span id="uniprot-overall"></span>Overall graphics</h3>
 
@@ -123,15 +188,20 @@ h3 span{ position:absolute; top:-70px;}
 			<p>To add the information about interface residues in the interaction with a particular partner, just go to the top of this section and click on the corresponding tab. The interface residues of the protein for a that partner will be highlighted in yellow.</p>
 			<p>Finally, hover over a highlighted residue to see some more information about it. If you click on a residue with a SNV, you will go to the SNV entry describing it.</p>
 			<p>All this information is also plotted residue by residue in the detailed alignment below.</p>
-			
-			<h3><span id="uniprot-annotations"></span>Annotations</h3>
+			<div class="panel panel-default">
+			  <div class="panel-body">
+				<img src="{{STATIC_URL}}overall.jpg" class="img-responsive" alt="image">
+			  </div>
+			</div>		
+	
+			<h3><span id="uniprot-annotations"></span>Pfam domains</h3>
 
 			<p>This section describes the Pfam domains that have been detected for the protein. The domain positions are plotted with respect to the protein sequence, and you can also see a list with the positions where the sequence matches the Pfam HMM for that domain, along with the statistical parameters that validate the domain.</p>
 			<p>If you want to find out more about that domain, and other proteins sharing the same domain, you can click on the external link to Pfam, where you will find more information about domains.</p>
 
 			<div class="panel panel-default">
 			  <div class="panel-body">
-				<img src="{{STATIC_URL}}anno.jpeg" class="img-responsive" alt="image">
+				<img src="{{STATIC_URL}}pfam.jpg" class="img-responsive" alt="image">
 			  </div>
 			</div>
 
@@ -144,7 +214,7 @@ h3 span{ position:absolute; top:-70px;}
 			<p>If you prefer to have the PDB file to visualize it your preferred viewer (such as PyMOL), you can also download it from here.</p>
 			<div class="panel panel-default">
 			  <div class="panel-body">
-				<img src="{{STATIC_URL}}inter.jpeg" class="img-responsive" alt="image">
+				<img src="{{STATIC_URL}}inter.jpg" class="img-responsive" alt="image">
 			  </div>
 			</div>
 
@@ -172,6 +242,13 @@ h3 span{ position:absolute; top:-70px;}
 				<li><a href="#snv-mapping">Mapping mutated SNV to the sequence</a></li>
 				<li><a href="#snv-others">Other SNVs sharing the same position</a></li>
 			</ul>
+
+			<div class="panel panel-default">
+			  <div class="panel-body">
+				<img src="{{STATIC_URL}}snv_view.jpg" class="img-responsive" alt="image">
+			  </div>
+			</div>	
+
 
 			<h3><span id="snv-basic"></span>Basic information</h3>
 
