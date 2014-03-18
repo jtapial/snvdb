@@ -56,7 +56,7 @@ white-space: nowrap;
 				$(document).ready(function(){
 					$("button").click(function(){
 						var Url = $(this).data('ref');
-						$("#imgarea").html('<img src="' + Url + '" alt="description" class="img-responsive" alt="Responsive image"/>' );
+						$("#imgarea").html('<img src="' + Url + '" alt="description" class="img-responsive" alt="Responsive image">' );
 					});
 				});
 				</script>
@@ -89,17 +89,19 @@ white-space: nowrap;
 				<p>Uniprot ID: {{uniprot.acc_number}} [<a data-toggle="popover" data-content="External link to Uniprot"  href="http://www.uniprot.org/uniprot/{{uniprot.acc_number}}" target='_blank' >link</a>]</p>
 				{% if uniprot.gene_code %}<p>Gene Code ID: {{uniprot.gene_code}}</p> 	{% endif %}
 				{% if uniprot.genbank_id %}<p>GenBank ID: {{uniprot.genbank_id}} [<a data-toggle="popover" data-content="External link to GenBank"  href="http://www.ncbi.nlm.nih.gov/gene/?term={{uniprot.genbank_id}}" target='_blank' >link</a>]</p>	{% endif %}				
-				<p>{{uniprot.sequence | length}} amino acids <input type="button" class="btn btn-primary btn-xs" value = "FASTA" onclick="window.open('http://www.uniprot.org/uniprot/{{uniprot.acc_number}}.fasta','_blank','resizable=yes')" /></p>
-				<p>{{uniprot.pfam_mappings.all | length}} Pfam domains</p>
-				<p>{{uniprot.chains.all | length}} chains </p>
-				<p>{{interactions | length}} interactions </p>
+				<p>{{uniprot.sequence | length}} amino acids <input type="button" class="btn btn-primary btn-xs" value = "FASTA" onclick="window.open('http://www.uniprot.org/uniprot/{{uniprot.acc_number}}.fasta','_blank','resizable=yes')"></p>
+				<p>{{uniprot.pfam_mappings.all | length}} Pfam domain{{ uniprot.pfam_mappings.all|pluralize}}</p>
+				<p>{{uniprot.chains.all | length}} chain{{ uniprot.chains.all|pluralize}} </p>
+				<p>{{interactions | length}} interaction{{ interactions|pluralize}} </p>
 
 				<p>{{snv_list|length}} SNVs </p>
 				{% if snv_list %}
 				<p>{{snv_statistic.1}}% Diseases, {{snv_statistic.2}}% Polymorphisms, {{snv_statistic.3}}% Unclassified</p>{% endif %}
+
 			</div> <!-- END col -->
 		  
 		</div><!-- END row -->
+
 
 <!-- #######################################    Display   ############################################################################-->
 		<div class="panel panel-info">
@@ -138,6 +140,13 @@ white-space: nowrap;
 
 		<div id = "mapbox">
 			<div class="page-header"><h3><span id = "map"></span>Overall graphics</h3></div>
+			<div class="alert alert-warning fade in">
+				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+	<p><span class = "glyphicon glyphicon-comment"></span> Don't know how to read these data? <a class="btn btn-warning btn-sm" href="{% url 'getting-started' %}" target="_blank" role="button"> Read our tutorial &raquo;</a></p>
+
+
+
+			</div>
 			<!-- JAVASCRIPT -->
 			{{markscript|safe}}
 			<!-- END JAVASCRIPT -->
@@ -170,7 +179,7 @@ white-space: nowrap;
 
 
 			{% if snv_list %}
-			<p><code style="background-color:red;color:white;">A</code> Disease, <code style="background-color:green;color:white;">A</code> Polymorphism, <code style="background-color:blue;color:white;">A</code> Unclassified, <code style="background-color:purple;color:white;">A</code> Multiple variations </p>     
+			<p><code style="background-color:red;color:white;">D</code> Disease, <code style="background-color:green;color:white;">P</code> Polymorphism, <code style="background-color:blue;color:white;">U</code> Unclassified, <code style="background-color:purple;color:white;">M</code> Multiple variations </p>     
 			{% endif %}
 		</div>
 
@@ -206,19 +215,20 @@ white-space: nowrap;
 			<div class="page-header"><h3><span id = "pfam"></span>Pfam domains</h3></div>
 
 			{% if uniprot.pfam_mappings.all %}
-			<p>Found {{uniprot.pfam_mappings.all | length}} Pfam mapping entries.</p>
+			<p>Found {{uniprot.pfam_mappings.all | length}} Pfam mapping entr{{ uniprot.pfam_mappings.all|pluralize:"y,ies" }}.</p>
 			<div class= "wrapper-div hidden-xs hidden-sm">
 			<p>{{annotation.graphic_code|safe}}</p>
 			<script>
 				{{annotation.java_code|safe}}
 			</script>
 			</div>
-
+			<p><code style="background-color:#75A319;color:white;">D</code> Domain, <code style="background-color:#FF3333;color:white;">F</code> Family, <code style="background-color:#A347FF;color:white;">M</code> Motif, <code style="background-color:#FF9933;color:white;">R</code> Repeat </p>   
 			<div class="table-responsive">
 			<table class="table table-condensed table-hover">
 				<thead>
 					<tr>
 						<th>HMM Acc</th>
+						<th>Type</th>
 						<th>Alignment</th>
 						<th>Hmm</th>
 						<th>Bit Score</th>
@@ -230,6 +240,7 @@ white-space: nowrap;
 				{% for item in uniprot.get_pfam_mapping %}
 					<tr>
 						<td><a href ="http://pfam.sanger.ac.uk/family/{{item.hmm.acc}}" target="_blank" data-toggle="popover" data-content="Name: {{item.hmm.name}}, Type: {{item.hmm.type}}, Length: {{item.hmm.length}}, Clan: {{item.hmm.clan}}" >{{item.hmm.acc}}</a></td>
+						<td><code style="background-color:{% if item.hmm.type == 'Domain' %}#75A319{% elif item.hmm.type == 'Family'%} #FF3333 {% elif item.hmm.type == 'Motif'%} #A347FF {% else %} #FF9933 {% endif %}; color:white;">{{item.hmm.type}}</code></td>
 						<td>{{item.alignment_start_residue.position}}-{{item.alignment_end_residue.position}}</td>
 						<td>{{item.hmm_start}}-{{item.hmm_end}}</td>
 						<td>{{item.bit_score}}</td>
@@ -264,7 +275,7 @@ white-space: nowrap;
 			<div class="page-header"><h3><span id = "chains"></span>Chains</h3></div>
 			
 			{% if uniprot.chains.all %}
-				<p>Found {{uniprot.chains.all | length}} chain entries for the protein {{uniprot.acc_number}}.</p>
+				<p>Found {{uniprot.chains.all | length}} chain entr{{ uniprot.chains.all|pluralize:"y,ies" }} for the protein {{uniprot.acc_number}}.</p>
 <div  class= "wrapper-div">
 				<div class="table-responsive">
 				<table class="table table-condensed">
@@ -338,7 +349,7 @@ white-space: nowrap;
 		<div id = "interbox">
 			<div class="page-header"><h3><span id = "interactions"></span>Interactions</h3></div>	
 			{% if interactions %}
-				<p>Found {{interactions | length}} interaction entries for the protein {{uniprot.acc_number}}.</p>
+				<p>Found {{interactions | length}} interaction entr{{ interactions|pluralize:"y,ies" }} for the protein {{uniprot.acc_number}}.</p>
 				<!-- POP UP JAVA SCRIPT--> 
 				<script>
 					function myFunction(url)
@@ -403,7 +414,7 @@ white-space: nowrap;
 			<div class="page-header"><h3><span id = "snvs"></span>SNVs</h3></div>
 
 			{% if snv_list %}
-			<p>Found {{snv_list|length}} SNVs for the protein {{uniprot.acc_number}}.</p>
+			<p>Found {{snv_list|length}} SNV{{ snv_list|pluralize }} for the protein {{uniprot.acc_number}}.</p>
 			<p>SNVs statistics</p>
 
 			<div class="progress">
@@ -440,7 +451,7 @@ white-space: nowrap;
 					{% for item in snv_list %}
 					<tr>
 						<td><a href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</a></td>
-						<td><code style="background-color:{% if item.type.type == 'Disease' %}red{% elif item.type.type == 'Polymorphism'%} green {% else %} blue {% endif %}; color:white;">{{item.type.type}} {{item.get_color.all}}</code></td>
+						<td><code style="background-color:{% if item.type.type == 'Disease' %}red{% elif item.type.type == 'Polymorphism'%} green {% else %} blue {% endif %}; color:white;">{{item.type.type}}</code></td>
 						<td>{{item.uniprot_residue.position}}</td>
 						<td>{{item.wt_aa.one_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.one_letter_code}}</td>
 						{% if item.db_snp %}
@@ -480,8 +491,8 @@ white-space: nowrap;
 	
 <!-- ################## NAVIGATION BAR ##################################-->
 	<div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
-		<div class="span3 bs-docs-sidebar navbar">
-			<ul class="nav nav-list bs-sidenav affix">
+		<div class="span3 bs-docs-sidebar navbar affix">
+			<ul class="nav nav-list bs-sidenav ">
 				<li><strong><span class="glyphicon glyphicon-search"></span> Quick Navigation</strong></li>
 				<li><a href="#basic"><span class="glyphicon glyphicon-chevron-right"></span> Basic information</a></li>
 				<li><a href="#map"><span class="glyphicon glyphicon-chevron-right"></span> Overall graphics</a></li>

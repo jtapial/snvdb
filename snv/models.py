@@ -32,21 +32,39 @@ def get_color(snv_list):
 ###########################################################################
 # Return SVG graphic code and Java Script (User need to add </svg> tag manually) 
 ###########################################################################
-def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interactid,maxlen,chain_reg,special):
+def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interact,maxlen,chain_reg,special):
 	h_frame = str(25 + height)
 	height = str(height)
 	frame = 800
+	classname_main = '0'+'_'+cu[i].acc_number+classsuffix #Default Case
+
+	if interact!= None:#If not Default case
+		classname_main = str(interact.id)+'_'+cu[i].acc_number+classsuffix 
+		if i==0:
+			ch = Chain.objects.filter(id=interact.chain_1_id)[0]
+		else:
+			ch = Chain.objects.filter(id=interact.chain_2_id)[0]
+
 	color_code = [['#428bca','#285379'],['#5bc0de','#499AB2']] #darkblue / lightblue
+	color_cover = ['#8EB9DF','#ADE0EE']
 	if not _ischain1:
 		color_code = [['#5bc0de','#499AB2'],['#428bca','#285379']]
+		color_cover = ['#ADE0EE','#8EB9DF']
 	if special:
-		color_code = [['#5bc0de','#499AB2'],['#5bc0de','#499AB2']]
-	classname_main = str(interactid)+'_'+cu[i].acc_number+classsuffix
+		color_code = [['#5bc0de','#499AB2'],['#5bc0de','#499AB2']] #homodimer
+		color_cover = ['#ADE0EE','#ADE0EE']
+	
+		
 
-	graphic_code = '<svg width = "820px" height = "'+h_frame+'px"><style> .intersite:hover{fill:#FFCC00;}</style>'+ header
+	graphic_code = '<svg width = "830px" height = "'+h_frame+'px"><style> .intersite:hover{fill:#FFCC00;}</style>'+ header
 
-	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'" width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+';" /></a>'              
-	java_code = '$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'     
+	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'" width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+';" /></a>'
+	if interact!=None:
+		graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'_chain" width="'+str((int(ch.seq_end)-int(ch.seq_start)-1)*frame/maxlen)+'" height="'+height+'" x="'+str((int(ch.seq_start)-1)*frame/maxlen+5)+'" y="25" style="fill:'+color_cover[i]+';" /></a>'
+
+	java_code = '$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'   
+  	if interact!= None:
+		java_code += '$(".'+classname_main+'_chain").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids (PDB:'+ ch.pdb_id+' from '+ch.seq_start+' to '+ch.seq_end+' - '+ch.coverage+'%)","placement": "bottom",trigger: "hover",container:"body"});'   
 	for region in chain_reg:
 		classname = str(i)+str(region[0])+str(region[1])+classsuffix
 		content_data = ''
@@ -54,8 +72,8 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interactid,m
 			content_data = 'Residue '+str(region[0])
 		else:
 			content_data = 'Residue ' +str(region[0])+ ' to ' +str(region[1]-1)+ ' ('+str(region[1]-region[0])+' residues)'
-		graphic_code +=  '<rect class ="'+classname+' intersite" width="'+ str((region[1]-region[0])*frame/maxlen +1) +'" height="'+height+'" x="'+str((region[0])*frame/maxlen) +'" y="25" fill="#FF9933" />'   			
-			
+		graphic_code +=  '<rect class ="'+classname+' intersite" width="'+ str((region[1]-region[0])*frame/maxlen +1) +'" height="'+str(int(height)*2/3)+'" x="'+str((region[0])*frame/maxlen) +'" y="'+str(25)+'" fill="#FF9933"/>'
+
 		java_code+= '$(".'+classname+'").popover({title:"Interface", content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
 		
 	return {'graphic_code':graphic_code,'java_code':java_code} 
@@ -120,12 +138,12 @@ class Uniprot(models.Model):
 		for chain in self.chains.all():
 			length = len(self.sequence)
 
-			graphic_code = '<svg width = "820px" height = "50px">'
+			graphic_code = '<svg width = "830px" height = "50px">'
 
 			graphic_code += '<rect width="800" height="12" x="0" y="10" rx="5" ry="5" style="fill:#428bca;stroke-width:1;stroke:#285379" />'                   
 			graphic_code +=  '<text x="30" y="20" font-weight="bold" fill="white">'+self.acc_number+'</text> <text x="0" y="20" fill="white">|0</text><text x="200" y="20" fill="white">|'+str(length/4)+'</text><text x="400" y="20" fill="white">|'+str(length/2)+'</text><text x="600" y="20" fill="white">|'+str(length*3/4)+'</text><text x="800" y="20" fill="black">|'+str(length)+'</text>'
-			graphic_code += '<rect width="'+ str(int(float(chain.coverage)*800/100)) +'" height="12" x="'+str(float(chain.seq_start)/float(length)*800)+'" y="25" rx="5" ry="5" style="fill:#5bc0de;stroke-width:1;stroke:#499AB2" />'   			
-			graphic_code += '<text x="'+str(float(chain.seq_start)/float(length)*800+30)+'" y="35" font-weight="bold" fill="white"> PDB:'+chain.pdb_id+'</text><text x="'+str(float(chain.seq_start)/float(length)*800)+'" y="35" fill="white">|'+chain.seq_start+'</text><text x="'+str(float(chain.seq_end)/float(length)*800)+'" y="35" fill="black">|'+chain.seq_end+'</text>'
+			graphic_code += '<rect width="'+ str(int(float(chain.coverage)*800/100)) +'" height="12" x="'+str((float(chain.seq_start)-1)/float(length)*800)+'" y="25" rx="5" ry="5" style="fill:#5bc0de;stroke-width:1;stroke:#499AB2" />'   			
+			graphic_code += '<text x="'+str(float(chain.seq_start)/float(length)*800+30)+'" y="35" font-weight="bold" fill="white"> PDB:'+chain.pdb_id+'</text><text x="'+str(float(chain.seq_start)/float(length)*800)+'" y="35" fill="white">'+chain.seq_start+'</text><text x="'+str(float(chain.seq_end)/float(length)*800)+'" y="35" fill="black">'+chain.seq_end+'</text>'
 			graphic_code +='</svg>'
 
 			#Alighment Method
@@ -222,12 +240,12 @@ class Uniprot(models.Model):
 		height = str(50)
 		frame = 800
 		color_code = {'Family':'#FF3333','Domain':'#75A319','Motif':'#A347FF','Repeat':'#FF9933'}
-		range_val = [5,10,20,50,100,200,500,1000,2000,5000,10000]
+		range_val = [5,10,20,25,50,100,200,250,500,1000,2000,2500,5000,10000]
 		length = len(self.sequence)
 		chosen_range = min(range_val, key=lambda x:abs(x-length/6))
 		java_code = ''
 
-		graphic_code = '<svg width = "820px" height = "'+h_frame+'px"><style> .annosite:hover{stroke-width:2;stroke:#FFFF00;}</style>'
+		graphic_code = '<svg width = "840px" height = "'+h_frame+'px"><style> .annosite:hover{stroke-width:2;stroke:#FFFF00;}</style>'
 
 		graphic_code += '<rect width="'+str(frame)+'" height="'+height+'" x="5" y="0" style="fill:#E4E4E9;stroke-width:1;stroke:#CDCDD2;" />'
 		pos = 0
@@ -259,7 +277,7 @@ class Uniprot(models.Model):
 		output = []
 		interactionset = []
 		header = '<text x="5" y="15" font-weight="bold" fill="black">'+self.acc_number+'</text>' 
-		svgcode = create_svg_interaction([self,self],False,0,header,36,'mapped','0',len(self.sequence),[],True)
+		svgcode = create_svg_interaction([self,self],False,0,header,36,'mapped',None,len(self.sequence),[],True)
 		interaction_reg_mark = [{'name':'default','info':'Default setting, No interaction marked','region':[],'id':'default','sequence':'','checked':'checked','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']}]
 		outset = []
 		#fetch and sort all related interactions
@@ -321,24 +339,24 @@ class Uniprot(models.Model):
 			if _isHomo: #Homo case, append both
 				maxlen = len(cu[0].sequence)
 				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' when interacting with '+cu[1].acc_number+' ['+cu[1].name+']</text>' 
-				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact.id,maxlen,chain_reg[0],True)
+				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact,maxlen,chain_reg[0],True)
 
-				interaction_reg_mark.append({'name':cu[0].acc_number+'.1','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number+'1','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[0].acc_number+'.1','info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number+'1','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 
-				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact.id,maxlen,chain_reg[1],True)
-				interaction_reg_mark.append({'name':cu[0].acc_number+'.2','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number+'2','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact,maxlen,chain_reg[1],True)
+				interaction_reg_mark.append({'name':cu[0].acc_number+'.2','info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number+'2','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 				
 				
 			elif _ischain1:
 				maxlen = len(cu[0].sequence)
 				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' when interacting with '+cu[1].acc_number+' ['+cu[1].name+']</text>' 
-				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact.id,maxlen,chain_reg[0],False)
-				interaction_reg_mark.append({'name':cu[1].acc_number,'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact,maxlen,chain_reg[0],False)
+				interaction_reg_mark.append({'name':cu[1].acc_number,'info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 			else:
 				maxlen = len(cu[1].sequence)
 				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[1].acc_number+' when interacting with '+cu[0].acc_number+' ['+cu[0].name+']</text>' 
-				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact.id,maxlen,chain_reg[1],False)
-				interaction_reg_mark.append({'name':cu[0].acc_number,'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact,maxlen,chain_reg[1],False)
+				interaction_reg_mark.append({'name':cu[0].acc_number,'info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 
 
 
@@ -349,7 +367,7 @@ class Uniprot(models.Model):
 
 			for i in range(2):
 				header = '<text x="5" y="15" font-weight="bold" fill="black">Partner '+str(i+1)+' : '+cu[i].acc_number+' ['+cu[i].name+'] </text>'
-				svgcode = create_svg_interaction(cu,_ischain1,i,header,12,'',interact.id,maxlen,chain_reg[i],False)
+				svgcode = create_svg_interaction(cu,_ischain1,i,header,18,'',interact,maxlen,chain_reg[i],False)
 				graphic_code[i] = svgcode['graphic_code']+'</svg><script>'+svgcode['java_code']+'</script>'
 				
 			interactionset.append({'obj':interact,'code':graphic_code})
@@ -414,8 +432,8 @@ class Uniprot(models.Model):
 					if color == 'purple':
 						snvtype = 'Multiple variations'
 						snvclass = 'mul'
-					option['graphic_code']+= '<rect class ="snv'+str(curr_pos+1)+' '+snvclass+'" width="'+ str(1*frame/len(seq) +1) +'" height="18" x="'+str((curr_pos+1)*frame/len(seq)) +'" y="25" fill="'+color+'" />' 
-					option['java_code']+= '$(".snv'+str(curr_pos+1)+'").popover({title:"SNV",content:"Position '+str(curr_pos+1)+', type: '+snvtype+'","placement": "top",trigger: "hover",container:"body"});'
+					option['graphic_code']+= '<rect class ="snv'+str(curr_pos+1)+' '+snvclass+'" width="'+ str(1*frame/len(seq) +1) +'" height="12" x="'+str((curr_pos+1)*frame/len(seq)) +'" y="25" fill="'+color+'" />' 
+					option['java_code']+= '$(".snv'+str(curr_pos+1)+'").popover({title:"SNV ['+pos[1][0].ft_id+']",content:"Position '+str(curr_pos+1)+', type: '+snvtype+'","placement": "top",trigger: "hover",container:"body"});'
 					if color == 'purple':#multiple mutation case
 						html = ''
 						for item in pos[1]:					
@@ -425,7 +443,7 @@ class Uniprot(models.Model):
 					else:#One mutation case
 						url = pos[1][0].get_absolute_url()
 						pos_mute=pos_mute + pos[1][0].mutant_aa.one_letter_code +'('+pos[1][0].type.type+') '	
-						mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="'+url+'" target="_blank" style="color:'+textcol+';'+extraopt+'" title="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
+						mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="'+url+'" target="_blank" style="color:'+textcol+';'+extraopt+'" title="Position '+str(curr_pos+1)+' ['+pos[1][0].ft_id+'], Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
 						#add svg graphic
 						
 					if(len(sorted_mod)>0):
