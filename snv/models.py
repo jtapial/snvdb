@@ -536,7 +536,7 @@ class Interaction(models.Model):
         return [set(cr_withsnv_partner1),set(cr_withsnv_partner2), snvdict1, snvdict2]
 
     def get_pfam_mapping_positions(self):
-    	#{chain_id:{mapping:[start_pdb_position,end_pdb_position]}}
+    	#({mapping:[start_pdb_position,end_pdb_position]} for chain 1, {mapping:[start_pdb_position,end_pdb_position]} for chain 2}
     	chain1_mapping2positions = {}
     	chain2_mapping2positions = {}
 
@@ -544,13 +544,13 @@ class Interaction(models.Model):
 			# Add to dictionary
 			# Will fail with KeyError if that chain doesn't have a dictionary
 			positions = mapping.get_pdb_positions(self.chain_1,self)
-			if len(positions) == 2:
+			if positions is not None:
 				chain1_mapping2positions[mapping] = positions
     	for mapping in self.chain_2.uniprot.pfam_mappings.all():
 			# Add to dictionary
 			# Will fail with KeyError if that chain doesn't have a dictionary
 			positions = mapping.get_pdb_positions(self.chain_2,self)
-			if len(positions) == 2:
+			if positions is not None:
 				chain2_mapping2positions[mapping] = positions
 
     	return chain1_mapping2positions,chain2_mapping2positions
@@ -780,7 +780,7 @@ class UniprotPfamMapping(models.Model):
     	if len(pdbpositions) == 2:
     		return pdbpositions
     	else:
-    		return []
+    		return None
 
 class ActiveSiteResidue(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -796,7 +796,7 @@ class SuperpositionMapping(models.Model):
     target_chain_letter = models.CharField(max_length=1L)
     target_interaction = models.ForeignKey(Interaction,db_column='target_interaction_id',related_name='superpositions_where_target')
     class Meta:
-        db_table = 'combined_uniprot_mapping'
+    	db_table = 'combined_uniprot_mapping'
 
     def get_interface_residues(self):
     	# Find interaction

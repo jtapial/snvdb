@@ -95,11 +95,10 @@ class InteractionView(DetailView):
 
 
 		# Will be 2 dictionaries with this format
-		# {mapping:[start_pdb_position,end_pdb_position]}
+		# [{mapping:[start_pdb_position,end_pdb_position]} for chain 1, {mapping:[start_pdb_position,end_pdb_position]} for chain 2]
 		pfam_positions = self.object.get_pfam_mapping_positions()
 		interaction['chain1_pfam_positions'] = pfam_positions[0]
 		interaction['chain2_pfam_positions'] = pfam_positions[1]
-
 
 		return interaction
 

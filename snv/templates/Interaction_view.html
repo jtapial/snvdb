@@ -3,11 +3,14 @@
 {% block javascript %}
 <script type="text/javascript" src="{{BASE_URL}}{% static 'jsmol/jsmol/JSmol.min.js'%}"></script> 
 {% endblock %}
-
+{% block css %}
+<link rel="stylesheet" href="{{BASE_URL}}{% static 'interaction.css'%}">
+{% endblock %}
 
 {% block content %}
 <div class="page-header">
-	<h1>Interaction ID: {{interaction.id}} </h1>
+	<h1>Interaction: {{interaction.chain_1.uniprot.acc_number}} - {{interaction.chain_2.uniprot.acc_number}}</h1>
+	<h4>(Interaction ID: {{interaction.id}})</h4>
 </div>
 
 <div class="content">
@@ -27,7 +30,7 @@
 
 	<table class="table table-condensed">
 		<tr>
-			<td>
+			<td height=500 width=500>
 					<script type="text/javascript">
 						var Info = {
 				  color: "#FFFFFF",  // white background (note this changes legacy default which was black)
@@ -84,12 +87,21 @@
 					function color_range(start,end,color,partner){
 						Jmol.script(myJmol, 'select '+start+'-'+end+':'+partner+'; color '+color+';')
 					};
+					function map_pfam_domains(color){
+					//mapping domains on chain_1 onto structure
+					{% for mapping in chain1_pfam_positions.items %}
+						Jmol.script(myJmol, 'select {{mapping.1.0}}-{{mapping.1.1}}:A; color '+color+';');
+					{% endfor %}
+
+					//mapping domains on chain_1 onto structure
+					{% for mapping in chain2_pfam_positions.items %}
+						Jmol.script(myJmol, 'select {{mapping.1.0}}-{{mapping.1.1}}:B; color '+color+';');
+					{% endfor %}
+					}
 
 					function map_this_snv(chain_name,position){
 						
 						Jmol.script(myJmol,'select '+position+':'+chain_name+'; color fuchsia')
-
-
 					};
 					function reset_structure(){
 						Jmol.script(myJmol,'zap; set highResolution ON; load {{BASE_URL}}{% static interaction.filename %}; wireframe off; spacefill off; select protein; cartoons on; color chain;');
@@ -145,74 +157,99 @@
 								hide_partner("B");
 								$('#showhide2-btn').text('Show Partner 2');
 							}});
+
+						//Listeners for the pfam domains mapping here//
+						
+						$('#pfam-domains-btn').click(function(){map_pfam_domains("blue")});
+
 						{% for mapping,positions in chain1_pfam_positions.items %}
-						$('#map{{mapping.id}}A').click(function(){
+						$('#{{mapping.id}}-A-btn').click(function(){
 							color_range({{positions.0}},{{positions.1}},"blue","A");
 							});
 						{% endfor %}
+						
 						{% for mapping,positions in chain2_pfam_positions.items %}
-						$('#map{{mapping.id}}B').click(function(){
+						$('#{{mapping.id}}-B-btn').click(function(){
 							color_range({{positions.0}},{{positions.1}},"blue","B");
 							});
 						{% endfor %}
 						});
+						
 											
 					</script>
 			</td>
-
-			<td>
-				<div class="btn-group-vertical">
-					<button type="button" id="reset-btn" class="btn btn-default">Reset</button>
-					<button type="button" id="ir-btn" class="btn btn-default">Interface Residues</button>
-					<button type="button" id="showhide1-btn" class="btn btn-default" data-toggle="button">Hide Partner 1</button>
-					<button type="button" id="showhide2-btn" class="btn btn-default" data-toggle="button">Hide Partner 2</button>
-				</div>
-			</td>
-
-			{% if snvdict1 or snvdict2 %}
-
-			<td>
-				<div class="dropdown">
-					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">SNVs <span class="caret"></span></button>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-					    <li role="presentation"><a role="menuitem" tabindex="-1" id="snvs-btn" href="#">Map all SNVs</a></li>
-					    <li role="presentation" class="divider"></li>
-					    <li role="presentation" class="dropdown-header">Map partner 1 SNV:</li>
-					    {% for item in snvdict1 %}
-					    	<li role="presentation"><a role="menuitem" id="{{item.ft_id}}-A-btn" tabindex="-1" id="snvs-btn" href="#">{{item.ft_id}}</a></li>
-					    {% empty %}
-					    	<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No SNVs in chain 1-</a></li>
-					    {% endfor %}
-					    <li role="presentation" class="dropdown-header">Map partner 2 SNV:</li>
-					    {% for item in snvdict2 %}
-					    	<li role="presentation"><a role="menuitem" id="{{item.ft_id}}-B-btn" tabindex="-1" id="snvs-btn" href="#">{{item.ft_id}}</a></li>
-					    {% empty %}
-					    	<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No SNVs in chain 2-</a></li>
-					    {% endfor %}
-					</ul>
-				</div>
 			
-			{% endif %}
-				
-			</td>
-
-			
+				<!--Old code for general buttons-->
 			<td>
-				<div class="btn-group-vertical">
-					{% for mapping in chain1_pfam_positions.keys %}
-					<button type="button" id='map{{mapping.id}}A' class="btn btn-default">{{mapping.hmm.acc}}({{interaction.chain_1.id}})</button>
-					{% endfor %}
-					{% for mapping in chain2_pfam_positions.keys %}
-					<button type="button" id='map{{mapping.id}}B' class="btn btn-default">{{mapping.hmm.acc}}({{interaction.chain_2.id}})</button>
-					{% endfor %}
-				</div>
-			</td>
+				<div class="btn-toolbar" role="toolbar">
 
+					<div class="btn-group btn-group-vertical">
+						<button type="button" id="reset-btn" class="btn btn-default">Reset</button>
+						<button type="button" id="ir-btn" class="btn btn-default">Map Interface Residues</button>
+						<button type="button" id="showhide1-btn" class="btn btn-default" data-toggle="button">Hide&#x2F;Show Partner 1</button>
+						<button type="button" id="showhide2-btn" class="btn btn-default" data-toggle="button">Hide&#x2F;Show Partner 2</button>
+					</div>
+					
+					{% if snvdict1 or snvdict2 %}
+
+						<div class="btn-group">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">SNVs <span class="caret"></span></button>
+							<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+							    <li role="presentation"><a role="menuitem" tabindex="-1" id="snvs-btn" href="#">Map all SNVs</a></li>
+							    <li role="presentation" class="divider"></li>
+							    <li role="presentation" class="dropdown-header">Map partner 1 SNV:</li>	
+							    {% for item in snvdict1 %}
+							    	<li role="presentation"><a role="menuitem" id="{{item.ft_id}}-A-btn" tabindex="-1" href="#">{{item.ft_id}}</a></li>
+							    {% empty %}
+							    	<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No SNVs in chain 1-</a></li>
+							    {% endfor %}
+							    <li role="presentation" class="dropdown-header">Map partner 2 SNV:</li>
+							    {% for item in snvdict2 %}
+							    	<li role="presentation"><a role="menuitem" id="{{item.ft_id}}-B-btn" tabindex="-1" href="#">{{item.ft_id}}</a></li>
+							    {% empty %}
+							    	<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No SNVs in chain 2-</a></li>
+							    {% endfor %}
+							</ul>
+						</div>
+
+					{% else %}
+						<div class="btn-group">
+							<button type="button" class="btn btn-default" disabled="disabled">No SNVs</button>
+						</div>
+					{% endif %}
+
+					{% if chain1_pfam_positions or chain2_pfam_positions %}
+
+						<div class="btn-group">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Pfam domains <span class="caret"></span></button>
+							<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+							    <li role="presentation"><a role="menuitem" tabindex="-1" id="pfam-domains-btn" href="#">Map all Pfam domains</a></li>
+							    <li role="presentation" class="divider"></li>
+							    <li role="presentation" class="dropdown-header">Map partner 1 domain:</li>
+							    {% for mapping,positions in chain1_pfam_positions.items %}
+							    	<li role="presentation"><a role="menuitem" id="{{mapping.id}}-A-btn" tabindex="-1" href="#">{{mapping.hmm.acc}} ({{positions.0}}-{{positions.1}})</a></li>
+							    {% empty %}
+							    	<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No Pfam domains in chain 1-</a></li>
+							    {% endfor %}
+							    <li role="presentation" class="dropdown-header">Map partner 2 domain:</li>
+							    {% for mapping,positions in chain2_pfam_positions.items %}
+							    	<li role="presentation"><a role="menuitem" id="{{mapping.id}}-B-btn" tabindex="-1" href="#">{{mapping.hmm.acc}} ({{positions.0}}-{{positions.1}})</a></li>
+							    {% empty %}
+							    	<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No Pfam domains in chain 2-</a></li>
+							    {% endfor %}
+							</ul>
+						</div>
+					
+					{% else %}
+					
+						<div class="btn-group">
+							<button type="button" class="btn btn-default" disabled="disabled">No Pfam domains</button>
+						</div>
+
+					{% endif %}
+			</td>
 		</tr>
 	</table>
-
-
-
 
 {% endblock %}
 
