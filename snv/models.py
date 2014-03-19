@@ -790,13 +790,13 @@ class UniprotPfamMapping(models.Model):
     	ur_list = self.uniprot.residues.filter(position__gte=self.alignment_start_residue.position, position__lte=self.alignment_end_residue.position).order_by('position')
     	
     	for ur in ur_list:
-    		cr_start = ur.chain_residues.all()
+    		cr_start = ur.chain_residues.filter(chain=chain)
     		if cr_start.count()==1:
     			pdbpositions.append(cr_start[0].get_transformed_position(interaction))
     			break
   		    	
     	for ur in ur_list.reverse():
-    		cr_end = ur.chain_residues.all()
+    		cr_end = ur.chain_residues.filter(chain=chain)
     		if cr_end.count()==1:
     			pdbpositions.append(cr_end[0].get_transformed_position(interaction))
     			break
