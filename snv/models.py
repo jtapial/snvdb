@@ -607,7 +607,7 @@ class ChainResidue(models.Model):
 
 class PositionMapping(models.Model):
     id = models.IntegerField(primary_key=True)
-    uniprot_residue = models.ForeignKey(UniprotResidue,db_column='uniprot_residue_id',related_name='+')
+    uniprot_residue = models.ForeignKey(UniprotResidue,db_column='uniprot_residue_id',related_name='+')	
     chain_residue = models.ForeignKey(ChainResidue,db_column='chain_residue_id',related_name='mapping')
     class Meta:
         db_table = 'position_mapping'
@@ -794,18 +794,38 @@ class UniprotPfamMapping(models.Model):
 
     def get_pdb_positions(self,chain,interaction):
     	pdbpositions = []
-
-    	for chain_residue in self.alignment_start_residue.chain_residues.all():
-    		if chain_residue.chain == chain:
-    			pdbpositions.append(chain_residue.get_transformed_position(interaction))
-    	for chain_residue in self.alignment_end_residue.chain_residues.all():
-    		if chain_residue.chain == chain:
-    			pdbpositions.append(chain_residue.get_transformed_position(interaction))
+    	ur_list = self.uniprot.residues.filter(position__gte=self.alignment_start_residue.position, position__lte=self.alignment_end_residue.position).order_by('position')
+    	
+    	for ur in ur_list:
+    		cr_start = ur.chain_residues.all()
+    		if cr_start.count()==1:
+    			pdbpositions.append(cr_start[0].get_transformed_position(interaction))
+    			break
+  		    	
+    	for ur in ur_list.reverse():
+    		cr_end = ur.chain_residues.all()
+    		if cr_end.count()==1:
+    			pdbpositions.append(cr_end[0].get_transformed_position(interaction))
+    			break
 
     	if len(pdbpositions) == 2:
     		return pdbpositions
     	else:
     		return None
+
+# OLD CODE FOR GET_PDB_POSITIONS;
+
+#    	for chain_residue in self.alignment_start_residue.chain_residues.filter(chain=chain):
+#    		if chain_residue.chain == chain:
+#    			pdbpositions.append(chain_residue.get_transformed_position(interaction))
+#    	for chain_residue in self.alignment_end_residue.chain_residues.all():
+#    		if chain_residue.chain == chain:
+#    			pdbpositions.append(chain_residue.get_transformed_position(interaction))
+#
+#    	if len(pdbpositions) == 2:
+#    		return pdbpositions
+#    	else:
+#    		return None
 
 class ActiveSiteResidue(models.Model):
     id = models.IntegerField(primary_key=True)
