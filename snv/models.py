@@ -133,11 +133,12 @@ class Uniprot(models.Model):
 	####################################################################
 	# Return html code for SVG graphics and pdb alignment [ CHAIN ]
 	####################################################################
-	def get_graphic(self):
+	def get_pdb_align(self):
 		outset = []
 		for chain in self.chains.all():
 			length = len(self.sequence)
 
+			'''
 			graphic_code = '<svg width = "830px" height = "50px">'
 
 			graphic_code += '<rect width="800" height="12" x="0" y="10" rx="5" ry="5" style="fill:#428bca;stroke-width:1;stroke:#285379" />'                   
@@ -145,6 +146,12 @@ class Uniprot(models.Model):
 			graphic_code += '<rect width="'+ str(int(float(chain.coverage)*800/100)) +'" height="12" x="'+str((float(chain.seq_start)-1)/float(length)*800)+'" y="25" rx="5" ry="5" style="fill:#5bc0de;stroke-width:1;stroke:#499AB2" />'   			
 			graphic_code += '<text x="'+str(float(chain.seq_start)/float(length)*800+30)+'" y="35" font-weight="bold" fill="white"> PDB:'+chain.pdb_id+'</text><text x="'+str(float(chain.seq_start)/float(length)*800)+'" y="35" fill="white">'+chain.seq_start+'</text><text x="'+str(float(chain.seq_end)/float(length)*800)+'" y="35" fill="black">'+chain.seq_end+'</text>'
 			graphic_code +='</svg>'
+			'''
+
+			stat = [0.0,0.0,0.0]
+			stat[0] = round((float(chain.seq_start)-1)*100/float(length),1)
+			stat[1] = round(float(chain.seq_end)*100/float(length),1) - stat[0]
+			stat[2] = 100.0-stat[0]-stat[1]
 
 			#Alighment Method
 			chain_res_set = list(chain.residues.all().extra(order_by = ['id']))
@@ -195,7 +202,7 @@ class Uniprot(models.Model):
 						if(second_line<length):
 							align_code+='<br><code style="background-color:#428bca ; color:white;">Seq 1:</code> '
 						
-			outset.append({'obj':chain,'graphic':graphic_code,'alignent':align_code})	 	
+			outset.append({'obj':chain,'alignent':align_code,'stat':stat})	 	
 		return outset
 
 	###############################################
