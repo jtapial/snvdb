@@ -573,7 +573,22 @@ class Interaction(models.Model):
 
     	return chain1_mapping2positions,chain2_mapping2positions
 
+    def get_contacts(self):
+    	contacts = {}
+    	for ir in self.chain_1.get_interface_residues(self):
+    		cr = ir.chain_residue
+    		for atom in ir.atoms.all():
+    			if atom.interactions is not None:
+	    			for inter in atom.interactions.exclude(type="UNK"):
+    					partner_atom = inter.partner_atom
+    					partner_cr = partner_atom.interface_residue.chain_residue
+    					try:
+    						contacts[inter.type].append(["[%(aa_a)s]%(pos_a)s:A.%(label_a)s" % {"aa_a":cr.amino_acid.three_letter_code, "pos_a":cr.get_transformed_position(self), "label_a":atom.label}, "[%(aa_b)s]%(pos_b)s:B.%(label_b)s" % {"aa_b":partner_cr.amino_acid.three_letter_code, "pos_b":partner_cr.get_transformed_position(self), "label_b":partner_atom.label}])
+    					except KeyError:
+    						contacts[inter.type] = [["[%(aa_a)s]%(pos_a)s:A.%(label_a)s" % {"aa_a":cr.amino_acid.three_letter_code, "pos_a":cr.get_transformed_position(self), "label_a":atom.label}, "[%(aa_b)s]%(pos_b)s:B.%(label_b)s" % {"aa_b":partner_cr.amino_acid.three_letter_code, "pos_b":partner_cr.get_transformed_position(self), "label_b":partner_atom.label}]]
 
+
+    	return contacts #,len(contacts["HYB"]),len(contacts["POL"]),len(contacts["PHO"]),(len(contacts["HYB"]) + len(contacts["POL"]) + len(contacts["PHO"])) ** UNCOMMENT TO RETURN COUNTS
 
 
 
@@ -860,7 +875,7 @@ class InterfaceAtom(models.Model):
 	id = models.IntegerField(primary_key=True)
 	interface_residue = models.ForeignKey(InterfaceResidue,db_column='interface_residue_id',related_name='atoms')
 	label = models.CharField(max_length=4L)
-	class Meta:
+	class Meta:	
 		db_table = 'interface_atom'
 
 class InterfaceAtomInteraction(models.Model):

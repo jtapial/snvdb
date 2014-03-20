@@ -100,6 +100,8 @@ class InteractionView(DetailView):
 		interaction['chain1_pfam_positions'] = pfam_positions[0]
 		interaction['chain2_pfam_positions'] = pfam_positions[1]
 
+		interaction['contacts'] = self.object.get_contacts()	
+
 		return interaction
 
 
