@@ -26,7 +26,12 @@ def get_color(snv_list):
 	color_code={'Disease':'red','Polymorphism':'green','Unclassified':'blue'}
 	if len(snv_list)==1:
 		return color_code[snv_list[0].type.type]
-	return 'purple'			
+	return 'purple'
+def get_short_type(snv_list):
+	type_code={'Disease':'D','Polymorphism':'P','Unclassified':'U'}
+	if len(snv_list)==1:
+		return type_code[snv_list[0].type.type]
+	return 'M'				
 
 
 ###########################################################################
@@ -59,8 +64,8 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interact,max
 	graphic_code = '<svg width = "830px" height = "'+h_frame+'px"><style> .intersite:hover{fill:#FFCC00;}</style>'+ header
 
 	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'" width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+';" /></a>'
-	if interact!=None:
-		graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'_chain" width="'+str((int(ch.seq_end)-int(ch.seq_start)-1)*frame/maxlen)+'" height="'+height+'" x="'+str((int(ch.seq_start)-1)*frame/maxlen+5)+'" y="25" style="fill:'+color_cover[i]+';" /></a>'
+	if interact!=None:#pdb region mark
+		graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'_chain" width="'+str((int(ch.seq_end)-int(ch.seq_start))*frame/maxlen)+'" height="'+height+'" x="'+str((int(ch.seq_start))*frame/maxlen)+'" y="25" style="fill:'+color_cover[i]+';" /></a>'
 
 	java_code = '$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'   
   	if interact!= None:
@@ -246,7 +251,7 @@ class Uniprot(models.Model):
 		h_frame = str(65)
 		height = str(50)
 		frame = 800
-		color_code = {'Family':'#FF3333','Domain':'#75A319','Motif':'#A347FF','Repeat':'#FF9933'}
+		#color_code = {'Family':'#FF85D6','Domain':'#75A319','Motif':'#A347FF','Repeat':'#FF9933'}
 		range_val = [5,10,20,25,50,100,200,250,500,1000,2000,2500,5000,10000]
 		length = len(self.sequence)
 		chosen_range = min(range_val, key=lambda x:abs(x-length/6))
@@ -269,7 +274,7 @@ class Uniprot(models.Model):
 			for region in self.pfam_mappings.all():
 				classname = self.acc_number +str(region.id)
 				content_data = 'Name: '+region.hmm.name+', Type: '+region.hmm.type+', Range: '+str(region.alignment_start_residue.position)+' - '+str(region.alignment_end_residue.position)
-				graphic_code += '<a xlink:href = "http://pfam.sanger.ac.uk/family/'+region.hmm.acc+'" target="_blank" ><rect class ="'+classname+' annosite" width="'+ str((region.alignment_end_residue.position - region.alignment_start_residue.position)*frame/length)+'" height="15" x="'+str((region.alignment_start_residue.position)*frame/length) +'" y="18" rx="6" ry="6" style="fill:'+color_code[region.hmm.type]+';" /></a>'
+				graphic_code += '<a xlink:href = "http://pfam.sanger.ac.uk/family/'+region.hmm.acc+'" target="_blank" ><rect class ="'+classname+' annosite" width="'+ str((region.alignment_end_residue.position - region.alignment_start_residue.position)*frame/length)+'" height="15" x="'+str((region.alignment_start_residue.position)*frame/length+5) +'" y="18" rx="6" ry="6" style="fill:'+region.hmm.get_color()+';" /></a>'
 				java_code+= '$(".'+classname+'").popover({content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
 		else:
 			graphic_code += '<text x="'+str(frame/3)+'" y="30" font-size="20" fill="#A4A4A8">No annotations found.</text>'
@@ -527,58 +532,74 @@ class InteractionType(models.Model):
         db_table = 'interaction_type'
 
 class Interaction(models.Model):
-    id = models.IntegerField(primary_key=True)
-    chain_1 = models.ForeignKey(Chain,db_column='chain_1_id',related_name='interactions_1')
-    chain_2 = models.ForeignKey(Chain,db_column='chain_2_id',related_name='interactions_2')
-    inter_type = models.ForeignKey(InteractionType,db_column='type',related_name='+')
-    filename = models.CharField(max_length=100L)
-    class Meta:
-        db_table = 'interaction'
+	id = models.IntegerField(primary_key=True)
+	chain_1 = models.ForeignKey(Chain,db_column='chain_1_id',related_name='interactions_1')
+	chain_2 = models.ForeignKey(Chain,db_column='chain_2_id',related_name='interactions_2')
+	inter_type = models.ForeignKey(InteractionType,db_column='type',related_name='+')
+	filename = models.CharField(max_length=100L)
+	class Meta:
+		db_table = 'interaction'
 
-    def get_snv_chain_residues(self):
-    	snvdict1 = {}
-        cr_withsnv_partner1 = []
-        for chain_residue in self.chain_1.residues.all():
-            for ur in chain_residue.uniprot_residue.all():
-                for snv in ur.snvs.all():
-                    cr_withsnv_partner1.append(chain_residue)
-                    try:
-                    	snvdict1[snv].append([chain_residue,chain_residue.get_transformed_position(self)])
-                    except KeyError:
-                    	snvdict1[snv]=[[chain_residue,chain_residue.get_transformed_position(self)]]
+	###################outset = sorted(outset, key=lambda x: x.id) # sort the interactions by id
 
-        snvdict2 = {}
-        cr_withsnv_partner2 = []
-        for chain_residue in self.chain_2.residues.all():
-            for ur in chain_residue.uniprot_residue.all():
-                for snv in ur.snvs.all():
-                    cr_withsnv_partner2.append(chain_residue)
-                    try:
-                    	snvdict2[snv].append([chain_residue,chain_residue.get_transformed_position(self)])
-                    except KeyError:
-                    	snvdict2[snv]=[[chain_residue,chain_residue.get_transformed_position(self)]]
+	#Get List of Snvs that appear in the pdb
+	def get_snv_chain_residues(self):
+		snvdict1 = {}
+		cr_withsnv_partner1 = [] #a set of all chain residues that contain snvs in partner 1
+		for chain_residue in self.chain_1.residues.all():
+			for ur in chain_residue.uniprot_residue.all():
+				for snv in ur.snvs.all():
+					if chain_residue not in cr_withsnv_partner1:# eliminate redundancy
+						cr_withsnv_partner1.append(chain_residue)
+					try:
+						snvdict1[snv].append([chain_residue,chain_residue.get_transformed_position(self)])
+					except KeyError:
+						snvdict1[snv]=[[chain_residue,chain_residue.get_transformed_position(self)]]
+		snvdict2 = {}
+		cr_withsnv_partner2 = []
+		for chain_residue in self.chain_2.residues.all():
+			for ur in chain_residue.uniprot_residue.all():
+				for snv in ur.snvs.all():
+					if chain_residue not in cr_withsnv_partner2:  # eliminate redundancy
+						cr_withsnv_partner2.append(chain_residue)
+					try:
+						snvdict2[snv].append([chain_residue,chain_residue.get_transformed_position(self)]) #If that SNV is already in the dictionary
+					except KeyError:
+						snvdict2[snv]=[[chain_residue,chain_residue.get_transformed_position(self)]]	#If that SNV is not in the dictionary yet
 
-        return [set(cr_withsnv_partner1),set(cr_withsnv_partner2), snvdict1, snvdict2]
+		#sorted snvdict list to be displayed
+		list1=[]
+		for snv, chain_residues in snvdict1.items():
+			for value in chain_residues:
+				if value[0].chain == self.chain_1:
+					list1.append([snv.ft_id,int(value[1]),get_color([snv]),get_short_type([snv])])
+		list2=[]
+		for snv, chain_residues in snvdict2.items():
+			for value in chain_residues:
+				if value[0].chain == self.chain_2:
+					list2.append([snv.ft_id,int(value[1]),get_color([snv]),get_short_type([snv])])
 
-    def get_pfam_mapping_positions(self):
-    	#({mapping:[start_pdb_position,end_pdb_position]} for chain 1, {mapping:[start_pdb_position,end_pdb_position]} for chain 2}
-    	chain1_mapping2positions = {}
-    	chain2_mapping2positions = {}
+		return [sorted(cr_withsnv_partner1, key=lambda x: x.id),sorted(cr_withsnv_partner2, key=lambda x: x.id), snvdict1, snvdict2,sorted(list1, key=lambda x: x[1]),sorted(list2, key=lambda x: x[1])]
 
-    	for mapping in self.chain_1.uniprot.pfam_mappings.all():
+	def get_pfam_mapping_positions(self):
+		#({mapping:[start_pdb_position,end_pdb_position]} for chain 1, {mapping:[start_pdb_position,end_pdb_position]} for chain 2}
+		chain1_mapping2positions = {}
+		chain2_mapping2positions = {}
+
+		for mapping in self.chain_1.uniprot.pfam_mappings.all():
 			# Add to dictionary
 			# Will fail with KeyError if that chain doesn't have a dictionary
 			positions = mapping.get_pdb_positions(self.chain_1,self)
 			if positions is not None:
 				chain1_mapping2positions[mapping] = positions
-    	for mapping in self.chain_2.uniprot.pfam_mappings.all():
+		for mapping in self.chain_2.uniprot.pfam_mappings.all():
 			# Add to dictionary
 			# Will fail with KeyError if that chain doesn't have a dictionary
 			positions = mapping.get_pdb_positions(self.chain_2,self)
 			if positions is not None:
 				chain2_mapping2positions[mapping] = positions
 
-    	return chain1_mapping2positions,chain2_mapping2positions
+		return chain1_mapping2positions,chain2_mapping2positions
 
 
 
@@ -767,14 +788,27 @@ class SnvDisease(models.Model):
 
 
 class PfamHmm(models.Model):
-    acc = models.CharField(max_length=12L, primary_key=True,db_column="hmm_acc")
-    name = models.CharField(max_length=50L)
-    type = models.CharField(max_length=50L)
-    length = models.IntegerField()
-    clan = models.CharField(max_length=50L)
-    uniprots =  models.ManyToManyField(Uniprot,through='UniprotPfamMapping',related_name='pfam_hmms')
-    class Meta:
-        db_table = 'pfam_hmm'
+	acc = models.CharField(max_length=12L, primary_key=True,db_column="hmm_acc")
+	name = models.CharField(max_length=50L)
+	type = models.CharField(max_length=50L)
+	length = models.IntegerField()
+	clan = models.CharField(max_length=50L)
+	uniprots =  models.ManyToManyField(Uniprot,through='UniprotPfamMapping',related_name='pfam_hmms')
+	class Meta:
+		db_table = 'pfam_hmm'
+	def get_color(self):
+		color_code = {'Domain': '#75A319', 'Family':'#FF85D6', 'Motif':'#A347FF','Repeat':'#FF9933'}
+		return color_code[self.type]
+
+	def get_rgbcolor(self):
+		color_code = {'Domain': '[117,163,25]', 'Family':'[255,133,214]', 'Motif':'[163,71,255]','Repeat':'[255,153,51]'}
+		return color_code[self.type]
+
+	def get_short_type(self):
+		type_code = {'Domain': 'D', 'Family':'F', 'Motif':'M', 'Repeat':'R'}
+		strtype = type
+		return type_code[self.type]
+
 
 class UniprotPfamMapping(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -797,13 +831,13 @@ class UniprotPfamMapping(models.Model):
     	ur_list = self.uniprot.residues.filter(position__gte=self.alignment_start_residue.position, position__lte=self.alignment_end_residue.position).order_by('position')
     	
     	for ur in ur_list:
-    		cr_start = ur.chain_residues.all()
+    		cr_start = ur.chain_residues.filter(chain=chain)
     		if cr_start.count()==1:
     			pdbpositions.append(cr_start[0].get_transformed_position(interaction))
     			break
   		    	
     	for ur in ur_list.reverse():
-    		cr_end = ur.chain_residues.all()
+    		cr_end = ur.chain_residues.filter(chain=chain)
     		if cr_end.count()==1:
     			pdbpositions.append(cr_end[0].get_transformed_position(interaction))
     			break

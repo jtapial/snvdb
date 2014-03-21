@@ -31,7 +31,7 @@ class UniprotView(DetailView):
 	def get_context_data(self, **kwargs):
 		# Call the base implementation first to get a context
 		data = super(UniprotView, self).get_context_data(**kwargs)
-		data['chains']  =self.object.get_graphic()
+		data['chains']  =self.object.get_pdb_align()
 		interact_snvs = self.object.interactions() #also initialise data for marking
 		data['interactions'] = interact_snvs[0]
 		data['mapped_seq']   = interact_snvs[1]
@@ -78,10 +78,10 @@ class InteractionView(DetailView):
 		interaction = super(InteractionView, self).get_context_data(**kwargs)
 		# Get snvs
 		snvs = self.object.get_snv_chain_residues()
-		snvdict1 = snvs[2]
-		snvdict2 = snvs[3]
-		interaction["snvdict1"] = snvdict1
-		interaction["snvdict2"] = snvdict2
+		interaction["snvdict1"] = snvs[2]
+		interaction["snvdict2"] = snvs[3]
+		interaction["sortedsnvdict1"] = snvs[4]
+		interaction["sortedsnvdict2"] = snvs[5]
 		# Get converted positions for snvs and add to list
 		chain1_snv_positions = []
 		for cr in snvs[0]:
