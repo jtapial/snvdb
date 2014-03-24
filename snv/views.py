@@ -20,6 +20,7 @@ from django.core.urlresolvers import reverse #for edit & create
 
 
 
+
 class UniprotList(ListView):
 	model = Uniprot
 	template_name = 'Uniprot_list.html'
@@ -100,16 +101,69 @@ class InteractionView(DetailView):
 		return interaction
 
 
-class InterfaceView(DetailView):
-	model = Interaction
-	template_name = 'Interface_view.html'
+#class InterfaceView(DetailView):
+	#model = Interaction
+	#template_name = 'Interface_view.html'
 
-	def get_context_data(self, **kwargs):
+	#def get_context_data(self, **kwargs):
 
-		interface = super(InterfaceView, self).get_context_data(**kwargs)
+		#interface = super(InterfaceView, self).get_context_data(**kwargs)
 		# Add more code here
 
-		return interface
+		#return interface
+# Import graphing for interface view
+import networkx as nx
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
+
+class InterfaceView(View):
+
+	def get(self,request,pk):
+		interaction = Interaction.objects.get(id=pk)
+		left_interface_residues = interaction.chain_1.get_interface_residues(interaction)
+		right_interface_residues = []
+		pos = {}
+		labels = {}
+
+		posy_l = 0
+		posy_r = 0
+		edges = []
+		edge_color = []
+		bond_rank = {'DSB':'yellow','HYB':'blue','POL':'green','PHO':'red','UNK':'grey'}
+		for node in left_interface_residues:
+			pos[node] = [0,posy_l]
+			posy_l += 5
+			cr = node.chain_residue
+			labels[node] = cr.amino_acid.three_letter_code+cr.get_transformed_position(interaction)
+			interacting_residues = node.get_interacting_residues()
+			for residue,bond_type in interacting_residues.items():
+				edges.append((node,residue))
+				edge_color.append(bond_rank[bond_type])
+				if residue not in right_interface_residues:
+					right_interface_residues.append(residue)
+					labels[residue] = residue.chain_residue.amino_acid.three_letter_code+residue.chain_residue.get_transformed_position(interaction)
+					pos[residue] = [1,posy_r]
+					posy_r += 5
+
+		B = nx.Graph()
+		B.add_nodes_from(left_interface_residues,bipartite=0)
+		B.add_nodes_from(right_interface_residues,bipartite=1)
+		B.add_edges_from(edges)
+
+		fig = plt.figure()
+		ax = fig.add_subplot(111)
+		plt.axis([-1,2,-5,max(len(left_interface_residues),len(right_interface_residues))*5+1])
+
+		nx.draw_networkx(B,pos,labels=labels,ax=ax,node_size=300,edge_color=edge_color)
+
+		canvas = FigureCanvas(fig)
+		response = HttpResponse(content_type='image/png')
+		canvas.print_png(response)
+
+		return response
+
+
 
 class SuperpositionView(View):
 
