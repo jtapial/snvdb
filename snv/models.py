@@ -26,25 +26,50 @@ def get_color(snv_list):
 	color_code={'Disease':'red','Polymorphism':'green','Unclassified':'blue'}
 	if len(snv_list)==1:
 		return color_code[snv_list[0].type.type]
-	return 'purple'			
+	return 'purple'
+def get_short_type(snv_list):
+	type_code={'Disease':'D','Polymorphism':'P','Unclassified':'U'}
+	if len(snv_list)==1:
+		return type_code[snv_list[0].type.type]
+	return 'M'				
 
 
 ###########################################################################
 # Return SVG graphic code and Java Script (User need to add </svg> tag manually) 
 ###########################################################################
-def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interactid,maxlen,chain_reg,special):
+def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interact,maxlen,chain_reg,special):
 	h_frame = str(25 + height)
 	height = str(height)
 	frame = 800
+	classname_main = '0'+'_'+cu[i].acc_number+classsuffix #Default Case
+
+	if interact!= None:#If not Default case
+		classname_main = str(interact.id)+'_'+cu[i].acc_number+classsuffix 
+		if i==0:
+			ch = Chain.objects.filter(id=interact.chain_1_id)[0]
+		else:
+			ch = Chain.objects.filter(id=interact.chain_2_id)[0]
+
 	color_code = [['#428bca','#285379'],['#5bc0de','#499AB2']] #darkblue / lightblue
+	color_cover = ['#8EB9DF','#ADE0EE']
 	if not _ischain1:
 		color_code = [['#5bc0de','#499AB2'],['#428bca','#285379']]
+		color_cover = ['#ADE0EE','#8EB9DF']
 	if special:
-		color_code = [['#5bc0de','#499AB2'],['#5bc0de','#499AB2']]
-	classname_main = str(interactid)+'_'+cu[i].acc_number+classsuffix
-	graphic_code = '<svg viewBox="0 0 850 '+h_frame+'" perserveAspectRatio="xMinYMid"><style> .intersite:hover{fill:#FFCC00;}</style>'+ header
-	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'" width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+';" /></a>'              
-	java_code = '$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'     
+		color_code = [['#5bc0de','#499AB2'],['#5bc0de','#499AB2']] #homodimer
+		color_cover = ['#ADE0EE','#ADE0EE']
+	
+		
+
+	graphic_code = '<svg width = "830px" height = "'+h_frame+'px"><style> .intersite:hover{fill:#FFCC00;}</style>'+ header
+
+	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'" width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+';" /></a>'
+	if interact!=None:#pdb region mark
+		graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'_chain" width="'+str((int(ch.seq_end)-int(ch.seq_start))*frame/maxlen)+'" height="'+height+'" x="'+str((int(ch.seq_start))*frame/maxlen)+'" y="25" style="fill:'+color_cover[i]+';" /></a>'
+
+	java_code = '$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'   
+  	if interact!= None:
+		java_code += '$(".'+classname_main+'_chain").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids (PDB:'+ ch.pdb_id+' from '+ch.seq_start+' to '+ch.seq_end+' - '+ch.coverage+'%)","placement": "bottom",trigger: "hover",container:"body"});'   
 	for region in chain_reg:
 		classname = str(i)+str(region[0])+str(region[1])+classsuffix
 		content_data = ''
@@ -52,8 +77,8 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interactid,m
 			content_data = 'Residue '+str(region[0])
 		else:
 			content_data = 'Residue ' +str(region[0])+ ' to ' +str(region[1]-1)+ ' ('+str(region[1]-region[0])+' residues)'
-		graphic_code +=  '<rect class ="'+classname+' intersite" width="'+ str((region[1]-region[0])*frame/maxlen +1) +'" height="'+height+'" x="'+str((region[0])*frame/maxlen) +'" y="25" fill="#FF9933" />'   			
-			
+		graphic_code +=  '<rect class ="'+classname+' intersite" width="'+ str((region[1]-region[0])*frame/maxlen +1) +'" height="'+str(int(height)*2/3)+'" x="'+str((region[0])*frame/maxlen) +'" y="'+str(25)+'" fill="#FF9933"/>'
+
 		java_code+= '$(".'+classname+'").popover({title:"Interface", content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
 		
 	return {'graphic_code':graphic_code,'java_code':java_code} 
@@ -113,16 +138,25 @@ class Uniprot(models.Model):
 	####################################################################
 	# Return html code for SVG graphics and pdb alignment [ CHAIN ]
 	####################################################################
-	def get_graphic(self):
+	def get_pdb_align(self):
 		outset = []
 		for chain in self.chains.all():
 			length = len(self.sequence)
-			graphic_code = '<svg viewBox="0 0 850 50" perserveAspectRatio="xMinYMid">'
+
+			'''
+			graphic_code = '<svg width = "830px" height = "50px">'
+
 			graphic_code += '<rect width="800" height="12" x="0" y="10" rx="5" ry="5" style="fill:#428bca;stroke-width:1;stroke:#285379" />'                   
 			graphic_code +=  '<text x="30" y="20" font-weight="bold" fill="white">'+self.acc_number+'</text> <text x="0" y="20" fill="white">|0</text><text x="200" y="20" fill="white">|'+str(length/4)+'</text><text x="400" y="20" fill="white">|'+str(length/2)+'</text><text x="600" y="20" fill="white">|'+str(length*3/4)+'</text><text x="800" y="20" fill="black">|'+str(length)+'</text>'
-			graphic_code += '<rect width="'+ str(int(float(chain.coverage)*800/100)) +'" height="12" x="'+str(float(chain.seq_start)/float(length)*800)+'" y="25" rx="5" ry="5" style="fill:#5bc0de;stroke-width:1;stroke:#499AB2" />'   			
-			graphic_code += '<text x="'+str(float(chain.seq_start)/float(length)*800+30)+'" y="35" font-weight="bold" fill="white"> PDB:'+chain.pdb_id+'</text><text x="'+str(float(chain.seq_start)/float(length)*800)+'" y="35" fill="white">|'+chain.seq_start+'</text><text x="'+str(float(chain.seq_end)/float(length)*800)+'" y="35" fill="black">|'+chain.seq_end+'</text>'
+			graphic_code += '<rect width="'+ str(int(float(chain.coverage)*800/100)) +'" height="12" x="'+str((float(chain.seq_start)-1)/float(length)*800)+'" y="25" rx="5" ry="5" style="fill:#5bc0de;stroke-width:1;stroke:#499AB2" />'   			
+			graphic_code += '<text x="'+str(float(chain.seq_start)/float(length)*800+30)+'" y="35" font-weight="bold" fill="white"> PDB:'+chain.pdb_id+'</text><text x="'+str(float(chain.seq_start)/float(length)*800)+'" y="35" fill="white">'+chain.seq_start+'</text><text x="'+str(float(chain.seq_end)/float(length)*800)+'" y="35" fill="black">'+chain.seq_end+'</text>'
 			graphic_code +='</svg>'
+			'''
+
+			stat = [0.0,0.0,0.0]
+			stat[0] = round((float(chain.seq_start)-1)*100/float(length),1)
+			stat[1] = round(float(chain.seq_end)*100/float(length),1) - stat[0]
+			stat[2] = 100.0-stat[0]-stat[1]
 
 			#Alighment Method
 			chain_res_set = list(chain.residues.all().extra(order_by = ['id']))
@@ -173,7 +207,7 @@ class Uniprot(models.Model):
 						if(second_line<length):
 							align_code+='<br><code style="background-color:#428bca ; color:white;">Seq 1:</code> '
 						
-			outset.append({'obj':chain,'graphic':graphic_code,'alignent':align_code})	 	
+			outset.append({'obj':chain,'alignent':align_code,'stat':stat})	 	
 		return outset
 
 	###############################################
@@ -217,12 +251,14 @@ class Uniprot(models.Model):
 		h_frame = str(65)
 		height = str(50)
 		frame = 800
-		color_code = {'Family':'#FF3333','Domain':'#75A319','Motif':'#A347FF','Repeat':'#FF9933'}
-		range_val = [5,10,20,50,100,200,500,1000,2000,5000,10000]
+		#color_code = {'Family':'#FF85D6','Domain':'#75A319','Motif':'#A347FF','Repeat':'#FF9933'}
+		range_val = [5,10,20,25,50,100,200,250,500,1000,2000,2500,5000,10000]
 		length = len(self.sequence)
 		chosen_range = min(range_val, key=lambda x:abs(x-length/6))
 		java_code = ''
-		graphic_code = '<svg viewBox="0 0 850 '+h_frame+'" perserveAspectRatio="xMinYMid"><style> .annosite:hover{stroke-width:2;stroke:#FFFF00;}</style>'
+
+		graphic_code = '<svg width = "840px" height = "'+h_frame+'px"><style> .annosite:hover{stroke-width:2;stroke:#FFFF00;}</style>'
+
 		graphic_code += '<rect width="'+str(frame)+'" height="'+height+'" x="5" y="0" style="fill:#E4E4E9;stroke-width:1;stroke:#CDCDD2;" />'
 		pos = 0
 		while pos <= length:
@@ -238,7 +274,7 @@ class Uniprot(models.Model):
 			for region in self.pfam_mappings.all():
 				classname = self.acc_number +str(region.id)
 				content_data = 'Name: '+region.hmm.name+', Type: '+region.hmm.type+', Range: '+str(region.alignment_start_residue.position)+' - '+str(region.alignment_end_residue.position)
-				graphic_code += '<a xlink:href = "http://pfam.sanger.ac.uk/family/'+region.hmm.acc+'" target="_blank" ><rect class ="'+classname+' annosite" width="'+ str((region.alignment_end_residue.position - region.alignment_start_residue.position)*frame/length)+'" height="15" x="'+str((region.alignment_start_residue.position)*frame/length) +'" y="18" rx="6" ry="6" style="fill:'+color_code[region.hmm.type]+';" /></a>'
+				graphic_code += '<a xlink:href = "http://pfam.sanger.ac.uk/family/'+region.hmm.acc+'" target="_blank" ><rect class ="'+classname+' annosite" width="'+ str((region.alignment_end_residue.position - region.alignment_start_residue.position)*frame/length)+'" height="15" x="'+str((region.alignment_start_residue.position)*frame/length+5) +'" y="18" rx="6" ry="6" style="fill:'+region.hmm.get_color()+';" /></a>'
 				java_code+= '$(".'+classname+'").popover({content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
 		else:
 			graphic_code += '<text x="'+str(frame/3)+'" y="30" font-size="20" fill="#A4A4A8">No annotations found.</text>'
@@ -253,7 +289,7 @@ class Uniprot(models.Model):
 		output = []
 		interactionset = []
 		header = '<text x="5" y="15" font-weight="bold" fill="black">'+self.acc_number+'</text>' 
-		svgcode = create_svg_interaction([self,self],False,0,header,36,'mapped','0',len(self.sequence),[],True)
+		svgcode = create_svg_interaction([self,self],False,0,header,36,'mapped',None,len(self.sequence),[],True)
 		interaction_reg_mark = [{'name':'default','info':'Default setting, No interaction marked','region':[],'id':'default','sequence':'','checked':'checked','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']}]
 		outset = []
 		#fetch and sort all related interactions
@@ -315,24 +351,24 @@ class Uniprot(models.Model):
 			if _isHomo: #Homo case, append both
 				maxlen = len(cu[0].sequence)
 				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' when interacting with '+cu[1].acc_number+' ['+cu[1].name+']</text>' 
-				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact.id,maxlen,chain_reg[0],True)
+				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact,maxlen,chain_reg[0],True)
 
-				interaction_reg_mark.append({'name':cu[0].acc_number+'.1','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number+'1','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[0].acc_number+'.1','info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number+'1','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 
-				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact.id,maxlen,chain_reg[1],True)
-				interaction_reg_mark.append({'name':cu[0].acc_number+'.2','info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number+'2','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact,maxlen,chain_reg[1],True)
+				interaction_reg_mark.append({'name':cu[0].acc_number+'.2','info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number+'2','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 				
 				
 			elif _ischain1:
 				maxlen = len(cu[0].sequence)
 				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' when interacting with '+cu[1].acc_number+' ['+cu[1].name+']</text>' 
-				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact.id,maxlen,chain_reg[0],False)
-				interaction_reg_mark.append({'name':cu[1].acc_number,'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact,maxlen,chain_reg[0],False)
+				interaction_reg_mark.append({'name':cu[1].acc_number,'info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 			else:
 				maxlen = len(cu[1].sequence)
 				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[1].acc_number+' when interacting with '+cu[0].acc_number+' ['+cu[0].name+']</text>' 
-				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact.id,maxlen,chain_reg[1],False)
-				interaction_reg_mark.append({'name':cu[0].acc_number,'info':'ID: '+str(interact.id)+', '+cu[0].acc_number+'-'+cu[1].acc_number,'region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact,maxlen,chain_reg[1],False)
+				interaction_reg_mark.append({'name':cu[0].acc_number,'info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 
 
 
@@ -343,7 +379,7 @@ class Uniprot(models.Model):
 
 			for i in range(2):
 				header = '<text x="5" y="15" font-weight="bold" fill="black">Partner '+str(i+1)+' : '+cu[i].acc_number+' ['+cu[i].name+'] </text>'
-				svgcode = create_svg_interaction(cu,_ischain1,i,header,12,'',interact.id,maxlen,chain_reg[i],False)
+				svgcode = create_svg_interaction(cu,_ischain1,i,header,18,'',interact,maxlen,chain_reg[i],False)
 				graphic_code[i] = svgcode['graphic_code']+'</svg><script>'+svgcode['java_code']+'</script>'
 				
 			interactionset.append({'obj':interact,'code':graphic_code})
@@ -408,8 +444,8 @@ class Uniprot(models.Model):
 					if color == 'purple':
 						snvtype = 'Multiple variations'
 						snvclass = 'mul'
-					option['graphic_code']+= '<rect class ="snv'+str(curr_pos+1)+' '+snvclass+'" width="'+ str(1*frame/len(seq) +1) +'" height="18" x="'+str((curr_pos+1)*frame/len(seq)) +'" y="25" fill="'+color+'" />' 
-					option['java_code']+= '$(".snv'+str(curr_pos+1)+'").popover({title:"SNV",content:"Position '+str(curr_pos+1)+', type: '+snvtype+'","placement": "top",trigger: "hover",container:"body"});'
+					option['graphic_code']+= '<rect class ="snv'+str(curr_pos+1)+' '+snvclass+'" width="'+ str(1*frame/len(seq) +1) +'" height="12" x="'+str((curr_pos+1)*frame/len(seq)) +'" y="25" fill="'+color+'" />' 
+					option['java_code']+= '$(".snv'+str(curr_pos+1)+'").popover({title:"SNV ['+pos[1][0].ft_id+']",content:"Position '+str(curr_pos+1)+', type: '+snvtype+'","placement": "top",trigger: "hover",container:"body"});'
 					if color == 'purple':#multiple mutation case
 						html = ''
 						for item in pos[1]:					
@@ -419,7 +455,7 @@ class Uniprot(models.Model):
 					else:#One mutation case
 						url = pos[1][0].get_absolute_url()
 						pos_mute=pos_mute + pos[1][0].mutant_aa.one_letter_code +'('+pos[1][0].type.type+') '	
-						mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="'+url+'" target="_blank" style="color:'+textcol+';'+extraopt+'" title="Position '+str(curr_pos+1)+', Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
+						mod_seq = mod_seq + '<mark style="background-color:'+color+'"><a href="'+url+'" target="_blank" style="color:'+textcol+';'+extraopt+'" title="Position '+str(curr_pos+1)+' ['+pos[1][0].ft_id+'], Mutation: ' +pos_mute+'">'+seq[curr_pos]+'</a></mark>'	
 						#add svg graphic
 						
 					if(len(sorted_mod)>0):
@@ -496,51 +532,91 @@ class InteractionType(models.Model):
         db_table = 'interaction_type'
 
 class Interaction(models.Model):
-    id = models.IntegerField(primary_key=True)
-    chain_1 = models.ForeignKey(Chain,db_column='chain_1_id',related_name='interactions_1')
-    chain_2 = models.ForeignKey(Chain,db_column='chain_2_id',related_name='interactions_2')
-    inter_type = models.ForeignKey(InteractionType,db_column='type',related_name='+')
-    filename = models.CharField(max_length=100L)
-    class Meta:
-        db_table = 'interaction'
+	id = models.IntegerField(primary_key=True)
+	chain_1 = models.ForeignKey(Chain,db_column='chain_1_id',related_name='interactions_1')
+	chain_2 = models.ForeignKey(Chain,db_column='chain_2_id',related_name='interactions_2')
+	inter_type = models.ForeignKey(InteractionType,db_column='type',related_name='+')
+	filename = models.CharField(max_length=100L)
+	class Meta:
+		db_table = 'interaction'
 
-    def get_snvs(self):
-        cr_withsnv_partner1 = []
-        for chain_residue in self.chain_1.residues.all():
-            for ur in chain_residue.uniprot_residue.all():
-                for snv in ur.snvs.all():
-                    cr_withsnv_partner1.append(chain_residue)
-        cr_withsnv_partner2 = []
-        for chain_residue in self.chain_2.residues.all():
-            for ur in chain_residue.uniprot_residue.all():
-                for snv in ur.snvs.all():
-                    cr_withsnv_partner2.append(chain_residue)
+	###################outset = sorted(outset, key=lambda x: x.id) # sort the interactions by id
 
-        return [set(cr_withsnv_partner1),set(cr_withsnv_partner2)]
+	#Get List of Snvs that appear in the pdb
+	def get_snv_chain_residues(self):
+		snvdict1 = {}
+		cr_withsnv_partner1 = [] #a set of all chain residues that contain snvs in partner 1
+		for chain_residue in self.chain_1.residues.all():
+			for ur in chain_residue.uniprot_residue.all():
+				for snv in ur.snvs.all():
+					if chain_residue not in cr_withsnv_partner1:# eliminate redundancy
+						cr_withsnv_partner1.append(chain_residue)
+					try:
+						snvdict1[snv].append([chain_residue,chain_residue.get_transformed_position(self)])
+					except KeyError:
+						snvdict1[snv]=[[chain_residue,chain_residue.get_transformed_position(self)]]
+		snvdict2 = {}
+		cr_withsnv_partner2 = []
+		for chain_residue in self.chain_2.residues.all():
+			for ur in chain_residue.uniprot_residue.all():
+				for snv in ur.snvs.all():
+					if chain_residue not in cr_withsnv_partner2:  # eliminate redundancy
+						cr_withsnv_partner2.append(chain_residue)
+					try:
+						snvdict2[snv].append([chain_residue,chain_residue.get_transformed_position(self)]) #If that SNV is already in the dictionary
+					except KeyError:
+						snvdict2[snv]=[[chain_residue,chain_residue.get_transformed_position(self)]]	#If that SNV is not in the dictionary yet
 
-    def get_pfam_mapping_positions(self):
-    	#{chain_id:{mapping:[start_pdb_position,end_pdb_position]}}
-    	chain1_mapping2positions = {}
-    	chain2_mapping2positions = {}
+		#sorted snvdict list to be displayed
+		list1=[]
+		for snv, chain_residues in snvdict1.items():
+			for value in chain_residues:
+				if value[0].chain == self.chain_1:
+					list1.append([snv.ft_id,int(value[1]),get_color([snv]),get_short_type([snv])])
+		list2=[]
+		for snv, chain_residues in snvdict2.items():
+			for value in chain_residues:
+				if value[0].chain == self.chain_2:
+					list2.append([snv.ft_id,int(value[1]),get_color([snv]),get_short_type([snv])])
 
-    	for mapping in self.chain_1.uniprot.pfam_mappings.all():
+		return [sorted(cr_withsnv_partner1, key=lambda x: x.id),sorted(cr_withsnv_partner2, key=lambda x: x.id), snvdict1, snvdict2,sorted(list1, key=lambda x: x[1]),sorted(list2, key=lambda x: x[1])]
+
+	def get_pfam_mapping_positions(self):
+		#({mapping:[start_pdb_position,end_pdb_position]} for chain 1, {mapping:[start_pdb_position,end_pdb_position]} for chain 2}
+		chain1_mapping2positions = {}
+		chain2_mapping2positions = {}
+
+		for mapping in self.chain_1.uniprot.pfam_mappings.all():
 			# Add to dictionary
 			# Will fail with KeyError if that chain doesn't have a dictionary
 			positions = mapping.get_pdb_positions(self.chain_1,self)
-			if len(positions) == 2:
+			if positions is not None:
 				chain1_mapping2positions[mapping] = positions
-    	for mapping in self.chain_2.uniprot.pfam_mappings.all():
+		for mapping in self.chain_2.uniprot.pfam_mappings.all():
 			# Add to dictionary
 			# Will fail with KeyError if that chain doesn't have a dictionary
 			positions = mapping.get_pdb_positions(self.chain_2,self)
-			if len(positions) == 2:
+			if positions is not None:
 				chain2_mapping2positions[mapping] = positions
 
-    	return chain1_mapping2positions,chain2_mapping2positions
+		return chain1_mapping2positions,chain2_mapping2positions
+
+	def get_contacts(self):
+		contacts = {}
+		for ir in self.chain_1.get_interface_residues(self):
+			cr = ir.chain_residue
+			for atom in ir.atoms.all():
+				if atom.interactions is not None:
+					for inter in atom.interactions.exclude(type="UNK"):
+						partner_atom = inter.partner_atom
+						partner_cr = partner_atom.interface_residue.chain_residue
+						try:
+							contacts[inter.type].append(["[%(aa_a)s]%(pos_a)s:A.%(label_a)s" % {"aa_a":cr.amino_acid.three_letter_code, "pos_a":cr.get_transformed_position(self), "label_a":atom.label}, "[%(aa_b)s]%(pos_b)s:B.%(label_b)s" % {"aa_b":partner_cr.amino_acid.three_letter_code, "pos_b":partner_cr.get_transformed_position(self), "label_b":partner_atom.label}])
+						except KeyError:
+							contacts[inter.type] = [["[%(aa_a)s]%(pos_a)s:A.%(label_a)s" % {"aa_a":cr.amino_acid.three_letter_code, "pos_a":cr.get_transformed_position(self), "label_a":atom.label}, "[%(aa_b)s]%(pos_b)s:B.%(label_b)s" % {"aa_b":partner_cr.amino_acid.three_letter_code, "pos_b":partner_cr.get_transformed_position(self), "label_b":partner_atom.label}]]
 
 
-
-
+		return contacts #,len(contacts["HYB"]),len(contacts["POL"]),len(contacts["PHO"]),(len(contacts["HYB"]) + len(contacts["POL"]) + len(contacts["PHO"])) ** UNCOMMENT TO RETURN COUNTS
 
 class ChainResidue(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -565,7 +641,7 @@ class ChainResidue(models.Model):
 
 class PositionMapping(models.Model):
     id = models.IntegerField(primary_key=True)
-    uniprot_residue = models.ForeignKey(UniprotResidue,db_column='uniprot_residue_id',related_name='+')
+    uniprot_residue = models.ForeignKey(UniprotResidue,db_column='uniprot_residue_id',related_name='+')	
     chain_residue = models.ForeignKey(ChainResidue,db_column='chain_residue_id',related_name='mapping')
     class Meta:
         db_table = 'position_mapping'
@@ -629,6 +705,8 @@ class InterfaceResidue(models.Model):
     			except KeyError:
     				interacting_residues[partner_residue] = interaction.type
     	return interacting_residues
+
+
 
 
 
@@ -723,14 +801,27 @@ class SnvDisease(models.Model):
 
 
 class PfamHmm(models.Model):
-    acc = models.CharField(max_length=12L, primary_key=True,db_column="hmm_acc")
-    name = models.CharField(max_length=50L)
-    type = models.CharField(max_length=50L)
-    length = models.IntegerField()
-    clan = models.CharField(max_length=50L)
-    uniprots =  models.ManyToManyField(Uniprot,through='UniprotPfamMapping',related_name='pfam_hmms')
-    class Meta:
-        db_table = 'pfam_hmm'
+	acc = models.CharField(max_length=12L, primary_key=True,db_column="hmm_acc")
+	name = models.CharField(max_length=50L)
+	type = models.CharField(max_length=50L)
+	length = models.IntegerField()
+	clan = models.CharField(max_length=50L)
+	uniprots =  models.ManyToManyField(Uniprot,through='UniprotPfamMapping',related_name='pfam_hmms')
+	class Meta:
+		db_table = 'pfam_hmm'
+	def get_color(self):
+		color_code = {'Domain': '#75A319', 'Family':'#FF85D6', 'Motif':'#A347FF','Repeat':'#FF9933'}
+		return color_code[self.type]
+
+	def get_rgbcolor(self):
+		color_code = {'Domain': '[117,163,25]', 'Family':'[255,133,214]', 'Motif':'[163,71,255]','Repeat':'[255,153,51]'}
+		return color_code[self.type]
+
+	def get_short_type(self):
+		type_code = {'Domain': 'D', 'Family':'F', 'Motif':'M', 'Repeat':'R'}
+		strtype = type
+		return type_code[self.type]
+
 
 class UniprotPfamMapping(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -750,18 +841,38 @@ class UniprotPfamMapping(models.Model):
 
     def get_pdb_positions(self,chain,interaction):
     	pdbpositions = []
-
-    	for chain_residue in self.alignment_start_residue.chain_residues.all():
-    		if chain_residue.chain == chain:
-    			pdbpositions.append(chain_residue.get_transformed_position(interaction))
-    	for chain_residue in self.alignment_end_residue.chain_residues.all():
-    		if chain_residue.chain == chain:
-    			pdbpositions.append(chain_residue.get_transformed_position(interaction))
+    	ur_list = self.uniprot.residues.filter(position__gte=self.alignment_start_residue.position, position__lte=self.alignment_end_residue.position).order_by('position')
+    	
+    	for ur in ur_list:
+    		cr_start = ur.chain_residues.filter(chain=chain)
+    		if cr_start.count()==1:
+    			pdbpositions.append(cr_start[0].get_transformed_position(interaction))
+    			break
+  		    	
+    	for ur in ur_list.reverse():
+    		cr_end = ur.chain_residues.filter(chain=chain)
+    		if cr_end.count()==1:
+    			pdbpositions.append(cr_end[0].get_transformed_position(interaction))
+    			break
 
     	if len(pdbpositions) == 2:
     		return pdbpositions
     	else:
-    		return []
+    		return None
+
+# OLD CODE FOR GET_PDB_POSITIONS;
+
+#    	for chain_residue in self.alignment_start_residue.chain_residues.filter(chain=chain):
+#    		if chain_residue.chain == chain:
+#    			pdbpositions.append(chain_residue.get_transformed_position(interaction))
+#    	for chain_residue in self.alignment_end_residue.chain_residues.all():
+#    		if chain_residue.chain == chain:
+#    			pdbpositions.append(chain_residue.get_transformed_position(interaction))
+#
+#    	if len(pdbpositions) == 2:
+#    		return pdbpositions
+#    	else:
+#    		return None
 
 class ActiveSiteResidue(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -777,7 +888,7 @@ class SuperpositionMapping(models.Model):
     target_chain_letter = models.CharField(max_length=1L)
     target_interaction = models.ForeignKey(Interaction,db_column='target_interaction_id',related_name='superpositions_where_target')
     class Meta:
-        db_table = 'combined_uniprot_mapping'
+    	db_table = 'combined_uniprot_mapping'
 
     def get_interface_residues(self):
     	# Find interaction
@@ -803,7 +914,7 @@ class InterfaceAtom(models.Model):
 	id = models.IntegerField(primary_key=True)
 	interface_residue = models.ForeignKey(InterfaceResidue,db_column='interface_residue_id',related_name='atoms')
 	label = models.CharField(max_length=4L)
-	class Meta:
+	class Meta:	
 		db_table = 'interface_atom'
 
 class InterfaceAtomInteraction(models.Model):
