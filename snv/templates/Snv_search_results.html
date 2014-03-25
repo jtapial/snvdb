@@ -26,7 +26,7 @@ background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last)
     <p>Found {{ snves|length }} SNV{{ snves|pluralize }} that match your keyword "<strong>{{ query }}</strong>".</p>
     <ul class = "list-group">
         {% for item in snves %}
-        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}">FT ID: {{ item.ft_id}} | DB SNP ID: {{ item.db_snp}}</a> </li> 
+        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}" class="link">FT ID: {{ item.ft_id}} | DB SNP ID: {{ item.db_snp}}</a> </li> 
         {% endfor %}
     </ul>
 {% else %}

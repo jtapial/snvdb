@@ -8,6 +8,7 @@ background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last)
 }
 {% endblock %}
 
+
 {% block header %}
 <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
@@ -25,7 +26,7 @@ background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last)
     <p>Found {{ diseases|length }} disease{{ diseases|pluralize }} that match your keyword "<strong>{{ query }}</strong>".</p>
     <ul class = "list-group">
         {% for item in diseases %}
-        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}"> {{ item.mim}}  {{ item.name}}</a> </li> 
+        <li class="list-group-item" > <a href="{{ item.get_absolute_url }}" class="link"> {{ item.mim}}  {{ item.name}}</a> </li> 
         {% endfor %}
     </ul>
 {% else %}

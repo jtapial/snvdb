@@ -102,7 +102,7 @@ white-space: nowrap;
 
 				<p>{{snv_list|length}} SNVs </p>
 				{% if snv_list %}
-				<p>{{snv_statistic.1}}% Diseases, {{snv_statistic.2}}% Polymorphisms, {{snv_statistic.3}}% Unclassified</p>{% endif %}
+				<p>{{snv_statistic.1}}% <code style="background-color:red; color:white;">Disease</code>, {{snv_statistic.2}}% <code style="background-color:green; color:white;">Polymorphism</code>, {{snv_statistic.3}}% <code style="background-color:blue; color:white;">Unclassified</code></p>{% endif %}
 
 			</div> <!-- END col -->
 		  
@@ -290,10 +290,10 @@ white-space: nowrap;
 						<th>PDB id</th>
 						<th>PDB chain</th>
 						<th>PDB model</th>
-						<th><span data-toggle="popover" data-content="Sequence Identity" >Identity (%)</span></th>
+						<th><span data-toggle="popover" data-content="Identity to its original chain (not to the Uniprot sequence)" >Identity (%)</span></th>
 						<th>Coverage (%)</th>
-						<th><span data-toggle="popover" data-content="Staring residue for the aligned sequence" >Start</span></th>
-						<th><span data-toggle="popover" data-content="Ending residue for the aligned sequence" >End</span></th>
+						<th><span data-toggle="popover" data-content="Residue on the Uniprot sequence where pdb chain starts to aligned on it" >Start</span></th>
+						<th><span data-toggle="popover" data-content="Residue on the Uniprot sequence where pdb chain alignment ends" >End</span></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -385,7 +385,7 @@ white-space: nowrap;
 							<td><a href="{% url 'uniprot-view' pk=item.obj.chain_1.uniprot.acc_number %}">{{item.obj.chain_1.uniprot.acc_number}}</a></td>
 							<td><a href="{% url 'uniprot-view' pk=item.obj.chain_2.uniprot.acc_number %}">{{item.obj.chain_2.uniprot.acc_number}}</a></td>
 							<td>{{item.obj.inter_type.inter_type}}</td>
-							<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.obj.id %}')">3D Interaction</button> <button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interface-view' pk=item.obj.id %}')">Interface</button> <button class="btn btn-success btn-sm" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')"><span class = "glyphicon glyphicon-download"></span> PDB</button></td>
+							<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.obj.id %}')">3D Interaction</button> <button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interface-view' pk=item.obj.id %}')">2D Interface</button> <button class="btn btn-success btn-sm" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')"><span class = "glyphicon glyphicon-download"></span> PDB</button></td>
 						</tr>
 						<tr>
 							<td colspan="5" class= "hidden-xs hidden-sm">
