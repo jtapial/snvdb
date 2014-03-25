@@ -4,6 +4,7 @@
 {% load staticfiles %}
 {% block javascript %}
 <script type="text/javascript" src="{{BASE_URL}}{% static 'jsmol/jsmol/JSmol.min.js'%}"></script> 
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 {% endblock %}
 
 {% block css %}
@@ -60,7 +61,7 @@ label{font-weight:normal !important}
 					reset_structure();
 
 					// Mapping interface residues onto structure
-					function interface_residues(color1,color2,display){
+					function color_interface_residues(color1,color2,display){
 					{% for interface_res in interaction.interface_residues.all %}
 						{% if interface_res.chain_residue.chain == interaction.chain_1 %}
 							Jmol.script(myJmol, 'select {{interface_res.get_position}}:A; '+display);
@@ -171,9 +172,9 @@ label{font-weight:normal !important}
 						//Show & reset interface residue
 						$('#ir-btn').change(function(){
 							if ($('#ir-btn').is(":checked")){
-								interface_residues("pink","purple","spacefill; cartoons off; wireframe off;");
+								color_interface_residues("pink","purple","spacefill; cartoons off; wireframe off;");
 							}else{
-								interface_residues("pink","purple","spacefill off; "+dpmode+";");
+								color_interface_residues("pink","purple","spacefill off; "+dpmode+";");
 							}
 						});
 

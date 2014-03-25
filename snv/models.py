@@ -537,6 +537,7 @@ class Interaction(models.Model):
 	chain_2 = models.ForeignKey(Chain,db_column='chain_2_id',related_name='interactions_2')
 	inter_type = models.ForeignKey(InteractionType,db_column='type',related_name='+')
 	filename = models.CharField(max_length=100L)
+	crossing_number = models.IntegerField()
 	class Meta:
 		db_table = 'interaction'
 

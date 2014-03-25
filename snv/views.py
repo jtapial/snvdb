@@ -20,6 +20,7 @@ from django.core.urlresolvers import reverse #for edit & create
 
 
 
+
 class UniprotList(ListView):
 	model = Uniprot
 	template_name = 'Uniprot_list.html'
@@ -112,9 +113,10 @@ class InterfaceView(DetailView):
 	def get_context_data(self, **kwargs):
 
 		interface = super(InterfaceView, self).get_context_data(**kwargs)
-		# Add more code here
 
 		return interface
+
+
 
 class SuperpositionView(View):
 
