@@ -1,0 +1,388 @@
+{% extends "base_small.html" %}
+{% block pagetitle %}Interaction: {{interaction.chain_1.uniprot.acc_number}} - {{interaction.chain_2.uniprot.acc_number}}{% endblock %}
+
+{% load staticfiles %}
+{% block javascript %}
+<script type="text/javascript" src="{{BASE_URL}}{% static 'jsmol/jsmol/JSmol.min.js'%}"></script> 
+{% endblock %}
+{% block css %}
+
+//don't delete this
+.scroll2
+{
+background-color:#00FF00;
+width:100px;
+height:100px;
+overflow:scroll;
+}
+
+
+.scroll{
+	height:360px;
+	overflow:auto;
+	overflow-x:hidden;
+}
+
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+	<h1>Interaction: {{interaction.chain_1.uniprot.acc_number}} - {{interaction.chain_2.uniprot.acc_number}} <small>(ID: {{interaction.id}})</small></h1>
+</div>
+
+<div class="content">
+	<h3>Interaction summary:</h3>
+	<ul>
+		<li><strong>Type: </strong>{{interaction.inter_type.inter_type}}</li>
+		<li><strong><code style="background-color: #9999FF; color:black;">Partner 1:</code></strong> {{interaction.chain_1.uniprot.acc_number}} | {{interaction.chain_1.uniprot.name}} <span class="text-muted">(Chain ID: {{interaction.chain_1.id}})</span></li>
+		<li><strong><code style="background-color: #99FF99; color:black;">Partner 2:</code></strong> {{interaction.chain_2.uniprot.acc_number}} | {{interaction.chain_2.uniprot.name}} <span class="text-muted">(Chain ID: {{interaction.chain_2.id}})</span></li>
+		<li><strong>Filename: </strong>{{interaction.filename}}</li>
+	</ul>
+</div>
+
+<div class="content">
+	<h3>Interaction structure:</h3>
+
+	<table class="table table-condensed">
+		<tr>
+			<td height=450 width=450>
+					<script type="text/javascript">
+						var Info = {
+				  color: "#FFFFFF",  // white background (note this changes legacy default which was black)
+				  height: 450,      // pixels (but it may be in percent)
+				  width: 450,
+				  use: "HTML5",         // "HTML5" or "Java" (case-insensitive)
+				  j2sPath: "{{ BASE_URL }}/static/jsmol/jsmol/j2s",           // only used in the HTML5 modality
+				  defaultModel: "",
+				  script: null,
+				  src: null,
+				  readyFunction: null,
+				  addSelectionOptions: false,
+				  debug: false,
+				  disableInitialConsole: true
+				};	
+
+					Jmol.getApplet("myJmol", Info);
+					reset_structure();
+
+					// Mapping interface residues onto structure
+					function interface_residues(color1,color2,display){
+					{% for interface_res in interaction.interface_residues.all %}
+						{% if interface_res.chain_residue.chain == interaction.chain_1 %}
+							Jmol.script(myJmol, 'select {{interface_res.get_position}}:A; '+display+';');
+						{% elif interface_res.chain_residue.chain == interaction.chain_2 %}
+							Jmol.script(myJmol, 'select {{interface_res.get_position}}:B; '+display+';');
+						{% else %}
+						alert("Chain mapping failed");
+						{% endif %}
+					{% endfor %}
+					};
+
+					function map_snvs(color1,color2){
+					// Mapping snvs on chain_1 onto structure
+					{% for position in chain1_snv_positions %}
+						Jmol.script(myJmol,'select {{position}}:A; color ' + color1 +';');
+					{% empty %}
+						alert("Partner 1 has no Snvs that can be mapped to this structure")
+					{% endfor %}
+					// Mapping snvs on chain_2 onto structure
+					{% for position in chain2_snv_positions %}
+						Jmol.script(myJmol,'select {{position}}:B; color ' + color2 +';');
+					{% empty %}
+						alert("Partner 2 has no Snvs that can be mapped to this structure")
+					{% endfor %}
+					};
+
+					function reset_structure(){
+						Jmol.script(myJmol,'zap; set highResolution ON; load {{BASE_URL}}{% static interaction.filename %}; wireframe off; spacefill off; select protein; cartoons on; color chain;');
+					};
+					function show_partner(partner){
+						Jmol.script(myJmol, 'hide hidden and not :'+partner+';');
+					};
+					function hide_partner(partner){
+						Jmol.script(myJmol, 'hide hidden or :'+partner+';');
+					};
+					function color_range(start,end,color,partner){
+						Jmol.script(myJmol, 'select '+start+'-'+end+':'+partner+'; color '+color+';')
+					};
+					function map_pfam_domains(color){
+					//mapping domains on chain_1 onto structure
+					{% for mapping in chain1_pfam_positions.items %}
+						Jmol.script(myJmol, 'select {{mapping.1.0}}-{{mapping.1.1}}:A; color '+color+';');
+					{% endfor %}
+
+					//mapping domains on chain_1 onto structure
+					{% for mapping in chain2_pfam_positions.items %}
+						Jmol.script(myJmol, 'select {{mapping.1.0}}-{{mapping.1.1}}:B; color '+color+';');
+					{% endfor %}
+					}
+
+					function map_this_snv(chain_name,position){
+						
+						Jmol.script(myJmol,'select '+position+':'+chain_name+'; color fuchsia')
+					};
+					function reset_structure(){
+						Jmol.script(myJmol,'zap; set highResolution ON; load {{BASE_URL}}{% static interaction.filename %}; wireframe off; spacefill off; select protein; cartoons on; color chain;');
+					};
+					function show_partner(partner){
+						Jmol.script(myJmol, 'hide hidden and not :'+partner+';');
+					};
+					function hide_partner(partner){
+						Jmol.script(myJmol, 'hide hidden or :'+partner+';');
+					};
+					function color_range(start,end,color,partner){
+						Jmol.script(myJmol, 'select '+start+'-'+end+':'+partner+'; color '+color+';')
+					};
+					$(document).ready(function(){
+						// Bootstrap button calls
+						//Show & reset interface residue
+						$('#ir-btn').change(function(){
+							if ($('#ir-btn').is(":checked")){
+								interface_residues("pink","purple","spacefill; cartoon off");
+							}else{
+								interface_residues("pink","purple","spacefill off; cartoon");
+							}
+						});
+
+
+
+						$('#snvs-btn').click(function(){map_snvs("orange","red")});
+
+						/* Listeners for map_this_snv here */
+						{% for snv, chain_residues in snvdict1.items %}
+							{% for value in chain_residues %}
+								{% if value.0.chain == interaction.chain_1 %}
+									$('#{{snv.ft_id}}-A-btn').click(function(){map_this_snv("A",{{value.1}})});
+								
+								{% endif %}
+							{% endfor %}
+						{% endfor %}
+
+						{% for snv, chain_residues in snvdict2.items %}
+							{% for value in chain_residues %}
+								{% if value.0.chain == interaction.chain_2 %}
+									$('#{{snv.ft_id}}-B-btn').click(function(){map_this_snv("B",{{value.1}})});
+								
+								{% endif %}
+							{% endfor %}
+						{% endfor %}
+
+
+						$('#reset-btn').click(function(){reset_structure()});
+
+						//Show & hide Partner1
+						$('#showhide1-btn').change(function(){
+							if ($('#showhide1-btn').is(":checked")){
+								show_partner('A');
+								//$('#showhide1-btn').text('Hide Partner 1');
+							} else {
+								hide_partner("A");
+								//$('#showhide1-btn').text('Show Partner 1');
+							}});
+						//Show & hide Partner2
+						$('#showhide2-btn').change(function(){
+							if ($('#showhide2-btn').is(":checked")){
+								show_partner('B');
+								//$('#showhide2-btn').text('Hide Partner 2');
+							} else {
+								hide_partner("B");
+								//$('#showhide2-btn').text('Show Partner 2');
+							}});
+
+						//Listeners for the pfam domains mapping here//
+						
+						$('#pfam-domains-btn').click(function(){map_pfam_domains("blue")});
+
+						{% for mapping,positions in chain1_pfam_positions.items %}
+						$('#{{mapping.id}}-A-btn').click(function(){
+							color_range({{positions.0}},{{positions.1}},"blue","A");
+							});
+						{% endfor %}
+						
+						{% for mapping,positions in chain2_pfam_positions.items %}
+						$('#{{mapping.id}}-B-btn').click(function(){
+							color_range({{positions.0}},{{positions.1}},"blue","B");
+							});
+						{% endfor %}
+						});
+						
+											
+					</script>
+			</td>
+			
+				 
+			<td>
+
+				<!-- Nav tabs -->
+				<ul class="nav nav-tabs">
+				  <li class="active"><a href="#basic" data-toggle="tab">Basic</a></li>
+				  <li><a href="#snvs_mark" data-toggle="tab">SNVs</a></li>
+				  <li><a href="#PFAM_mark" data-toggle="tab">PFAMs</a></li>
+
+				</ul>
+
+				<!-- Tab panes -->
+				<div class="tab-content">
+					<div class="tab-pane active" id="basic">
+
+						<div class="panel panel-default">
+							<div class="panel-heading">Basic Display Configuration</div>
+							<div class="panel-body scroll">
+
+								<!--general buttons-->
+								<!--<div class="btn-group btn-group-vertical">
+									<!--<a role="button" id="ir-btn" class="btn btn-default">Show Interface</a>-->
+									<!--<a role="button" id="showhide1-btn" class="btn btn-default" data-toggle="button">Hide Partner 1</a>-->
+									<!--<a role="button" id="showhide2-btn" class="btn btn-default" data-toggle="button">Hide Partner 2</a>-->
+								<!--</div>-->
+								<h5>Mode (Underconstruction)</h5>
+								<div class="btn-group" data-toggle="buttons">
+								  <label class="btn btn-default active">
+									<input type="radio" name="options" id="option1" checked> Cartoon
+								  </label>
+								  <label class="btn btn-default">
+									<input type="radio" name="options" id="option2"> Wireframe
+								  </label>
+								</div>
+
+
+								<h5>Display</h5>
+								<label class="checkbox">
+								<input type='checkbox' id="ir-btn" > Interface residues
+								</label>
+								<label class="checkbox">
+								  <input type='checkbox' id="showhide1-btn" style="vertical-align:middle;" checked> <strong><code style="background-color: #9999FF; color:black;">Partner 1</code></strong>
+								</label>
+								<label class="checkbox">
+								  <input type='checkbox' id="showhide2-btn" style="vertical-align:middle;" checked> <strong><code style="background-color: #99FF99; color:black;">Partner 2</code></strong>
+								</label>
+
+								<p class = "text-center"><a role="button" id="reset-btn" class="btn btn-default">Reset</a></p>
+							</div>
+						</div>
+
+				
+					</div>
+
+				  	<div class="tab-pane" id="snvs_mark">
+
+						<div class="panel panel-default">
+							<div class="panel-heading">SNVs Configuration</div>
+							<div class="panel-body scroll">
+
+								<!-- SNVs Buttons-->
+								<div class="btn-toolbar" role="toolbar" style="display:none;">
+								{% if snvdict1 or snvdict2 %}
+
+									<div class="btn-group">
+										<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">SNVs <span class="caret"></span></button>
+
+										<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+											<li role="presentation"><a role="menuitem" tabindex="-1" id="snvs-btn" href="#">Map all SNVs</a></li>
+											<li role="presentation" class="divider"></li>
+											<li role="presentation" class="dropdown-header">Map partner 1 SNV:</li>	
+											{% for item in snvdict1 %}
+												<li role="presentation"><a role="menuitem" id="{{item.ft_id}}-A-btn" tabindex="-1" href="#">{{item.ft_id}}</a></li>
+											{% empty %}
+												<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No SNVs in chain 1-</a></li>
+											{% endfor %}
+											<li role="presentation" class="dropdown-header">Map partner 2 SNV:</li>
+											{% for item in snvdict2 %}
+												<li role="presentation"><a role="menuitem" id="{{item.ft_id}}-B-btn" tabindex="-1" href="#">{{item.ft_id}}</a></li>
+											{% empty %}
+												<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No SNVs in chain 2-</a></li>
+											{% endfor %}
+										</ul>
+									</div><!-- END BTN Group-->
+
+								{% else %}
+									<div class="btn-group">
+										<button type="button" class="btn btn-default" disabled="disabled">No SNVs</button>
+									</div>
+								{% endif %}
+								</div><!-- END Tool Bar-->
+
+
+
+
+								<!-- ##################################################-->	
+								<div>
+									<label class="checkbox">
+									  <input type='checkbox' id="snvs-btn" style="vertical-align:middle;"> Map/Unmap all SNVs
+									</label>
+
+									<p><strong>Map partner 1 SNV</strong></p>	
+									<ul class="list-unstyled">
+									{% for item in snvdict1 %}
+										<li><label class="checkbox">
+										  <input type='checkbox' d="{{item.ft_id}}-A-btn" style="vertical-align:middle;"> {{item.ft_id}}
+										</label></li>
+									{% empty %}
+										<li class="text-muted">No SNVs in chain 1</li>
+									{% endfor %}
+									</ul>
+									<p><strong>Map partner 2 SNV</strong></p>
+									<ul class="list-unstyled">
+									{% for item in snvdict2 %}
+										<li><label class="checkbox">
+										  <input type='checkbox' d="{{item.ft_id}}-B-btn" style="vertical-align:middle;"> {{item.ft_id}}
+										</label></li>
+									{% empty %}
+										<li class="text-muted">No SNVs in chain 2</li>
+									{% endfor %}
+									</ul>
+								</div>
+
+
+
+							</div>
+						</div><!--End panel-->
+					</div><!-- END TAB-->
+
+				  	<div class="tab-pane" id="PFAM_mark">
+						<div class="panel panel-default">
+							<div class="panel-heading">PFAM Display Configuration</div>
+							<div class="panel-body scroll">
+								<!-- PFAM Buttons-->
+								<div class="btn-toolbar" role="toolbar">
+								{% if chain1_pfam_positions or chain2_pfam_positions %}
+
+									<div class="btn-group">
+										<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Pfam domains <span class="caret"></span></button>
+										<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+											<li role="presentation"><a role="menuitem" tabindex="-1" id="pfam-domains-btn" href="#">Map all Pfam domains</a></li>
+											<li role="presentation" class="divider"></li>
+											<li role="presentation" class="dropdown-header">Map partner 1 domain:</li>
+											{% for mapping,positions in chain1_pfam_positions.items %}
+												<li role="presentation"><a role="menuitem" id="{{mapping.id}}-A-btn" tabindex="-1" href="#">{{mapping.hmm.acc}} ({{positions.0}}-{{positions.1}})</a></li>
+											{% empty %}
+												<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No Pfam domains in chain 1-</a></li>
+											{% endfor %}
+											<li role="presentation" class="dropdown-header">Map partner 2 domain:</li>
+											{% for mapping,positions in chain2_pfam_positions.items %}
+												<li role="presentation"><a role="menuitem" id="{{mapping.id}}-B-btn" tabindex="-1" href="#">{{mapping.hmm.acc}} ({{positions.0}}-{{positions.1}})</a></li>
+											{% empty %}
+												<li role="presentation" class="disabled"><a role="menuitem" tabindex="-1" href="#">-No Pfam domains in chain 2-</a></li>
+											{% endfor %}
+										</ul>
+									</div><!-- END BTN Group-->
+					
+								{% else %}
+					
+									<div class="btn-group">
+										<button type="button" class="btn btn-default" disabled="disabled">No Pfam domains</button>
+									</div>
+
+								{% endif %}
+								</div><!-- END Tool Bar-->
+							</div>
+						</div>
+					</div>
+				</div><!-- END Tab Contend-->	
+			</td>
+		</tr>
+	</table>
+</div>
+{% endblock %}
+
+

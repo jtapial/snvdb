@@ -49,6 +49,7 @@ chain_1_id INT NOT NULL,
 chain_2_id INT NOT NULL,
 type VARCHAR(20) NOT NULL,
 filename VARCHAR(100) NOT NULL,
+crossing_number INT,
 PRIMARY KEY (id),
 FOREIGN KEY (chain_1_id) REFERENCES chain (id),
 FOREIGN KEY (chain_2_id) REFERENCES chain (id),
@@ -68,6 +69,7 @@ CREATE TABLE interface_residue (
 id INT NOT NULL AUTO_INCREMENT,
 chain_residue_id INT NOT NULL,
 interaction_id INT NOT NULL,
+res_order INT,
 PRIMARY KEY (id),
 UNIQUE (chain_residue_id, interaction_id),
 FOREIGN KEY (chain_residue_id) REFERENCES chain_residue (id),
@@ -222,3 +224,4 @@ FOREIGN KEY (ir_2_id) REFERENCES interface_residue (id),
 FOREIGN KEY (type) REFERENCES interface_atom_interaction (type),
 UNIQUE (ir_1_id,ir_2_id)
 );
+

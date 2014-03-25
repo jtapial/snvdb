@@ -31,6 +31,7 @@ a.alignment:hover, visited, link, active {
 white-space: nowrap;
 }
 
+.enlarge{ position:relative; top:-20px;}
 
 {% endblock %}
 {% load staticfiles %}
@@ -47,13 +48,18 @@ white-space: nowrap;
 		<div class="row">
 			<div class="col-md-4">
 				{% if uniprot.img_exists %}
-				<img  src= "{{BASE_URL}}{% static 'protein_previews_thumbnails' %}/{{uniprot.acc_number}}.jpeg" alt="{{uniprot.acc_number}}" class="img-thumbnail" data-target="#myModalimg" >
-				<p class="text-center"><button  type="button" class="btn btn-link" data-toggle="modal" data-target="#myModalimg" data-ref= "{{BASE_URL}}{% static 'protein_previews' %}/{{uniprot.acc_number}}.png" ><span class="glyphicon glyphicon-zoom-in"></span> Enlarge</button></p>
+				<a class="thumbnail" id="tnimg"  data-toggle="modal" data-target="#myModalimg" data-ref= "{{BASE_URL}}{% static 'protein_previews' %}/{{uniprot.acc_number}}.png"><img  src= "{{BASE_URL}}{% static 'protein_previews_thumbnails' %}/{{uniprot.acc_number}}.jpeg" alt="{{uniprot.acc_number}}" data-target="#myModalimg" ></a>
+				<p class="text-center"><button  type="button" class="btn btn-link enlarge" data-toggle="modal" data-target="#myModalimg" data-ref= "{{BASE_URL}}{% static 'protein_previews' %}/{{uniprot.acc_number}}.png" ><span class="glyphicon glyphicon-zoom-in"></span> Enlarge</button></p>
 			
 
 
 				<script>
 				$(document).ready(function(){
+					$("#tnimg").click(function(){
+						var Url = $(this).data('ref');
+						$("#imgarea").html('<img src="' + Url + '" alt="description" class="img-responsive" alt="Responsive image">' );
+					});
+
 					$("button").click(function(){
 						var Url = $(this).data('ref');
 						$("#imgarea").html('<img src="' + Url + '" alt="description" class="img-responsive" alt="Responsive image">' );
@@ -96,7 +102,7 @@ white-space: nowrap;
 
 				<p>{{snv_list|length}} SNVs </p>
 				{% if snv_list %}
-				<p>{{snv_statistic.1}}% Diseases, {{snv_statistic.2}}% Polymorphisms, {{snv_statistic.3}}% Unclassified</p>{% endif %}
+				<p>{{snv_statistic.1}}% <code style="background-color:red; color:white;">Disease</code>, {{snv_statistic.2}}% <code style="background-color:green; color:white;">Polymorphism</code>, {{snv_statistic.3}}% <code style="background-color:blue; color:white;">Unclassified</code></p>{% endif %}
 
 			</div> <!-- END col -->
 		  
@@ -222,7 +228,7 @@ white-space: nowrap;
 				{{annotation.java_code|safe}}
 			</script>
 			</div>
-			<p><code style="background-color:#75A319;color:white;">D</code> Domain, <code style="background-color:#FF3333;color:white;">F</code> Family, <code style="background-color:#A347FF;color:white;">M</code> Motif, <code style="background-color:#FF9933;color:white;">R</code> Repeat </p>   
+			<p><code style="background-color:#75A319;color:white;">D</code> Domain, <code style="background-color:#FF85D6;color:white;">F</code> Family, <code style="background-color:#A347FF;color:white;">M</code> Motif, <code style="background-color:#FF9933;color:white;">R</code> Repeat </p>   
 			<div class="table-responsive">
 			<table class="table table-condensed table-hover">
 				<thead>
@@ -240,7 +246,7 @@ white-space: nowrap;
 				{% for item in uniprot.get_pfam_mapping %}
 					<tr>
 						<td><a href ="http://pfam.sanger.ac.uk/family/{{item.hmm.acc}}" target="_blank" data-toggle="popover" data-content="Name: {{item.hmm.name}}, Type: {{item.hmm.type}}, Length: {{item.hmm.length}}, Clan: {{item.hmm.clan}}" >{{item.hmm.acc}}</a></td>
-						<td><code style="background-color:{% if item.hmm.type == 'Domain' %}#75A319{% elif item.hmm.type == 'Family'%} #FF3333 {% elif item.hmm.type == 'Motif'%} #A347FF {% else %} #FF9933 {% endif %}; color:white;">{{item.hmm.type}}</code></td>
+						<td><code style="background-color:{{item.hmm.get_color}}; color:white;">{{item.hmm.type}}</code></td>
 						<td>{{item.alignment_start_residue.position}}-{{item.alignment_end_residue.position}}</td>
 						<td>{{item.hmm_start}}-{{item.hmm_end}}</td>
 						<td>{{item.bit_score}}</td>
@@ -284,10 +290,10 @@ white-space: nowrap;
 						<th>PDB id</th>
 						<th>PDB chain</th>
 						<th>PDB model</th>
-						<th><span data-toggle="popover" data-content="Sequence Identity" >Identity (%)</span></th>
+						<th><span data-toggle="popover" data-content="Identity to its original chain (not to the Uniprot sequence)" >Identity (%)</span></th>
 						<th>Coverage (%)</th>
-						<th><span data-toggle="popover" data-content="Staring residue for the aligned sequence" >Start</span></th>
-						<th><span data-toggle="popover" data-content="Ending residue for the aligned sequence" >End</span></th>
+						<th><span data-toggle="popover" data-content="Residue on the Uniprot sequence where pdb chain starts to aligned on it" >Start</span></th>
+						<th><span data-toggle="popover" data-content="Residue on the Uniprot sequence where pdb chain alignment ends" >End</span></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -305,16 +311,17 @@ white-space: nowrap;
 					{% if item.alignent %}
 		
 						<td colspan="7">
-							<div class ="hidden-xs hidden-sm">
-								<a class = "alignment" data-toggle="collapse" data-content = "Click to show/hide sequence alignment" href="#collapse{{item.obj.id}}">
-									{{item.graphic|safe}}
+								<a class = "alignment" data-toggle="collapse" data-content = "Start: {{item.obj.seq_start}}, End: {{item.obj.seq_end}} ({{item.obj.coverage}}%), Click to show/hide sequence alignment" href="#collapse{{item.obj.id}}">
+									<div class="progress">
+									  <div class="progress-bar progress-bar-primary" style="width: {{item.stat.0}}%">
+									  </div>
+									  <div class="progress-bar progress-bar-info" style="width: {{item.stat.1}}%">
+										<span>{{item.obj.seq_start}} to {{item.obj.seq_end}}</span>
+									  </div>
+									  <div class="progress-bar progress-bar-primary" style="width: {{item.stat.2}}%">
+									  </div>
+									</div>
 								</a>
-							</div>
-
-							<div class = "visible-xs visible-sm" >
-								<button type="button" class="alignment btn btn-primary btn-xs btn-block" data-toggle="collapse" href="#collapse{{item.obj.id}}">Click to show/Hide Alignment</button>
-							</div>
-
 							<div id="collapse{{item.obj.id}}" class="collapse" style ="word-wrap:break-word; font-family: 'Source Code Pro', sans-serif; ">
 								{{item.alignent|safe}}
 							</div>
@@ -354,7 +361,7 @@ white-space: nowrap;
 				<script>
 					function myFunction(url)
 					{
-						cuteLittleWindow = window.open(url, "_blank", "location=no,width=600,height=850");
+						cuteLittleWindow = window.open(url, "_blank", "location=no,width=740,height=780");
 					}
 				</script> 
 
@@ -378,7 +385,7 @@ white-space: nowrap;
 							<td><a href="{% url 'uniprot-view' pk=item.obj.chain_1.uniprot.acc_number %}">{{item.obj.chain_1.uniprot.acc_number}}</a></td>
 							<td><a href="{% url 'uniprot-view' pk=item.obj.chain_2.uniprot.acc_number %}">{{item.obj.chain_2.uniprot.acc_number}}</a></td>
 							<td>{{item.obj.inter_type.inter_type}}</td>
-							<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.obj.id %}')">3D Interaction</button> <button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interface-view' pk=item.obj.id %}')">Interface</button> <button class="btn btn-success btn-sm" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')"><span class = "glyphicon glyphicon-download"></span> PDB</button></td>
+							<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.obj.id %}')">3D Interaction</button> <button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interface-view' pk=item.obj.id %}')">2D Interface</button> <button class="btn btn-success btn-sm" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')"><span class = "glyphicon glyphicon-download"></span> PDB</button></td>
 						</tr>
 						<tr>
 							<td colspan="5" class= "hidden-xs hidden-sm">
