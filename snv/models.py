@@ -602,9 +602,6 @@ class Interaction(models.Model):
 
 		return chain1_mapping2positions,chain2_mapping2positions
 
-<<<<<<< HEAD
-    	return contacts #,len(contacts["HYB"]),len(contacts["POL"]),len(contacts["PHO"]),(len(contacts["HYB"]) + len(contacts["POL"]) + len(contacts["PHO"])) ** UNCOMMENT TO RETURN COUNTS
-=======
 	def get_contacts(self):
 		contacts = {}
 		for ir in self.chain_1.get_interface_residues(self):
@@ -618,7 +615,6 @@ class Interaction(models.Model):
 							contacts[inter.type].append(["[%(aa_a)s]%(pos_a)s:A.%(label_a)s" % {"aa_a":cr.amino_acid.three_letter_code, "pos_a":cr.get_transformed_position(self), "label_a":atom.label}, "[%(aa_b)s]%(pos_b)s:B.%(label_b)s" % {"aa_b":partner_cr.amino_acid.three_letter_code, "pos_b":partner_cr.get_transformed_position(self), "label_b":partner_atom.label}])
 						except KeyError:
 							contacts[inter.type] = [["[%(aa_a)s]%(pos_a)s:A.%(label_a)s" % {"aa_a":cr.amino_acid.three_letter_code, "pos_a":cr.get_transformed_position(self), "label_a":atom.label}, "[%(aa_b)s]%(pos_b)s:B.%(label_b)s" % {"aa_b":partner_cr.amino_acid.three_letter_code, "pos_b":partner_cr.get_transformed_position(self), "label_b":partner_atom.label}]]
->>>>>>> 65bd510bd95795ddcd2305258f1e38ac645704df
 
     def get_contacts_alt(self):
     	residues_dict = {}
