@@ -115,10 +115,24 @@
 					function color_range(start,end,color,partner){
 						Jmol.script(myJmol, 'select '+start+'-'+end+':'+partner+'; color '+color+';')
 					};
+
+					
+					function map_contacts(color){
+						Jmol.script(myJmol, 'set measurementLabels FALSE;')
+						Jmol.script(myJmol, 'measure color '+color+';'
+						{% for item in contacts.items %}
+							{% for contact in item.1 %}
+								Jmol.script(myJmol, 'measure (({{contact.js_str1}})) (({{contact.js_str2}}));')
+							{% endfor %}
+						{% endfor %}
+					}
+					
+
 					$(document).ready(function(){
 						// Bootstrap button calls
 						$('#ir-btn').click(function(){interface_residues("pink","purple")});
 						$('#snvs-btn').click(function(){map_snvs("orange","red")});
+						$('#contacts-btn').click(function(){map_contacts("red")});
 
 						/* Listeners for map_this_snv here */
 						{% for snv, chain_residues in snvdict1.items %}
@@ -174,6 +188,9 @@
 							});
 						{% endfor %}
 						});
+						
+				
+						
 						
 											
 					</script>
@@ -251,6 +268,8 @@
 			</td>
 		</tr>
 	</table>
+
+<button type="button" class="btn btn-danger" id="contacts-btn">Map contacts</button>
 
 {% endblock %}
 

@@ -1436,6 +1436,89 @@ def pfam_import():
 						pass
 	print("Populated pfam_hmm, uniprot_pfam_mapping and active_site_residue tables")
 	cur.close()
+
+def stored_contact_import():
+	print "Populating stored_contact table"
+	cur = db.cursor()
+	#Get a list of the interactions and chain IDs
+	cur.execute("SELECT id,chain_1_id,chain_2_id from interaction")
+	for inter,chain_1_id,chain_2_id in cur.fetchall():
+		residues_dict = {}
+		#Pull out a list of interface residues and chain residues for chain 1 of the interaction
+		cur.execute('SELECT ir.id, cr.id FROM interface_residue AS ir JOIN chain_residue AS cr ON cr.id=ir.chain_residue_id JOIN interaction AS i ON i.chain_1_id=cr.chain_id WHERE i.id=%s' % (inter))
+
+		for ir_id,cr_id in cur.fetchall():
+			interacting_residues = {}
+			
+			bond_rank = {'DSB':1,'HYB':2,'POL':3,'PHO':4,'UNK':5}
+			#Pull out a list of atoms, contact_id, contact type and target interface_residue for each source interface_residue on chain 1
+			cur.execute('SELECT ia.id, ia2.id, iai.id, iai.type, ir2.id FROM interface_atom AS ia JOIN interface_atom_interaction AS iai ON ia.id=iai.interface_atom_id_l JOIN interface_atom AS ia2 ON ia2.id=iai.interface_atom_id_r JOIN interface_residue AS ir2 ON ia2.interface_residue_id=ir2.id WHERE ia.interface_residue_id=%i' % (int(ir_id)))
+
+			#Filter contacts to get only one contact per residue pair
+			for atom1_id,atom2_id,contact_id,contact_type,ir2_id in cur.fetchall():
+				try:
+					previous_bond_type = interacting_residues[ir2_id]
+					if bond_rank[previous_bond_type] > bond_rank[contact_type]:
+						interacting_residues[ir2_id] = contact_type
+				except KeyError:
+					interacting_residues[ir2_id] = contact_type
+			
+			residues_dict[ir_id] = interacting_residues
+
+				
+		#Generate the final dictionary with the JSMol strings and the transformed positions
+		contacts = {}
+		for element in residues_dict.items():
+			cur.execute("SELECT ir.id, aa.three_letter_code, cr.chain_position from interface_residue as ir JOIN chain_residue as cr ON ir.chain_residue_id=cr.id JOIN amino_acid as aa ON cr.amino_acid=aa.one_letter_code WHERE ir.id=%s", (element[0]))
+			ir_id,aa_1,cpos_1 = cur.fetchone()
+			cur.execute("SELECT value from position_transform where chain_id=%s", (chain_1_id))
+			if cur.fetchone() == True:
+				pt_1 = cur.fetchone()[0]
+				pos_1 = unicode(int(cpos_1) - pt_1[0])
+			else:
+				pos_1 = cpos_1
+
+			for ir2_id in element[1].keys():
+				cur.execute("SELECT ir.id, aa.three_letter_code, cr.chain_position from interface_residue as ir JOIN chain_residue as cr ON ir.chain_residue_id=cr.id JOIN amino_acid as aa on cr.amino_acid=aa.one_letter_code WHERE ir.id=%s", (ir2_id))
+				ir2_id, aa_2, cpos_2 = cur.fetchone()
+
+				cur.execute("SELECT value from position_transform where chain_id=%s", (chain_2_id))
+						
+				if cur.fetchone() == True:
+					pt_2= cur.fetchone()[0]
+					pos_2= unicode(int(cpos_2) - pt_2[0])
+				else:
+					pos_2 = cpos_2
+
+				try:
+					contacts[element[1][ir2_id]].append([(ir_id, ir2_id),("[%(aa_a)s]%(pos_a)s:A.CA" % {"aa_a":aa_1, "pos_a":pos_1,}, "[%(aa_b)s]%(pos_b)s:B.CA" % {"aa_b":aa_2, "pos_b":pos_2,})])
+
+				except KeyError:
+					contacts[element[1][ir2_id]] = [[(ir_id, ir2_id),("[%(aa_a)s]%(pos_a)s:A.CA" % {"aa_a":aa_1, "pos_a":pos_1,}, "[%(aa_b)s]%(pos_b)s:B.CA" % {"aa_b":aa_2, "pos_b":pos_2,})]]
+
+		#Pull out the information from the dictionary and 
+		for item in contacts.items():
+			for value in item[1]:
+				contact_insert = (inter, value[0][0], value[0][1], value[1][0], value[1][1], item[0])
+
+				try:
+					cur.execute('''INSERT INTO stored_contact 
+						(interaction_id,
+						ir_1_id, 
+						ir_2_id, 
+						jsmol_str_1, 
+						jsmol_str_2, 
+						type) 
+						VALUES (%s,%s,%s,%s,%s,%s)''', (contact_insert))
+					
+					db.commit()
+					
+				except MySQLdb.IntegrityError:
+					db.rollback()
+
+	cur.close()
+	print "Populated stored_contact table"
+			
 	
 
 ##METHOD CALLS:
@@ -1456,14 +1539,16 @@ def pfam_import():
 
 #snv_disease_import()
 
-chain_interaction_interaction_type_import()
+#chain_interaction_interaction_type_import()
 
-chain_residue_position_mapping_import()
+#chain_residue_position_mapping_import()
 
-interface_residue_import()
+#interface_residue_import()
 
-accessibility_import()
+#accessibility_import()
 
 #pfam_import()
+
+stored_contact_import()
 
 db.close()

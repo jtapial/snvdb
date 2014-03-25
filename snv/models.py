@@ -587,8 +587,32 @@ class Interaction(models.Model):
     					except KeyError:
     						contacts[inter.type] = [["[%(aa_a)s]%(pos_a)s:A.%(label_a)s" % {"aa_a":cr.amino_acid.three_letter_code, "pos_a":cr.get_transformed_position(self), "label_a":atom.label}, "[%(aa_b)s]%(pos_b)s:B.%(label_b)s" % {"aa_b":partner_cr.amino_acid.three_letter_code, "pos_b":partner_cr.get_transformed_position(self), "label_b":partner_atom.label}]]
 
-
     	return contacts #,len(contacts["HYB"]),len(contacts["POL"]),len(contacts["PHO"]),(len(contacts["HYB"]) + len(contacts["POL"]) + len(contacts["PHO"])) ** UNCOMMENT TO RETURN COUNTS
+
+    def get_contacts_alt(self):
+    	residues_dict = {}
+    	for ir in self.interface_residues.all():
+    		residues_dict[ir] = ir.get_interacting_residues()
+
+    	contacts = {}
+    	for element in residues_dict.items():
+    		for ir2 in element[1].keys():
+    			if ir2.chain_residue.chain == self.chain_1:
+    				chain_ir2 = "A"
+    				chain_ir1 = "B"
+    			if ir2.chain_residue.chain == self.chain_2:
+    				chain_ir2 = "B"
+    				chain_ir1 = "A"
+    			try:
+    				contacts[element[1][ir2]].append(["[%(aa_a)s]%(pos_a)s:%(chain_ir_a)s.CA" % {"aa_a":element[0].chain_residue.amino_acid.three_letter_code, "pos_a":element[0].chain_residue.get_transformed_position(self), "chain_ir_a":chain_ir1}, "[%(aa_b)s]%(pos_b)s:%(chain_ir_b)s.CA" % {"aa_b":ir2.chain_residue.amino_acid.three_letter_code, "pos_b":ir2.chain_residue.get_transformed_position(self), "chain_ir_b":chain_ir2}])
+    			except KeyError:
+    				contacts[element[1][ir2]] = [["[%(aa_a)s]%(pos_a)s:%(chain_ir_a)s.CA" % {"aa_a":element[0].chain_residue.amino_acid.three_letter_code, "pos_a":element[0].chain_residue.get_transformed_position(self), "chain_ir_a":chain_ir1}, "[%(aa_b)s]%(pos_b)s:%(chain_ir_b)s.CA" % {"aa_b":ir2.chain_residue.amino_acid.three_letter_code, "pos_b":ir2.chain_residue.get_transformed_position(self), "chain_ir_b":chain_ir2}]]
+
+    	return contacts
+
+
+
+
 
 
 
@@ -886,6 +910,19 @@ class InterfaceAtomInteraction(models.Model):
 	length = models.DecimalField(max_digits=4,decimal_places=3)
 	class Meta:
 		db_table = 'interface_atom_interaction'
+
+
+class StoredContact(models.Model):
+	id = models.IntegerField(primary_key=True)
+	interaction = models.ForeignKey(Interaction,db_column='interaction_id',related_name="interactions")
+	ir_1 = models.ForeignKey(InterfaceResidue, db_column='ir_1_id',related_name="interface_residues_1")
+	ir_2 = models.ForeignKey(InterfaceResidue, db_column='ir_2_id',related_name="interface_residues_2")
+	jsmol_str_1 = models.CharField(max_length=15L)
+	jsmol_str_2 = models.CharField(max_length=15L)
+	bond_type = models.CharField(db_column="type",max_length=3L)
+	class Meta:
+		db_table = 'stored_contact'
+
 
 
 

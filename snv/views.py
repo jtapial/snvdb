@@ -100,7 +100,17 @@ class InteractionView(DetailView):
 		interaction['chain1_pfam_positions'] = pfam_positions[0]
 		interaction['chain2_pfam_positions'] = pfam_positions[1]
 
-		interaction['contacts'] = self.object.get_contacts()	
+		#Get pre-computed contacts and add to list
+		contacts = {}
+		for contact in StoredContact.objects.filter(interaction=self.object):
+			try:
+				contacts[contact.bond_type].append(contact)
+			except KeyError:
+				contacts[contact.bond_type] = [contact]
+
+		interaction['contacts'] = contacts
+		#interaction['contacts'] = self.object.get_contacts()
+
 
 		return interaction
 
