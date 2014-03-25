@@ -78,7 +78,6 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interact,max
 		else:
 			content_data = 'Residue ' +str(region[0])+ ' to ' +str(region[1]-1)+ ' ('+str(region[1]-region[0])+' residues)'
 		graphic_code +=  '<rect class ="'+classname+' intersite" width="'+ str((region[1]-region[0])*frame/maxlen +1) +'" height="'+str(int(height)*2/3)+'" x="'+str((region[0])*frame/maxlen) +'" y="'+str(25)+'" fill="#FF9933"/>'
-
 		java_code+= '$(".'+classname+'").popover({title:"Interface", content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
 		
 	return {'graphic_code':graphic_code,'java_code':java_code} 
@@ -142,16 +141,6 @@ class Uniprot(models.Model):
 		outset = []
 		for chain in self.chains.all():
 			length = len(self.sequence)
-
-			'''
-			graphic_code = '<svg width = "830px" height = "50px">'
-
-			graphic_code += '<rect width="800" height="12" x="0" y="10" rx="5" ry="5" style="fill:#428bca;stroke-width:1;stroke:#285379" />'                   
-			graphic_code +=  '<text x="30" y="20" font-weight="bold" fill="white">'+self.acc_number+'</text> <text x="0" y="20" fill="white">|0</text><text x="200" y="20" fill="white">|'+str(length/4)+'</text><text x="400" y="20" fill="white">|'+str(length/2)+'</text><text x="600" y="20" fill="white">|'+str(length*3/4)+'</text><text x="800" y="20" fill="black">|'+str(length)+'</text>'
-			graphic_code += '<rect width="'+ str(int(float(chain.coverage)*800/100)) +'" height="12" x="'+str((float(chain.seq_start)-1)/float(length)*800)+'" y="25" rx="5" ry="5" style="fill:#5bc0de;stroke-width:1;stroke:#499AB2" />'   			
-			graphic_code += '<text x="'+str(float(chain.seq_start)/float(length)*800+30)+'" y="35" font-weight="bold" fill="white"> PDB:'+chain.pdb_id+'</text><text x="'+str(float(chain.seq_start)/float(length)*800)+'" y="35" fill="white">'+chain.seq_start+'</text><text x="'+str(float(chain.seq_end)/float(length)*800)+'" y="35" fill="black">'+chain.seq_end+'</text>'
-			graphic_code +='</svg>'
-			'''
 
 			stat = [0.0,0.0,0.0]
 			stat[0] = round((float(chain.seq_start)-1)*100/float(length),1)
@@ -219,17 +208,6 @@ class Uniprot(models.Model):
 			y = x.all()
 			if len(y) > 0:
 				return chain
-	'''
-	def get_color(self):
-		if self.type.type =='Disease':
-			return  set('red')
-		elif self.type.type =='Polymorphism':	
-			return 'green'
-		elif self.type.type =='Unclassified':	
-			return 'blue'
-		return set('purple')	
-	'''	
-
 
 	def interacting_partners(self):
 		chains = self.chains.all()
@@ -466,13 +444,8 @@ class Uniprot(models.Model):
 
 			option['sequence'] = mod_seq
 			#print 'success'
-
-		script = '<script type="text/javascript">$(document).ready(function(){ $(".default").show();$(\'input[type="radio"]\').click(function(){'
-		for item in interaction_reg_mark:
-			script += 'if($(this).attr("id")=="'+item['id']+'"){$(".box").hide();$(".'+item['id']+'").show();}'
-		script+='});});</script>'	
 	
-		return [interactionset, mod_seq,interaction_reg_mark,script]
+		return [interactionset, mod_seq,interaction_reg_mark]
 	###########################################################
 	def get_absolute_url(self):
 		return reverse('uniprot-view', kwargs={'pk': self.acc_number})
@@ -757,6 +730,14 @@ class Snv(models.Model):
 		record = Entrez.read(handle)
 		gene_id = record["IdList"][0]
 		return gene_id
+
+	def get_color(self):
+		color_code = {'Disease': 'red', 'Polymorphism':'green', 'Unclassified':'blue'}
+		return color_code[self.type.type]
+	def get_short_code(self):
+		color_code = {'Disease': 'D', 'Polymorphism':'P', 'Unclassified':'U'}
+		return color_code[self.type.type]
+
 
 class Disease(models.Model):
 	mim = models.IntegerField(primary_key=True)
