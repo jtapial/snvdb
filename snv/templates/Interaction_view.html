@@ -121,6 +121,17 @@ label{font-weight:normal !important}
 						//----------------------				
 					};
 
+					
+					function map_contacts(color){
+						Jmol.script(myJmol, 'set measurementLabels FALSE;')
+						Jmol.script(myJmol, 'measure color '+color+';'
+						{% for item in contacts.items %}
+							{% for contact in item.1 %}
+								Jmol.script(myJmol, 'measure (({{contact.js_str1}})) (({{contact.js_str2}}));')
+							{% endfor %}
+						{% endfor %}
+					}
+					
 					function colorsnv(snvid){//This function marks/unmarks a snv with various color
 						var snvpos = parseInt($('#'+snvid).attr("data-pos"));
 						var chain = $('#'+snvid).attr("data-chain");
@@ -167,8 +178,10 @@ label{font-weight:normal !important}
 					}
 
 					$(document).ready(function(){
-						var dpmode = 'cartoons'; 
+						var dpmode = 'cartoons';
+						$('#contacts-btn').click(function(){map_contacts("red")}); 
 						// Bootstrap button calls
+
 						//Show & reset interface residue
 						$('#ir-btn').change(function(){
 							if ($('#ir-btn').is(":checked")){
@@ -244,8 +257,7 @@ label{font-weight:normal !important}
 								hide_partner("B");
 								//$('#showhide2-btn').text('Show Partner 2');
 						}});
-						
-					});
+					
 											
 					</script>
 			</td>
@@ -385,7 +397,10 @@ label{font-weight:normal !important}
 			</td>
 		</tr>
 	</table>
-</div>
+
+
+<button type="button" class="btn btn-danger" id="contacts-btn">Map contacts</button>
+
 {% endblock %}
 
 

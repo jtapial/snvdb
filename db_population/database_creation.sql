@@ -209,3 +209,19 @@ FOREIGN KEY (interface_atom_id_l) REFERENCES interface_atom (id),
 FOREIGN KEY (interface_atom_id_r) REFERENCES interface_atom (id),
 UNIQUE (interface_atom_id_l,interface_atom_id_r)
 );
+CREATE TABLE stored_contact (
+id INT NOT NULL AUTO_INCREMENT,
+interaction_id INT NOT NULL,
+ir_1_id INT NOT NULL,
+ir_2_id INT NOT NULL,
+jsmol_str_1 CHAR(15),
+jsmol_str_2 CHAR(15),
+type CHAR(3),
+PRIMARY KEY (id),
+FOREIGN KEY (interaction_id) REFERENCES interaction (id),
+FOREIGN KEY (ir_1_id) REFERENCES interface_residue (id),
+FOREIGN KEY (ir_2_id) REFERENCES interface_residue (id),
+FOREIGN KEY (type) REFERENCES interface_atom_interaction (type),
+UNIQUE (ir_1_id,ir_2_id)
+);
+
