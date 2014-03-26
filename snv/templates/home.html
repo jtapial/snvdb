@@ -29,41 +29,6 @@
 
 <script type="text/javascript">
 
-//Loading Spinner
-/*function spinnerInit() {
-	var opts = {
-
-	  lines: 13, // The number of lines to draw
-	  length: 20, // The length of each line
-	  width: 10, // The line thickness
-	  radius: 30, // The radius of the inner circle
-	  corners: 1, // Corner roundness (0..1)
-	  rotate: 0, // The rotation offset
-	  color: '#fff', // #rgb or #rrggbb or array of colors
-	  speed: 1.2, // Rounds per second
-	  trail: 60, // Afterglow percentage
-	  shadow: false, // Whether to render a shadow
-	  hwaccel: false, // Whether to use hardware acceleration
-	  className: 'spinner', // The CSS class to assign to the spinner
-	  zIndex: 2e9, // The z-index (defaults to 2000000000)
-	  top: 'auto', // Top position relative to parent in px
-	  left: 'auto' // Left position relative to parent in px
-	};
-	$('#blackfade').fadeIn();
-   setTimeout(function(){
-       new Spinner(opts).spin(document.getElementById('centerspinner'));
-    }, 500);
-	
-}
-
-	$(window).unload(function(){
-
-	  $('#blackfade').fadeOut();
-	  $('centerspinner').data('spinner').stop();
-		//alert('bye');
-	});
-
-*/
 	$(window).ready(function (){
 	
 	 	if($(window).width() <= 977){
@@ -76,7 +41,6 @@
 	});
 
 	$(window).resize(function () {
-
 
 	 	if($(window).width() <= 977){
 			$('.jumbotron').css({'padding-top': '30px'});
@@ -100,10 +64,6 @@
 		}
 		spinnerInit();
 	}
-
-
-
-
 
 </script>
 
@@ -130,10 +90,10 @@
 		<script type="text/javascript">
 			function explain(value){
 				if(document.getElementById("search_select").value=="1"){
-					document.getElementById("query").placeholder="Uniprot ID, protein name, GenBank ID, or GeneCode ID"
+					document.getElementById("query").placeholder="Uniprot ID, protein name, GenBank ID, GeneCode ID, or PDB ID"
 				}
 				if(document.getElementById("search_select").value=="2"){
-					document.getElementById("query").placeholder="FT ID, or DB SNP ID"
+					document.getElementById("query").placeholder="FT ID, DB SNP ID, or Disease Name"
 				}
 					if(document.getElementById("search_select").value=="3"){
 					document.getElementById("query").placeholder="Disease Name, or OMIM ID"
@@ -160,7 +120,7 @@
 			<div class="form-group">
 	 			<p for="inputQ" class="col-sm-2 control-label" style="color: #fff">Your query</p>
 				<div class="col-sm-10">
-					<input type="text" id = "query" class="form-control" name = "q" placeholder="Uniprot ID, protein name, GenBank ID, or GeneCode ID">
+					<input type="text" id = "query" class="form-control" name = "q" placeholder="Uniprot ID, protein name, GenBank ID, GeneCode ID, or PDB ID">
 				</div>
 			</div>
 
@@ -169,14 +129,7 @@
 					{% if error %}					
 					<p class="text-danger">{{ error }}</p>
 					{% endif %}
-					<table>
-					<td>
 					<input class="btn btn-primary btn-xlg" role="button" type = "submit" value="Start search&raquo;">
-					</td>
-					<td>
-					
-					</td> 
-					</table>
 				</div>
 			</div>
 		</form>

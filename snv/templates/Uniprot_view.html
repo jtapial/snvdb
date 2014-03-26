@@ -35,7 +35,9 @@ white-space: nowrap;
 
 {% endblock %}
 {% load staticfiles %}
-{% block javascript %}<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">{% endblock %}
+{% block javascript %}
+<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">
+{% endblock %}
 
 {% block body %}data-spy="scroll" data-target=".navbar"{% endblock %}
 {% block content %}
@@ -154,8 +156,18 @@ white-space: nowrap;
 
 			</div>
 			<!-- JAVASCRIPT -->
-			{{markscript|safe}}
+			<script type="text/javascript">
+				$(document).ready(function(){
+                	$(".default").show();
+		            $('input[type="radio"][name="options"]').click(function(){
+				        $(".box").hide();
+				        $("."+$(this).attr("id")).show();
+		            });
+                });
+			</script>
+
 			<!-- END JAVASCRIPT -->
+
 			Interface Site
 			<div class="btn-group">
 				{% for option in marked_reg %}
