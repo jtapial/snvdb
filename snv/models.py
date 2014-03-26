@@ -303,7 +303,7 @@ class Uniprot(models.Model):
 
 			for i in range(2):#do for chain1 & chain 2
 				region = []
-				print "i = ",i, "chain set:",chains_set[i]
+				#print "i = ",i, "chain set:",chains_set[i]
 				if not chains_set[i]:#if no position found
 					chain_reg[i] = []
 					continue #skip
@@ -313,7 +313,7 @@ class Uniprot(models.Model):
 					if len(starting.chain_residue.uniprot_residue.all())!=0:
 						break 
 
-				print starting, starting.chain_residue.uniprot_residue.all()
+				#print starting, starting.chain_residue.uniprot_residue.all()
 				tmp = [int(starting.chain_residue.uniprot_residue.all()[0].position),int(starting.chain_residue.uniprot_residue.all()[0].position)+1] #region for each interface [starting,ending]
 				res_pos[i].append(int(starting.chain_residue.uniprot_residue.all()[0].position))
 
@@ -331,29 +331,36 @@ class Uniprot(models.Model):
 
 				region.append(tmp)				
 				chain_reg[i] = region
-										
+			
+			print cu[0].acc_number, cu[1].acc_number
+			name = [cu[0].name,cu[1].name]
+			for i in range(2):
+				if name[i] == None:
+					name[i] = "No Name"
+
 			#store marking region to Uniprot's local variable (to be used in SNVs mapping)
 			if _isHomo: #Homo case, append both
 				maxlen = len(cu[0].sequence)
-				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' when interacting with '+cu[1].acc_number+' ['+cu[1].name+']</text>' 
+				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' when interacting with '+cu[1].acc_number+' ['+name[1]+']</text>' 
 				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact,maxlen,chain_reg[0],True)
 
-				interaction_reg_mark.append({'name':cu[0].acc_number+'.1','info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number+'1','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[0].acc_number+'.1','info':cu[0].acc_number+' ['+name[0]+'] - '+cu[1].acc_number+' ['+name[1]+']','region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number+'1','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 
 				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact,maxlen,chain_reg[1],True)
-				interaction_reg_mark.append({'name':cu[0].acc_number+'.2','info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number+'2','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[0].acc_number+'.2','info':cu[0].acc_number+' ['+name[0]+'] - '+cu[1].acc_number+' ['+name[1]+']','region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number+'2','checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 				
 				
 			elif _ischain1:
 				maxlen = len(cu[0].sequence)
-				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' when interacting with '+cu[1].acc_number+' ['+cu[1].name+']</text>' 
+				print cu[0], cu[1]
+				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' when interacting with '+cu[1].acc_number+' ['+name[1]+']</text>' 
 				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact,maxlen,chain_reg[0],False)
-				interaction_reg_mark.append({'name':cu[1].acc_number,'info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[1].acc_number,'info':cu[0].acc_number+' ['+name[0]+'] - '+cu[1].acc_number+' ['+name[1]+']','region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 			else:
 				maxlen = len(cu[1].sequence)
-				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[1].acc_number+' when interacting with '+cu[0].acc_number+' ['+cu[0].name+']</text>' 
+				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[1].acc_number+' when interacting with '+cu[0].acc_number+' ['+name[0]+']</text>' 
 				svgcode = create_svg_interaction(cu,not _ischain1,1,header,36,'mapped',interact,maxlen,chain_reg[1],False)
-				interaction_reg_mark.append({'name':cu[0].acc_number,'info':cu[0].acc_number+' ['+cu[0].name+'] - '+cu[1].acc_number+' ['+cu[1].name+']','region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
+				interaction_reg_mark.append({'name':cu[0].acc_number,'info':cu[0].acc_number+' ['+name[0]+'] - '+cu[1].acc_number+' ['+name[1]+']','region':res_pos[1],'id':'int'+str(interact.id)+cu[1].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
 
 
 
@@ -363,7 +370,7 @@ class Uniprot(models.Model):
 			graphic_code = ['','','',''] #1st[0] is for chain1, 2nd[1] is for chain2, 3rd[2] is for snv mapping, 4th[3] is for javacode to be combined with snvs
 
 			for i in range(2):
-				header = '<text x="5" y="15" font-weight="bold" fill="black">Partner '+str(i+1)+' : '+cu[i].acc_number+' ['+cu[i].name+'] </text>'
+				header = '<text x="5" y="15" font-weight="bold" fill="black">Partner '+str(i+1)+' : '+cu[i].acc_number+' ['+name[i]+'] </text>'
 				svgcode = create_svg_interaction(cu,_ischain1,i,header,18,'',interact,maxlen,chain_reg[i],False)
 				graphic_code[i] = svgcode['graphic_code']+'</svg><script>'+svgcode['java_code']+'</script>'
 				
