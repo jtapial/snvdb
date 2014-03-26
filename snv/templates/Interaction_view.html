@@ -122,13 +122,41 @@ label{font-weight:normal !important}
 					};
 
 					
-					function map_contacts(color){
-						Jmol.script(myJmol, 'set measurementLabels FALSE;')
-						Jmol.script(myJmol, 'measure color '+color+';'
+					function map_contacts(color1, color2,color3, color4, color5){
+						Jmol.script(myJmol, 'set measurementLabels FALSE;');
+						
 						{% for item in contacts.items %}
-							{% for contact in item.1 %}
-								Jmol.script(myJmol, 'measure (({{contact.js_str1}})) (({{contact.js_str2}}));')
-							{% endfor %}
+							{% if item.0 == "DSB" %}
+								Jmol.script(myJmol, 'color measures \"'+color1+'\";');
+								{% for contact in item.1 %}
+									Jmol.script(myJmol, 'measure (({{contact.jsmol_str_1}})) (({{contact.jsmol_str_2}}));');
+								{% endfor %}
+							
+							{% elif item.0 == "HYB" %}
+								Jmol.script(myJmol, 'color measures \"'+color2+'\";');
+								{% for contact in item.1 %}
+									Jmol.script(myJmol, 'measure (({{contact.jsmol_str_1}})) (({{contact.jsmol_str_2}}));');
+								{% endfor %}
+
+							{% elif item.0 == "POL" %}
+								Jmol.script(myJmol, 'color measures \"'+color3+'\";');
+								{% for contact in item.1 %}
+									Jmol.script(myJmol, 'measure (({{contact.jsmol_str_1}})) (({{contact.jsmol_str_2}}));');
+								{% endfor %}
+
+							{% elif item.0 == "PHO" %}
+								Jmol.script(myJmol, 'color measures \"'+color4+'\";');
+								{% for contact in item.1 %}
+									Jmol.script(myJmol, 'measure (({{contact.jsmol_str_1}})) (({{contact.jsmol_str_2}}));');
+								{% endfor %}
+
+							{% elif item.0 == "UNK" %}
+								Jmol.script(myJmol, 'color measures \"'+color5+'\";');
+								{% for contact in item.1 %}
+									Jmol.script(myJmol, 'measure (({{contact.jsmol_str_1}})) (({{contact.jsmol_str_2}}));');
+								{% endfor %}
+							{% endif %}
+
 						{% endfor %}
 					}
 					
@@ -179,7 +207,8 @@ label{font-weight:normal !important}
 
 					$(document).ready(function(){
 						var dpmode = 'cartoons';
-						$('#contacts-btn').click(function(){map_contacts("red")}); 
+						$('#contacts-btn').click(function(){map_contacts("red", "blue", "green", "purple", "yellow")});
+
 						// Bootstrap button calls
 
 						//Show & reset interface residue
@@ -257,8 +286,8 @@ label{font-weight:normal !important}
 								hide_partner("B");
 								//$('#showhide2-btn').text('Show Partner 2');
 						}});
+					});
 					
-											
 					</script>
 			</td>
 			
@@ -398,8 +427,10 @@ label{font-weight:normal !important}
 		</tr>
 	</table>
 
+<div>
+	<button type="button" class="btn btn-danger" id="contacts-btn">Map contacts</button>
+</div>
 
-<button type="button" class="btn btn-danger" id="contacts-btn">Map contacts</button>
 
 {% endblock %}
 
