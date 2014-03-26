@@ -2,8 +2,8 @@
 {% load staticfiles %}
 {% block javascript %}
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<link rel="stylesheet" href="{{BASE_URL}}{% static 'interface_svg.css' %}">
 {% endblock %}
-
 
 {% block content %}
 <h1>Interface for ID: {{interaction.id}} </h1>
@@ -29,48 +29,28 @@
 		<table class='table table-condensed'>
 			<tr>
 				<td>
-					<p class='bt-HYB active'>HYB</p>
 					<svg id="interface-canvas"></svg>
 				</td>
 				<td>
 					<ul class='list-unstyled'>
+                        {% for bt in bond_types %}
 						<li><label class='checkbox'>
-							<input type='checkbox' id='bt-HYB-checkbox' class='bond-checkbox' checked>HYB
+							<input type='checkbox' id='bt-{{bt}}-checkbox' class='bond-checkbox' checked>{{bt}}
 						</label></li>
-						<li><label class='checkbox'>
-							<input type='checkbox' id='bt-POL-checkbox' class='bond-checkbox' checked>POL
-						</label></li>
-						<li><label class='checkbox'>
-							<input type='checkbox' id='bt-DSB-checkbox' class='bond-checkbox' checked>DSB
-						</label></li>
-						<li><label class='checkbox'>
-							<input type='checkbox' id='bt-PHO-checkbox' class='bond-checkbox' checked>PHO
-						</label></li>
-						<li><label class='checkbox'>
-							<input type='checkbox' id='bt-UNK-checkbox' class='bond-checkbox' checked>UNK
-						</label></li>
+                        {% endfor %}
 					</ul>
 				</td>
 			</tr>
 		</table>
         <script type="text/javascript">
-            var w = 500
-            var h = 500
-            svg = d3.select("#interface-canvas")
-                .attr('width',w)
-                .attr('height',h);
 
             var interface_residues = [
-                    { id : 1, chain : "A", order : 4},
-                    { id : 2, chain : "A", order : 2},
-                    { id : 3, chain : "A", order : 3},
-                    { id : 4, chain : "A", order : 1},
-                    { id : 5, chain : "A", order : 5},
-                    { id : 6, chain : "B", order : 2},
-                    { id : 7, chain : "B", order : 3},
-                    { id : 8, chain : "B", order : 4},
-                    { id : 9, chain : "B", order : 5},
-                    { id : 10, chain : "B", order : 1}
+            {% autoescape off %}
+            {% for node in nodes %}
+                {{node}},
+            {% endfor %}
+            {% endautoescape %}
+            
             ]
             var chainALength = 0
             var chainBLength = 0
@@ -83,27 +63,55 @@
                 }
             };
             var edges = [
-                { coords : [1,6], type : 'HYB'},
-                { coords : [1,7], type : 'POL'},
-                { coords : [1,8], type : 'POL'},
-                { coords : [2,6], type : 'DSB'},
-                { coords : [4,9], type : 'PHO'}, 
-                { coords : [5,10], type : 'UNK'},
-                { coords : [3,10], type : 'PHO'}
+            {% for lir,res_dict in edges.items %}
+                {% for rir,bond_type in res_dict.items %}
+                    { coords : ['{{lir.id}}','{{rir.id}}'], type : '{{bond_type}}' },
+                {% endfor %}
+            {% endfor %}
             ]
+            var group_names = {
+            {% for name,index in group2num.items %}
+                '{{index}}' : '{{name}}',
+            {% endfor %}
+            }
+            var group_colors = {
+                'Aliphatic' : 'grey',
+                'Aromatic' : 'black',
+                'Acidic/Amidic' : 'red',
+                'Sulphur-containing' : 'yellow',
+                'Hydroxylic' : 'lightskyblue',
+                'Basic' : 'blue',
+                'None' : 'pink',
+                'Selenium-containing' : 'purple'
+            }
+            // Properties
+            var maxLengthChain = d3.max([chainALength,chainBLength])
+            var rectHeight = 30
+            var w = 500
+            var h = rectHeight*maxLengthChain
+            var fontSize = 11
+
+            // Create svg
+            svg = d3.select("#interface-canvas")
+                .attr('width',w)
+                .attr('height',h);
             var bondColor = function(d){
                 var bondColors = { 
                     'HYB' : 'blue',
-                    'POL' : 'lightskyblue',
+                    'POL' : 'royalblue',
                     'DSB' :  'yellow',
                     'PHO' : 'red',
                     'UNK' : 'grey'
                 };
                 return bondColors[d.type];
             };
-            var barPadding = 1
-            var yScale = d3.scale.ordinal()
+            
+            var barPadding = 2
+            var yScaleA = d3.scale.ordinal()
                         .domain(d3.range(1,chainALength+1))
+                        .rangeRoundBands([0, h], 0.05);
+            var yScaleB = d3.scale.ordinal()
+                        .domain(d3.range(1,chainBLength+1))
                         .rangeRoundBands([0, h], 0.05);
             // interface residues
             svg.selectAll('rect')
@@ -120,14 +128,23 @@
                         }
                     },
                     y : function(d){
-                        return yScale(d.order);
+                        var chain = d.chain;
+                        if (chain=="A"){
+                            return yScaleA(d.order);
+                        } else {
+                            return yScaleB(d.order);
+                        }
+                        
                     },
                     rx : 20,
                     ry : 20,
                     width : 100,
-                    height : yScale.rangeBand(),
+                    height : rectHeight-barPadding,
                     id : function(d) {
                         return "ir"+d.id;
+                    },
+                    class : function(d) {
+                        return "aa"+d.aa_group_no
                     }
                     })
                 .on('mouseover', function(d){
@@ -173,12 +190,13 @@
                             'stroke-width' : 2
                         });
                 });
+
             svg.selectAll('text')
                 .data(interface_residues)
                 .enter()
                 .append('text')
                 .text(function(d){
-                    return "ID: "+d.id;
+                    return d.aa+"-"+d.uniprot_pos+"("+d.chain_pos+")";
                 })
                 .attr({
                     x : function(d) {
@@ -189,9 +207,12 @@
                             return 350;
                         }
                     },
-                    y : function(d,i){return yScale(d.order) + yScale.rangeBand()/2;},
+                    y : function(d,i){
+                        var rect = d3.select('#ir'+d.id);
+                        return parseInt(rect.attr('y'))+(parseInt(rect.attr('height'))/2)+(fontSize/2)-2;
+                    },
                     'font-family' : 'sans-serif',
-                    'font-size' : '11px',
+                    'font-size' : fontSize+'px',
                     'fill' : 'white',
                     'text-anchor' : 'middle',
                     'pointer-events' : 'none'
@@ -237,10 +258,10 @@
 					});
 				return activeCheckboxs
 			};
-
-            d3.select('#bt-HYB-checkbox')
+            {% for bt in bond_types %}
+            d3.select('#bt-{{bt}}-checkbox')
                 .on('click',function(){
-                    var bondClass = 'bt-HYB';
+                    var bondClass = 'bt-{{bt}}';
                     if (d3.select(this).property('checked')==false){
                     d3.selectAll('line.'+bondClass)
                         .transition()
@@ -257,27 +278,10 @@
                             });
                     }
                 });
-            d3.select('#bt-POL-checkbox')
-                .on('click',function(){
-                    var bondClass = 'bt-POL';
-                    if (d3.select(this).property('checked')==false){
-                    d3.selectAll('line.'+bondClass)
-                        .transition()
-                        .attr({
-                            'opacity' : 0.0,
-                            'active'  : false
-                        });
-                    } else {
-                        d3.selectAll('line.'+bondClass)
-                            .transition()
-                            .attr({
-                                'opacity' : 1.0,
-                                'active'  : true
-                            });
-                    }
-                });
-
+            {% endfor %}
+            
         </script>
+    
 	</div>
 
 {% endblock %}

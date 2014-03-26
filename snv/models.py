@@ -457,10 +457,17 @@ class Uniprot(models.Model):
 	def get_absolute_url(self):
 		return reverse('uniprot-view', kwargs={'pk': self.acc_number})
 
+class AminoAcidGroup(models.Model):
+	id = models.IntegerField(primary_key=True)
+	name = models.CharField(max_length=255L)
+	class Meta:
+		db_table = 'amino_acid_group'
+
 class AminoAcid(models.Model):
     one_letter_code = models.CharField(max_length=1L, primary_key=True)
     three_letter_code = models.CharField(max_length=3L)
     name = models.CharField(max_length=255L)
+    group = models.ForeignKey(AminoAcidGroup,db_column='amino_acid_group_id')
     class Meta:
         db_table = 'amino_acid'
 
@@ -672,6 +679,7 @@ class InterfaceResidue(models.Model):
     id = models.IntegerField(primary_key=True)
     chain_residue = models.ForeignKey(ChainResidue,db_column='chain_residue_id',related_name='interface_residues')
     interaction = models.ForeignKey(Interaction,db_column='interaction_id',related_name='interface_residues')
+    res_order = models.IntegerField()
     class Meta:
         db_table = 'interface_residue'
 
@@ -705,8 +713,6 @@ class InterfaceResidue(models.Model):
     			except KeyError:
     				interacting_residues[partner_residue] = interaction.type
     	return interacting_residues
-
-
 
 
 

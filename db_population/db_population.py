@@ -344,37 +344,44 @@ def amino_acid_import():
 	cur = db.cursor()
 
 	data = [
-		["A","Ala","Alanine"],
-		["I","Ile","Isoleucine"],
-		["L","Leu","Leucine"],
-		["V","Val","Valine"],
-		["F","Phe","Phenylalanine"],
-		["W","Trp","Tryptophan"],
-		["Y","Tyr","Tyrosine"],
-		["N","Asn","Asparagine"],
-		["C","Cys","Cysteine"],
-		["Q","Gln","Glutamine"],
-		["M","Met","Methionine"],
-		["S","Ser","Serine"],
-		["T","Thr","Threonine"],
-		["D","Asp","Aspartic Acid"],
-		["E","Glu","Glutamic Acid"],
-		["H","His","Histidine"],
-		["K","Lys","Lysine"],
-		["G","Gly","Glycine"],
-		["P","Pro","Proline"],
-		["R","Arg","Arginine"],
-		["B","Asx","Aspartic Acid or Asparagine"],
-		["X","Unk","Any amino acid"],
-		["Z","Glx","Glutamic Acid or Glutamine"],
-		["U","Sec","Selenocysteine"]
+		["A","Ala","Alanine","Aliphatic"],
+		["I","Ile","Isoleucine","Aliphatic"],
+		["L","Leu","Leucine","Aliphatic"],
+		["V","Val","Valine","Aliphatic"],
+		["F","Phe","Phenylalanine","Aromatic"],
+		["W","Trp","Tryptophan","Aromatic"],
+		["Y","Tyr","Tyrosine","Aromatic"],
+		["N","Asn","Asparagine","Acidic/Amidic"],
+		["C","Cys","Cysteine","Sulphur-containing"],
+		["Q","Gln","Glutamine","Acidic/Amidic"],
+		["M","Met","Methionine","Sulphur-containing"],
+		["S","Ser","Serine","Hydroxylic"],
+		["T","Thr","Threonine","Hydroxylic"],
+		["D","Asp","Aspartic Acid","Acidic/Amidic"],
+		["E","Glu","Glutamic Acid","Acidic/Amidic"],
+		["H","His","Histidine","Basic"],
+		["K","Lys","Lysine","Basic"],
+		["G","Gly","Glycine","Aliphatic"],
+		["P","Pro","Proline","Aliphatic"],
+		["R","Arg","Arginine","Basic"],
+		["B","Asx","Aspartic Acid or Asparagine","Acidic/Amidic"],
+		["X","Unk","Any amino acid",'None'],
+		["Z","Glx","Glutamic Acid or Glutamine","Acidic/Amidic"],
+		["U","Sec","Selenocysteine","Selenium-containing"]
 		]
 
 	for element in data:
 		try:
-			cur.execute('INSERT INTO amino_acid VALUES (%s,%s,%s)',(element[0],element[1],element[2]))
+			cur.execute('INSERT INTO amino_acid_group (name) VALUES (%s)',element[3])
 			db.commit()
-		except:
+			group_id = cur.lastrowid
+		except MySQLdb.IntegrityError:
+			cur.execute('SELECT id FROM amino_acid_group WHERE name=%s',element[3])
+			group_id = cur.fetchone()[0]
+		try:
+			cur.execute('INSERT INTO amino_acid (one_letter_code,three_letter_code,name,amino_acid_group_id) VALUES (%s,%s,%s,%s)',(element[0],element[1],element[2],group_id))
+			db.commit()
+		except MySQLdb.IntegrityError:
 			db.rollback()
 
 	cur.close()
@@ -1529,7 +1536,7 @@ def stored_contact_import():
 
 #snv_type_import()
 
-#amino_acid_import()
+amino_acid_import()
 
 #uniprot_residue_import()
 

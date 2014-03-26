@@ -115,15 +115,98 @@ class InteractionView(DetailView):
 		return interaction
 
 
-class InterfaceView(DetailView):
-	model = Interaction
-	template_name = 'Interface_view.html'
+class InterfaceView(View):
+	#model = Interaction
+	#template_name = 'Interface_view.html'
+	
+	def get(self,request,pk):
+		interaction = Interaction.objects.get(id=pk)
 
-	def get_context_data(self, **kwargs):
+		left_interface_residues = interaction.chain_1.get_interface_residues(interaction)
+		right_interface_residues = interaction.chain_2.get_interface_residues(interaction)
+		interface_residues = left_interface_residues + right_interface_residues
+		
+		uniprot_positions = {}
+		amino_acids = {}
+		group2num = {}
+		count = 0
+		for ir in interface_residues:
+			try:
+				ur = ir.chain_residue.uniprot_residue.all()[0]
+				uniprot_positions[ir] = ur.position
+			except IndexError:
+				uniprot_positions[ir] = "None"
+			group = ur.amino_acid.group
+			try:
+				group_no = group2num[group]
+			except KeyError:
+				group2num[group] = count
+				group_no = count
+				count += 1
+			amino_acids[ir] = [ur.amino_acid.three_letter_code,group_no]
+			
 
-		interface = super(InterfaceView, self).get_context_data(**kwargs)
+		# Get orders
+		orders = {}
+		if left_interface_residues[0].res_order == None:
+			print(orders)
+			l_order = 1
+			for ir in left_interface_residues:
+				orders[ir] = l_order
+				l_order += 1
+		else:
+			for ir in left_interface_residues:
+				orders[ir] = ir.res_order
+		if right_interface_residues[0].res_order == None:
+			r_order = 1
+			for ir in right_interface_residues:
+				orders[ir] = r_order
+				r_order += 1
+		else:
+			for ir in right_interface_residues:
+				orders[ir] = ir.res_order
+		# JS Object format
+		#{ id : , chain : "A", order : , aa : , uniprot_pos : , chain_pos : , aa_group : }
+		nodes = []
+		for ir in interface_residues:
+			print(ir)
+			if ir in left_interface_residues:
+				chain_id = "A"
+			else:
+				chain_id = "B"
+			empty_js_object = " id : '{id}' , chain : '{chain}', order : {order}, aa : '{aa}', uniprot_pos : '{uni}', chain_pos : '{chain_pos}', aa_group_no : '{aa_group_no}' "
+			js_object = "{" + empty_js_object.format(
+										id=ir.id,
+										chain=chain_id,
+										order=orders[ir],
+										aa=amino_acids[ir][0],
+										uni=uniprot_positions[ir],
+										chain_pos=ir.get_position(),
+										aa_group_no=amino_acids[ir][1]
+										) + "}"
+			nodes.append(js_object)
+		# Get edges
+		# Left irs mapped to right
+		edges = {}
+		bond_types = []
+		for ir in left_interface_residues:
+			inter_dict = ir.get_interacting_residues()
+			edges[ir] = inter_dict
+			for bt in inter_dict.values():
+				bond_types.append(bt)
 
-		return interface
+		bond_types = list(set(bond_types))
+
+
+		# Return dictionary
+		interface = {
+			'nodes' : nodes,
+			'edges' : edges,
+			'bond_types' : bond_types,
+			'group2num' : group2num
+		}
+
+		return render(request,'Interface_view.html',interface)
 
 
 

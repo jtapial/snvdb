@@ -6,11 +6,19 @@ gene_code CHAR(15),
 genbank_id CHAR(15),
 PRIMARY KEY (acc_number)
 );
+CREATE TABLE amino_acid_group (
+id INT NOT NULL AUTO_INCREMENT,
+name VARCHAR(255),
+PRIMARY KEY (id),
+UNIQUE (name)
+);
 CREATE TABLE amino_acid (
 one_letter_code CHAR(1) NOT NULL,
 three_letter_code CHAR(3) NOT NULL,
 name VARCHAR(255) NOT NULL,
-PRIMARY KEY (one_letter_code)
+amino_acid_group_id INT NOT NULL,
+PRIMARY KEY (one_letter_code),
+FOREIGN KEY(amino_acid_group_id) REFERENCES amino_acid_group (id)
 );
 CREATE TABLE uniprot_residue (
 id INT NOT NULL AUTO_INCREMENT,
