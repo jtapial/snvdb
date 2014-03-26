@@ -126,30 +126,30 @@ class InterfaceView(View):
 		right_interface_residues = interaction.chain_2.get_interface_residues(interaction)
 		interface_residues = left_interface_residues + right_interface_residues
 		
+		# Get uniprot positions, amino acids and group_ids
 		uniprot_positions = {}
 		amino_acids = {}
-		group2num = {}
-		count = 0
+		groupid2name = {}
+		ir2snvs = {}
 		for ir in interface_residues:
 			try:
 				ur = ir.chain_residue.uniprot_residue.all()[0]
 				uniprot_positions[ir] = ur.position
+				ir2snvs[ir] = list(ur.snvs.all())
 			except IndexError:
 				uniprot_positions[ir] = "None"
+				ir2snvs[ir] = []
 			group = ur.amino_acid.group
 			try:
-				group_no = group2num[group]
+				groupid2name[group.id]
 			except KeyError:
-				group2num[group] = count
-				group_no = count
-				count += 1
-			amino_acids[ir] = [ur.amino_acid.three_letter_code,group_no]
+				groupid2name[group.id] = group.name
+			amino_acids[ir] = [ur.amino_acid.three_letter_code,group.id]
 			
 
 		# Get orders
 		orders = {}
 		if left_interface_residues[0].res_order == None:
-			print(orders)
 			l_order = 1
 			for ir in left_interface_residues:
 				orders[ir] = l_order
@@ -169,12 +169,11 @@ class InterfaceView(View):
 		#{ id : , chain : "A", order : , aa : , uniprot_pos : , chain_pos : , aa_group : }
 		nodes = []
 		for ir in interface_residues:
-			print(ir)
 			if ir in left_interface_residues:
 				chain_id = "A"
 			else:
 				chain_id = "B"
-			empty_js_object = " id : '{id}' , chain : '{chain}', order : {order}, aa : '{aa}', uniprot_pos : '{uni}', chain_pos : '{chain_pos}', aa_group_no : '{aa_group_no}' "
+			empty_js_object = " id : '{id}' , chain : '{chain}', order : {order}, aa : '{aa}', uniprot_pos : '{uni}', chain_pos : '{chain_pos}', group_id : '{group_id}' "
 			js_object = "{" + empty_js_object.format(
 										id=ir.id,
 										chain=chain_id,
@@ -182,7 +181,7 @@ class InterfaceView(View):
 										aa=amino_acids[ir][0],
 										uni=uniprot_positions[ir],
 										chain_pos=ir.get_position(),
-										aa_group_no=amino_acids[ir][1]
+										group_id=amino_acids[ir][1]
 										) + "}"
 			nodes.append(js_object)
 		# Get edges
@@ -203,7 +202,8 @@ class InterfaceView(View):
 			'nodes' : nodes,
 			'edges' : edges,
 			'bond_types' : bond_types,
-			'group2num' : group2num
+			'groupid2name' : groupid2name,
+			'ir2snvs' :  ir2snvs
 		}
 
 		return render(request,'Interface_view.html',interface)
