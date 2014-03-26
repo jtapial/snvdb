@@ -207,7 +207,6 @@ label{font-weight:normal !important}
 
 					$(document).ready(function(){
 						var dpmode = 'cartoons';
-						$('#contacts-btn').click(function(){map_contacts("red", "blue", "green", "purple", "yellow")});
 
 						// Bootstrap button calls
 
@@ -255,6 +254,11 @@ label{font-weight:normal !important}
 						$('input[name=singlepfam]').change(function(){
 							colorpfam($(this).attr("id"));
 						});
+
+						//Map all contacts
+						$('#contacts-btn').click(function(){map_contacts("red", "blue", "green", "purple", "yellow")});
+
+						//Listeners for the Contacts mapping here//
 
 						//Reset Everything
 						$('#reset-btn').click(function(){
@@ -426,7 +430,7 @@ label{font-weight:normal !important}
 
 					<div class="tab-pane" id="contact_mark">
 						<div class="panel panel-default">
-							<div class="panel-heading">Contact Display Configuration</div>
+							<div class="panel-heading">Contacts between Interface Residues</div>
 							<div class="panel-body scroll">
 								<!-- PFAM Buttons-->
 								<!-- ################ Contact ##########################-->	
@@ -435,22 +439,22 @@ label{font-weight:normal !important}
 									<p><strong>Mark Contacts</strong>[Under Constructions]</p>
 									<ul class="list-unstyled">
 										<li><label class="checkbox">
-											<input type='checkbox' data-color="black" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: black; color:white;"><strong>C</strong></code> All Bonds
+											<input type='checkbox' data-color="black" name = "contacts-all" id="ALL-btn" style="vertical-align:middle;"><code style="background-color: black; color:white;"><strong>C</strong></code> All Bonds
 										</label></li>
 										<li><label class="checkbox">
 											<input type='checkbox' data-color="red" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: red; color:white;"><strong>C</strong></code> [DSB] Disulfide Bond
 										</label></li>
 										<li><label class="checkbox">
-											<input type='checkbox' data-color="blue" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: blue; color:white;"><strong>C</strong></code> [HYB] Hydrogen Bond
+											<input type='checkbox' data-color="blue" name = "contacts" id="HYB-btn" style="vertical-align:middle;"><code style="background-color: blue; color:white;"><strong>C</strong></code> [HYB] Hydrogen Bond
 										</label></li>
 										<li><label class="checkbox">
-											<input type='checkbox' data-color="green" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: green; color:white;"><strong>C</strong></code> [POL] Polar Interaction
+											<input type='checkbox' data-color="green" name = "contacts" id="POL-btn" style="vertical-align:middle;"><code style="background-color: green; color:white;"><strong>C</strong></code> [POL] Polar Interaction
 										</label></li>
 										<li><label class="checkbox">
-											<input type='checkbox' data-color="yellow" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: yellow; color:white;"><strong>C</strong></code> [PHO] Hydrophobic Interaction
+											<input type='checkbox' data-color="yellow" name = "contacts" id="PHO-btn" style="vertical-align:middle;"><code style="background-color: yellow; color:white;"><strong>C</strong></code> [PHO] Hydrophobic Interaction
 										</label></li>
 										<li><label class="checkbox">
-											<input type='checkbox' data-color="purple" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: purple; color:white;"><strong>C</strong></code> [UNK] Unknown Interaction
+											<input type='checkbox' data-color="purple" name = "contacts" id="UNK-btn" style="vertical-align:middle;"><code style="background-color: purple; color:white;"><strong>C</strong></code> [UNK] Unknown Interaction
 										</label></li>
 									</ul>
 							</div>
