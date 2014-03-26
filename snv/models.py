@@ -65,7 +65,7 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interact,max
 
 	graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'" width="'+str(len(cu[i].sequence)*frame/maxlen)+'" height="'+height+'" x="5" y="25" rx="5" ry="5" style="fill:'+color_code[i][0]+';stroke-width:1;stroke:'+color_code[i][1]+';" /></a>'
 	if interact!=None:#pdb region mark
-		graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'_chain" width="'+str((int(ch.seq_end)-int(ch.seq_start))*frame/maxlen)+'" height="'+height+'" x="'+str((int(ch.seq_start))*frame/maxlen)+'" y="25" style="fill:'+color_cover[i]+';" /></a>'
+		graphic_code += '<a xlink:href="'+cu[i].get_absolute_url()+'" target="_blank"><rect class = "'+classname_main+'_chain" width="'+str((int(ch.seq_end)-int(ch.seq_start)+1)*frame/maxlen)+'" height="'+height+'" x="'+str(5+(int(ch.seq_start)-1)*frame/maxlen)+'" y="25"  rx="5" ry="5" style="fill:'+color_cover[i]+';" /></a>'
 
 	java_code = '$(".'+classname_main+'").popover({content:"Uniprot ID: '+cu[i].acc_number+', '+str(len(cu[i].sequence))+' amino acids","placement": "bottom",trigger: "hover",container:"body"});'   
   	if interact!= None:
@@ -303,13 +303,20 @@ class Uniprot(models.Model):
 
 			for i in range(2):#do for chain1 & chain 2
 				region = []
+				print "i = ",i, "chain set:",chains_set[i]
 				if not chains_set[i]:#if no position found
 					chain_reg[i] = []
 					continue #skip
 
-				starting = chains_set[i].pop(0)
-				tmp = [int(starting.chain_residue.uniprot_residue.all()[0].position),int(starting.chain_residue.uniprot_residue.all()[0].position)+1]
+				while True:
+					starting = chains_set[i].pop(0) #Find the 1st starting position. skip one that doesn't have a mapped uniprot position
+					if len(starting.chain_residue.uniprot_residue.all())!=0:
+						break 
+
+				print starting, starting.chain_residue.uniprot_residue.all()
+				tmp = [int(starting.chain_residue.uniprot_residue.all()[0].position),int(starting.chain_residue.uniprot_residue.all()[0].position)+1] #region for each interface [starting,ending]
 				res_pos[i].append(int(starting.chain_residue.uniprot_residue.all()[0].position))
+
 				for item in chains_set[i]:
 					if len(item.chain_residue.uniprot_residue.all())==0:#skip one that doesn't have a mapped uniprot position
 						continue
