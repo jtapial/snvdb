@@ -453,6 +453,8 @@ class Uniprot(models.Model):
 class AminoAcidGroup(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=255L)
+	class Meta:
+		db_table = 'amino_acid_group'
 
 class AminoAcid(models.Model):
     one_letter_code = models.CharField(max_length=1L, primary_key=True)
