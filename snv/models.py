@@ -78,7 +78,6 @@ def create_svg_interaction(cu,_ischain1,i,header,height,classsuffix,interact,max
 		else:
 			content_data = 'Residue ' +str(region[0])+ ' to ' +str(region[1]-1)+ ' ('+str(region[1]-region[0])+' residues)'
 		graphic_code +=  '<rect class ="'+classname+' intersite" width="'+ str((region[1]-region[0])*frame/maxlen +1) +'" height="'+str(int(height)*2/3)+'" x="'+str((region[0])*frame/maxlen) +'" y="'+str(25)+'" fill="#FF9933"/>'
-
 		java_code+= '$(".'+classname+'").popover({title:"Interface", content:"'+content_data+'","placement": "top",trigger: "hover",container:"body"});'
 		
 	return {'graphic_code':graphic_code,'java_code':java_code} 
@@ -142,16 +141,6 @@ class Uniprot(models.Model):
 		outset = []
 		for chain in self.chains.all():
 			length = len(self.sequence)
-
-			'''
-			graphic_code = '<svg width = "830px" height = "50px">'
-
-			graphic_code += '<rect width="800" height="12" x="0" y="10" rx="5" ry="5" style="fill:#428bca;stroke-width:1;stroke:#285379" />'                   
-			graphic_code +=  '<text x="30" y="20" font-weight="bold" fill="white">'+self.acc_number+'</text> <text x="0" y="20" fill="white">|0</text><text x="200" y="20" fill="white">|'+str(length/4)+'</text><text x="400" y="20" fill="white">|'+str(length/2)+'</text><text x="600" y="20" fill="white">|'+str(length*3/4)+'</text><text x="800" y="20" fill="black">|'+str(length)+'</text>'
-			graphic_code += '<rect width="'+ str(int(float(chain.coverage)*800/100)) +'" height="12" x="'+str((float(chain.seq_start)-1)/float(length)*800)+'" y="25" rx="5" ry="5" style="fill:#5bc0de;stroke-width:1;stroke:#499AB2" />'   			
-			graphic_code += '<text x="'+str(float(chain.seq_start)/float(length)*800+30)+'" y="35" font-weight="bold" fill="white"> PDB:'+chain.pdb_id+'</text><text x="'+str(float(chain.seq_start)/float(length)*800)+'" y="35" fill="white">'+chain.seq_start+'</text><text x="'+str(float(chain.seq_end)/float(length)*800)+'" y="35" fill="black">'+chain.seq_end+'</text>'
-			graphic_code +='</svg>'
-			'''
 
 			stat = [0.0,0.0,0.0]
 			stat[0] = round((float(chain.seq_start)-1)*100/float(length),1)
@@ -219,17 +208,6 @@ class Uniprot(models.Model):
 			y = x.all()
 			if len(y) > 0:
 				return chain
-	'''
-	def get_color(self):
-		if self.type.type =='Disease':
-			return  set('red')
-		elif self.type.type =='Polymorphism':	
-			return 'green'
-		elif self.type.type =='Unclassified':	
-			return 'blue'
-		return set('purple')	
-	'''	
-
 
 	def interacting_partners(self):
 		chains = self.chains.all()
@@ -466,13 +444,8 @@ class Uniprot(models.Model):
 
 			option['sequence'] = mod_seq
 			#print 'success'
-
-		script = '<script type="text/javascript">$(document).ready(function(){ $(".default").show();$(\'input[type="radio"]\').click(function(){'
-		for item in interaction_reg_mark:
-			script += 'if($(this).attr("id")=="'+item['id']+'"){$(".box").hide();$(".'+item['id']+'").show();}'
-		script+='});});</script>'	
 	
-		return [interactionset, mod_seq,interaction_reg_mark,script]
+		return [interactionset, mod_seq,interaction_reg_mark]
 	###########################################################
 	def get_absolute_url(self):
 		return reverse('uniprot-view', kwargs={'pk': self.acc_number})
@@ -620,9 +593,28 @@ class Interaction(models.Model):
 							contacts[inter.type].append(["[%(aa_a)s]%(pos_a)s:A.%(label_a)s" % {"aa_a":cr.amino_acid.three_letter_code, "pos_a":cr.get_transformed_position(self), "label_a":atom.label}, "[%(aa_b)s]%(pos_b)s:B.%(label_b)s" % {"aa_b":partner_cr.amino_acid.three_letter_code, "pos_b":partner_cr.get_transformed_position(self), "label_b":partner_atom.label}])
 						except KeyError:
 							contacts[inter.type] = [["[%(aa_a)s]%(pos_a)s:A.%(label_a)s" % {"aa_a":cr.amino_acid.three_letter_code, "pos_a":cr.get_transformed_position(self), "label_a":atom.label}, "[%(aa_b)s]%(pos_b)s:B.%(label_b)s" % {"aa_b":partner_cr.amino_acid.three_letter_code, "pos_b":partner_cr.get_transformed_position(self), "label_b":partner_atom.label}]]
+		return contacts
 
+	def get_contacts_alt(self):
+		residues_dict = {}
+		for ir in self.interface_residues.all():
+			residues_dict[ir] = ir.get_interacting_residues()
 
-		return contacts #,len(contacts["HYB"]),len(contacts["POL"]),len(contacts["PHO"]),(len(contacts["HYB"]) + len(contacts["POL"]) + len(contacts["PHO"])) ** UNCOMMENT TO RETURN COUNTS
+		contacts = {}
+		for element in residues_dict.items():
+			for ir2 in element[1].keys():
+				if ir2.chain_residue.chain == self.chain_1:
+					chain_ir2 = "A"
+					chain_ir1 = "B"
+				if ir2.chain_residue.chain == self.chain_2:
+					chain_ir2 = "B"
+					chain_ir1 = "A"
+				try:
+					contacts[element[1][ir2]].append(["[%(aa_a)s]%(pos_a)s:%(chain_ir_a)s.CA" % {"aa_a":element[0].chain_residue.amino_acid.three_letter_code, "pos_a":element[0].chain_residue.get_transformed_position(self), "chain_ir_a":chain_ir1}, "[%(aa_b)s]%(pos_b)s:%(chain_ir_b)s.CA" % {"aa_b":ir2.chain_residue.amino_acid.three_letter_code, "pos_b":ir2.chain_residue.get_transformed_position(self), "chain_ir_b":chain_ir2}])
+				except KeyError:
+					contacts[element[1][ir2]] = [["[%(aa_a)s]%(pos_a)s:%(chain_ir_a)s.CA" % {"aa_a":element[0].chain_residue.amino_acid.three_letter_code, "pos_a":element[0].chain_residue.get_transformed_position(self), "chain_ir_a":chain_ir1}, "[%(aa_b)s]%(pos_b)s:%(chain_ir_b)s.CA" % {"aa_b":ir2.chain_residue.amino_acid.three_letter_code, "pos_b":ir2.chain_residue.get_transformed_position(self), "chain_ir_b":chain_ir2}]]
+
+		return contacts
 
 class ChainResidue(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -761,6 +753,14 @@ class Snv(models.Model):
 		record = Entrez.read(handle)
 		gene_id = record["IdList"][0]
 		return gene_id
+
+	def get_color(self):
+		color_code = {'Disease': 'red', 'Polymorphism':'green', 'Unclassified':'blue'}
+		return color_code[self.type.type]
+	def get_short_code(self):
+		color_code = {'Disease': 'D', 'Polymorphism':'P', 'Unclassified':'U'}
+		return color_code[self.type.type]
+
 
 class Disease(models.Model):
 	mim = models.IntegerField(primary_key=True)
@@ -930,6 +930,19 @@ class InterfaceAtomInteraction(models.Model):
 	length = models.DecimalField(max_digits=4,decimal_places=3)
 	class Meta:
 		db_table = 'interface_atom_interaction'
+
+
+class StoredContact(models.Model):
+	id = models.IntegerField(primary_key=True)
+	interaction = models.ForeignKey(Interaction,db_column='interaction_id',related_name="interactions")
+	ir_1 = models.ForeignKey(InterfaceResidue, db_column='ir_1_id',related_name="interface_residues_1")
+	ir_2 = models.ForeignKey(InterfaceResidue, db_column='ir_2_id',related_name="interface_residues_2")
+	jsmol_str_1 = models.CharField(max_length=15L)
+	jsmol_str_2 = models.CharField(max_length=15L)
+	bond_type = models.CharField(db_column="type",max_length=3L)
+	class Meta:
+		db_table = 'stored_contact'
+
 
 
 

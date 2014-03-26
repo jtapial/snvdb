@@ -41,7 +41,6 @@ class UniprotView(DetailView):
 		data['snv_statistic']=snvs_data[1]
 		
 		data['marked_reg'] = interact_snvs[2]
-		data['markscript'] = interact_snvs[3]
 		data['annotation'] = self.object.annotation()
 		return data
 	
@@ -101,7 +100,17 @@ class InteractionView(DetailView):
 		interaction['chain1_pfam_positions'] = pfam_positions[0]
 		interaction['chain2_pfam_positions'] = pfam_positions[1]
 
-		interaction['contacts'] = self.object.get_contacts()	
+		#Get pre-computed contacts and add to list
+		contacts = {}
+		for contact in StoredContact.objects.filter(interaction=self.object):
+			try:
+				contacts[contact.bond_type].append(contact)
+			except KeyError:
+				contacts[contact.bond_type] = [contact]
+
+		interaction['contacts'] = contacts
+		#interaction['contacts'] = self.object.get_contacts()
+
 
 		return interaction
 
@@ -239,15 +248,15 @@ def search(request):
 		q = request.GET['q'].strip(' \t\n\r')
 		option = request.GET['search_select']
 		if option =='1':
-			uniprot = Uniprot.objects.filter(Q(acc_number__icontains=q)|Q(name__icontains=q)|Q(gene_code__icontains=q)|Q(genbank_id__icontains=q))
-			if uniprot.count() == 1:
+			uniprot = list(set(Uniprot.objects.filter(Q(acc_number__icontains=q)|Q(name__icontains=q)|Q(gene_code__icontains=q)|Q(genbank_id__icontains=q)|Q(chains__pdb_id__icontains=q))))
+			if len(uniprot) == 1:
 				return HttpResponseRedirect(reverse('uniprot-view', kwargs={'pk': uniprot[0].acc_number})) 
 			else:
 				return render(request, 'Uniprot_search_results.html',
 		                    {'uniprot': uniprot, 'query': q})
 		elif option =='2':
-			snv = Snv.objects.filter(Q(ft_id__icontains=q)|Q(db_snp__icontains=q))
-			if snv.count() == 1:
+			snv = list(set(Snv.objects.filter(Q(ft_id__icontains=q)|Q(db_snp__icontains=q)|Q(diseases__name__icontains=q))))
+			if len(snv) == 1:
 				return HttpResponseRedirect(reverse('snv-view', kwargs={'pk': snv[0].ft_id})) 
 			else:
 				return render(request, 'Snv_search_results.html',
