@@ -40,12 +40,12 @@ label{font-weight:normal !important}
 
 	<table class="table table-condensed">
 		<tr>
-			<td height=450 width=450>
+			<td height=450 width=400>
 					<script type="text/javascript">
 						var Info = {
 				  color: "#FFFFFF",  // white background (note this changes legacy default which was black)
 				  height: 450,      // pixels (but it may be in percent)
-				  width: 450,
+				  width: 400,
 				  use: "HTML5",         // "HTML5" or "Java" (case-insensitive)
 				  j2sPath: "{{ BASE_URL }}/static/jsmol/jsmol/j2s",           // only used in the HTML5 modality
 				  defaultModel: "",
@@ -297,8 +297,9 @@ label{font-weight:normal !important}
 				<!-- Nav tabs -->
 				<ul class="nav nav-tabs">
 				  <li class="active"><a href="#basic" data-toggle="tab">Basic</a></li>
-				  <li><a href="#snvs_mark" data-toggle="tab">SNVs</a></li>
-				  <li><a href="#PFAM_mark" data-toggle="tab">PFAMs</a></li>
+				  <li><a href="#snvs_mark" data-toggle="tab">SNV</a></li>
+				  <li><a href="#PFAM_mark" data-toggle="tab">PFAM</a></li>
+				  <li><a href="#contact_mark" data-toggle="tab">Contact</a></li>
 
 				</ul>
 
@@ -422,13 +423,44 @@ label{font-weight:normal !important}
 							</div>
 						</div>
 					</div>
+
+					<div class="tab-pane" id="contact_mark">
+						<div class="panel panel-default">
+							<div class="panel-heading">Contact Display Configuration</div>
+							<div class="panel-body scroll">
+								<!-- PFAM Buttons-->
+								<!-- ################ Contact ##########################-->	
+
+						<button type="button" class="btn btn-danger" id="contacts-btn">Map contacts</button>
+									<p><strong>Mark Contacts</strong>[Under Constructions]</p>
+									<ul class="list-unstyled">
+										<li><label class="checkbox">
+											<input type='checkbox' data-color="black" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: black; color:white;"><strong>C</strong></code> All Bonds
+										</label></li>
+										<li><label class="checkbox">
+											<input type='checkbox' data-color="red" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: red; color:white;"><strong>C</strong></code> [DSB] Disulfide Bond
+										</label></li>
+										<li><label class="checkbox">
+											<input type='checkbox' data-color="blue" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: blue; color:white;"><strong>C</strong></code> [HYB] Hydrogen Bond
+										</label></li>
+										<li><label class="checkbox">
+											<input type='checkbox' data-color="green" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: green; color:white;"><strong>C</strong></code> [POL] Polar Interaction
+										</label></li>
+										<li><label class="checkbox">
+											<input type='checkbox' data-color="yellow" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: yellow; color:white;"><strong>C</strong></code> [PHO] Hydrophobic Interaction
+										</label></li>
+										<li><label class="checkbox">
+											<input type='checkbox' data-color="purple" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: purple; color:white;"><strong>C</strong></code> [UNK] Unknown Interaction
+										</label></li>
+									</ul>
+							</div>
+						</div>
+					</div>
 				</div><!-- END Tab Contend-->	
 			</td>
 		</tr>
 	</table>
-
 <div>
-	<button type="button" class="btn btn-danger" id="contacts-btn">Map contacts</button>
 </div>
 
 
