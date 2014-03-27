@@ -3,6 +3,77 @@
 svg rect {
     fill:black;
 }
-svg rect .aa0 {
-	
+/* Aliphatic */
+svg rect.aa1 {
+	fill:gray;
 }
+/* Aromatic */
+svg rect.aa2 {
+	fill:orange;
+}
+/* Acidic/Amidic */
+svg rect.aa3 {
+	fill:red;
+}
+/* Sulphur-containing */
+svg rect.aa4 {
+	fill:yellow;
+}
+/* Hydroxylic */
+svg rect.aa5 {
+	fill:lightskyblue;
+}
+/* Basic */
+svg rect.aa6 {
+	fill:blue;
+}
+/* Selenium-containing */
+svg rect.aa8 {
+	stroke:pink;
+}
+/* Line generic settings */
+svg line {
+	stroke-linecap:round;
+}
+/* Bond types colors */
+svg line.bt-HYB {
+	stroke:blue;
+}
+svg line.bt-POL {
+	stroke:mediumpurple;
+}
+svg line.bt-PHO {
+	stroke:red;
+}
+svg line.bt-DSB {
+	stroke:yellow;
+}
+svg line.bt-UNK {
+	stroke:gray;
+}
+.tooltip2 {
+        position: absolute;
+        width: 200px;
+        height: auto;
+        padding: 10px;
+        background-color: white;
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+        -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+}
+
+.tooltip2.hidden {
+        display: none;
+}
+
+.tooltip2 p {
+        margin: 0;
+        font-family: sans-serif;
+        font-size: 16px;
+        line-height: 20px;
+}
+

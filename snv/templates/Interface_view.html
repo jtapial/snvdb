@@ -31,6 +31,13 @@
 				<td>
 					<svg id="interface-canvas"></svg>
 				</td>
+                <td>
+                    <h3>SNVs:</h3>
+                    <h4>Residue: <span id='residue_label'></span></h4>
+                    <div id='snv-list'>
+
+                    </div>
+                </td>
 				<td>
 					<ul class='list-unstyled'>
                         {% for bt in bond_types %}
@@ -70,41 +77,31 @@
             {% endfor %}
             ]
             var group_names = {
-            {% for name,index in group2num.items %}
-                '{{index}}' : '{{name}}',
+            {% for id,name in groupid2name.items %}
+                '{{id}}' : '{{name}}',
             {% endfor %}
             }
-            var group_colors = {
-                'Aliphatic' : 'grey',
-                'Aromatic' : 'black',
-                'Acidic/Amidic' : 'red',
-                'Sulphur-containing' : 'yellow',
-                'Hydroxylic' : 'lightskyblue',
-                'Basic' : 'blue',
-                'None' : 'pink',
-                'Selenium-containing' : 'purple'
+            var ir2snvs = {
+            {% for ir,snvs in ir2snvs.items %}
+                '{{ir.id}}' : [
+                {% for snv in snvs %}
+                    { 'ft_id' : '{{snv.ft_id}}', 'wt_aa' : '{{snv.wt_aa.one_letter_code}}', 'mutant_aa' : '{{snv.mutant_aa.one_letter_code}}', type : '{{snv.type}}' }
+                {% endfor %}
+                ],
+            {% endfor %}
             }
             // Properties
             var maxLengthChain = d3.max([chainALength,chainBLength])
             var rectHeight = 30
-            var w = 500
+            var w = 400
             var h = rectHeight*maxLengthChain
             var fontSize = 11
+            var strokeWidth = 2
 
             // Create svg
             svg = d3.select("#interface-canvas")
                 .attr('width',w)
                 .attr('height',h);
-            var bondColor = function(d){
-                var bondColors = { 
-                    'HYB' : 'blue',
-                    'POL' : 'royalblue',
-                    'DSB' :  'yellow',
-                    'PHO' : 'red',
-                    'UNK' : 'grey'
-                };
-                return bondColors[d.type];
-            };
             
             var barPadding = 2
             var yScaleA = d3.scale.ordinal()
@@ -144,7 +141,7 @@
                         return "ir"+d.id;
                     },
                     class : function(d) {
-                        return "aa"+d.aa_group_no
+                        return "aa"+d.group_id
                     }
                     })
                 .on('mouseover', function(d){
@@ -162,8 +159,8 @@
                     	})
                         .transition()
                         .attr({
-                            'opacity' : 0.2,
-                            'stroke-width' : 2
+                            'opacity' : 0.1,
+                            'stroke-width' : strokeWidth
                         });
                     d3.selectAll('line.'+residueClass)
                     	.filter(function(){
@@ -173,7 +170,7 @@
                     	})
                     	.transition()
                         .attr({
-                            'stroke-width' : 4,
+                            'stroke-width' : strokeWidth*2,
                             'opacity' : 1.0
                         });
                 })
@@ -187,7 +184,20 @@
                         .transition()
                         .attr({
                             'opacity' : 1.0,
-                            'stroke-width' : 2
+                            'stroke-width' : strokeWidth
+                        });
+                })
+                .on('click', function(d){
+                    d3.selectAll('line.'+residueClass)
+                        .filter(function(){
+                            if (d3.select(this).attr('active')=='true'){
+                                return this
+                            }
+                        })
+                        .transition()
+                        .attr({
+                            'stroke-width' : strokeWidth*2,
+                            'opacity' : 1.0
                         });
                 });
 
@@ -236,12 +246,7 @@
                         height = parseInt(rightIr.attr('height'));
                         return y + height/2;
                     },
-                    'stroke' : function(d) {
-                        return bondColor(d)
-                    },
-                    'stroke-width' : '2',
-                    'stroke-linecap' : 'round',
-                    'shape-rendering' : 'crisp-edges',
+                    'stroke-width' : strokeWidth,
                     'class' : function(d){
                         return 'edges '+'ir'+d.coords[0]+' '+'ir'+d.coords[1]+' bt-'+d.type
                     },
@@ -281,7 +286,6 @@
             {% endfor %}
             
         </script>
-    
 	</div>
 
 {% endblock %}
