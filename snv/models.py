@@ -332,7 +332,7 @@ class Uniprot(models.Model):
 				region.append(tmp)				
 				chain_reg[i] = region
 			
-			print cu[0].acc_number, cu[1].acc_number
+			#print cu[0].acc_number, cu[1].acc_number
 			name = [cu[0].name,cu[1].name]
 			for i in range(2):
 				if name[i] == None:
@@ -352,7 +352,7 @@ class Uniprot(models.Model):
 				
 			elif _ischain1:
 				maxlen = len(cu[0].sequence)
-				print cu[0], cu[1]
+				#print cu[0], cu[1]
 				header = '<text x="5" y="15" font-weight="bold" fill="black">'+cu[0].acc_number+' when interacting with '+cu[1].acc_number+' ['+name[1]+']</text>' 
 				svgcode = create_svg_interaction(cu,not _ischain1,0,header,36,'mapped',interact,maxlen,chain_reg[0],False)
 				interaction_reg_mark.append({'name':cu[1].acc_number,'info':cu[0].acc_number+' ['+name[0]+'] - '+cu[1].acc_number+' ['+name[1]+']','region':res_pos[0],'id':'int'+str(interact.id)+cu[0].acc_number,'checked':'','graphic_code':svgcode['graphic_code'],'java_code':svgcode['java_code']})
