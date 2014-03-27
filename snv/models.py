@@ -141,23 +141,98 @@ class Uniprot(models.Model):
 		outset = []
 		for chain in self.chains.all():
 			length = len(self.sequence)
-
+			seqdata = self.sequence
 			stat = [0.0,0.0,0.0]
 			stat[0] = round((float(chain.seq_start)-1)*100/float(length),1)
 			stat[1] = round(float(chain.seq_end)*100/float(length),1) - stat[0]
 			stat[2] = 100.0-stat[0]-stat[1]
+			seqalign=['',''] # 1st are ... for sequence, 2nd are pdb sequence .. NEW METHOD
+			seqend =['',''] # 1st are ... for sequence, 2nd are pdb sequence .. NEW METHOD
 
 			#Alighment Method
-			chain_res_set = list(chain.residues.all().extra(order_by = ['id']))
-			res = None			
-			mapping = None
+			#chain_res_set = list(chain.residues.all().extra(order_by = ['id'])) #sorted by id (also position)
+			new_res_set = list(chain.residues.all().extra(order_by = ['id'])) #sorted by id (also position)
+			#res = None			
+			#mapping = None
 
+			'''
 			while chain_res_set: # pop until we find a residue that align within uniprot sequence			
 				res = chain_res_set.pop(0)
 				if res.uniprot_residue.all():
 					mapping = res.uniprot_residue.all()[0].position
 					break
+			'''
+			#NEW CODE
+			newres = None
+			newmap = None
+			pointerseq=0
+			if(new_res_set):
+				while new_res_set: # pop until we find a residue that align within uniprot sequence			
+					newres = new_res_set.pop(0)
 
+					if newres.uniprot_residue.all():
+						newmap = newres.uniprot_residue.all()[0].position #get position  where this residue is aligned on sequence
+						#lower gap
+						while(newmap -1 > pointerseq):
+							seqalign[0] += seqdata[pointerseq]
+							seqalign[1] += '.'
+							pointerseq +=1
+						#perfect position
+						seqalign[0] += seqdata[pointerseq]
+						seqalign[1] += newres.amino_acid.one_letter_code
+						pointerseq+=1					
+					
+					else: #upper gap
+						seqalign[0] += '.'
+						seqalign[1] += newres.amino_acid.one_letter_code
+
+				while pointerseq<length:
+					seqalign[0] += seqdata[pointerseq]
+					seqalign[1] += '.'
+					pointerseq+=1
+
+
+				#Align Them
+				cutoff = 50
+				allrange = len(seqalign[0])
+				current2 = 0
+				align_code = '<code style="background-color:#428bca ; color:white;">Seq 1:</code> '
+
+				for current1 in range(allrange):
+					#First line		
+					if(current1%10 == 0 and current1>0): 
+						align_code += ' '
+					align_code += seqalign[0][current1]	
+
+					#Second line	
+					if(((current1+1)%cutoff==0 and current1>0) or current1==allrange-1 ): 				
+						align_code+='<br><code style="background-color:#5bc0de ; color:white;">Seq 2:</code> '
+						#do until second line position == first line position						
+						while current2 <= current1:
+							if (current2%10==0 and current2 > 0):				
+								align_code += ' '
+
+							if(seqalign[0][current2] == '.' or seqalign[1][current2] == '.'):
+								align_code += seqalign[1][current2]
+							
+							else:
+								color = 'yellow'
+								if(seqalign[0][current2] != seqalign[1][current2]):
+									color='#FF6600'
+
+								align_code+= '<mark style="background-color:'+color+'">'+seqalign[1][current2]+'</mark>'
+							current2+=1
+						#end of second line
+						if(current2<allrange):
+							align_code+='<br><code style="background-color:#428bca ; color:white;">Seq 1:</code> '
+			else:
+				align_code = ''
+
+			#print 'done ...'
+			#print '>', seqalign[0]	
+			#print '>', seqalign[1]	
+			#END OF NEW CODE
+			'''
 			align_code = ''
 			#Do each line for 50 letters
 			cutoff = 50
@@ -183,19 +258,22 @@ class Uniprot(models.Model):
 								if(res.amino_acid.one_letter_code != self.sequence[mapping-1]):
 									color='#FF6600'
 								align_code+= '<mark style="background-color:'+color+'">'+res.amino_acid.one_letter_code+'</mark>'
-
+								#introducting gapd
+								
+								
 								while chain_res_set: # pop until we find a residue that align within uniprot sequence			
 									res = chain_res_set.pop(0)
 									if res.uniprot_residue.all():
 										mapping = res.uniprot_residue.all()[0].position
 										break
+								
 							else:
 								align_code +='.'
 												
 							second_line+=1						
 						if(second_line<length):
 							align_code+='<br><code style="background-color:#428bca ; color:white;">Seq 1:</code> '
-						
+				'''
 			outset.append({'obj':chain,'alignent':align_code,'stat':stat})	 	
 		return outset
 
