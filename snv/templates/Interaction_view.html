@@ -60,6 +60,7 @@ label{font-weight:normal !important}
 					Jmol.getApplet("myJmol", Info);
 					reset_structure();
 
+
 					// Mapping interface residues onto structure
 					function color_interface_residues(color1,color2,display){
 					{% for interface_res in interaction.interface_residues.all %}
@@ -75,6 +76,7 @@ label{font-weight:normal !important}
 
 					function reset_structure(){
 						Jmol.script(myJmol,'zap; set highResolution ON; load {{BASE_URL}}{% static interaction.filename %}; wireframe off; spacefill off; select protein; cartoons on; color chain;');
+						Jmol.script(myJmol, 'rotate best;');
 					};
 					function show_partner(partner){
 						Jmol.script(myJmol, 'hide hidden and not :'+partner+';');
