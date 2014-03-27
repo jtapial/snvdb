@@ -93,6 +93,16 @@ label{font-weight:normal !important}
 						Jmol.script(myJmol, 'select '+start+'-'+end+':'+partner+'; color '+color+';')
 					};
 
+					function checkallcontacts(){//This function check or uncheck all contacts
+						var isChecked = $('#ALL-btn').prop("checked"); //global check/uncheck
+						$("input[name=contacts]").each(function () {
+							if($(this).prop("checked")!=isChecked){														 
+								$(this).prop("checked", isChecked);
+								map_contacts($(this).attr("data-type"),$(this).attr("data-color"));
+							}
+						});
+					};
+
 					function checkallsnvs(){//This function check or uncheck all snvs
 						if ($('#snvs-btn').is(":checked")){		 
 							$('input[name=singlesnv]').prop("checked", true);
@@ -107,10 +117,8 @@ label{font-weight:normal !important}
 					function checkallpfams(){//This function check or uncheck all pfam domains
 						if ($('#pfam-domains-btn').is(":checked")){
 							$('input[name=singlepfam]').prop("checked", true);
-
 						}else{
-							$('input[name=singlepfam]').prop("checked", false);
-							
+							$('input[name=singlepfam]').prop("checked", false);	
 						}
 						$("input[name=singlepfam]").each(function () {
 							colorpfam($(this).attr("id"));
@@ -124,42 +132,48 @@ label{font-weight:normal !important}
 					};
 
 					
-					function map_contacts(color1, color2,color3, color4, color5){
+					function map_contacts(type, color){
 						Jmol.script(myJmol, 'set measurementLabels FALSE;');
-						
+						Jmol.script(myJmol, 'color measures \"'+color+'\";');
 						{% for item in contacts.items %}
 							{% if item.0 == "DSB" %}
-								Jmol.script(myJmol, 'color measures \"'+color1+'\";');
+							if (type == "DSB"){
 								{% for contact in item.1 %}
-									Jmol.script(myJmol, 'measure (({{contact.jsmol_str_1}})) (({{contact.jsmol_str_2}}));');
+								Jmol.script(myJmol, 'measure (({{contact.jsmol_str_1}})) (({{contact.jsmol_str_2}}));');
 								{% endfor %}
-							
+								return('true');
+							}
 							{% elif item.0 == "HYB" %}
-								Jmol.script(myJmol, 'color measures \"'+color2+'\";');
+							if(type == "HYB"){
 								{% for contact in item.1 %}
 									Jmol.script(myJmol, 'measure (({{contact.jsmol_str_1}})) (({{contact.jsmol_str_2}}));');
 								{% endfor %}
-
+								return('true');
+							}
 							{% elif item.0 == "POL" %}
-								Jmol.script(myJmol, 'color measures \"'+color3+'\";');
+							if(type == "POL"){
 								{% for contact in item.1 %}
 									Jmol.script(myJmol, 'measure (({{contact.jsmol_str_1}})) (({{contact.jsmol_str_2}}));');
 								{% endfor %}
-
+								return('true');
+							}
 							{% elif item.0 == "PHO" %}
-								Jmol.script(myJmol, 'color measures \"'+color4+'\";');
+							if(type == "PHO"){
 								{% for contact in item.1 %}
 									Jmol.script(myJmol, 'measure (({{contact.jsmol_str_1}})) (({{contact.jsmol_str_2}}));');
 								{% endfor %}
-
+								return('true');
+							}
 							{% elif item.0 == "UNK" %}
-								Jmol.script(myJmol, 'color measures \"'+color5+'\";');
+							if(type == "UNK"){
 								{% for contact in item.1 %}
 									Jmol.script(myJmol, 'measure (({{contact.jsmol_str_1}})) (({{contact.jsmol_str_2}}));');
 								{% endfor %}
-							{% endif %}
-
+								return('true');
+							}
+							{% endif %}							
 						{% endfor %}
+						alert(type + ' not found...')
 					}
 					
 					function colorsnv(snvid){//This function marks/unmarks a snv with various color
@@ -240,12 +254,10 @@ label{font-weight:normal !important}
 							checkallsnvs();
 						});
 
-
 						//Listeners for SNVs Mapping
 						$('input[name=singlesnv]').change(function(){
 							colorsnv($(this).attr("id"));
 						});
-
 
 						//Map All pfams
 						$('#pfam-domains-btn').change(function(){
@@ -258,9 +270,14 @@ label{font-weight:normal !important}
 						});
 
 						//Map all contacts
-						$('#contacts-btn').click(function(){map_contacts("red", "blue", "green", "purple", "yellow")});
+						$('#ALL-btn').change(function(){
+							checkallcontacts();
+						});
 
 						//Listeners for the Contacts mapping here//
+						$('input[name=contacts]').change(function(){
+							map_contacts($(this).attr("data-type"),$(this).attr("data-color"));
+						});
 
 						//Reset Everything
 						$('#reset-btn').click(function(){
@@ -270,9 +287,11 @@ label{font-weight:normal !important}
 							$("#showhide2-btn").prop("checked", true);
 							$("#ir-btn").prop("checked", false);
 							$("#snvs-btn").prop("checked", false);
+							$('input[name=singlesnv]').prop("checked", false);
 							$("#pfam-domains-btn").prop("checked", false);
-							checkallpfams();
-							checkallsnvs();
+							$('input[name=singlepfam]').prop("checked", false);	
+							$('#ALL-btn').prop("checked", false);
+							$('input[name=contacts]').prop("checked", false);
 						});
 						//Show & hide Partner1
 						$('#showhide1-btn').change(function(){
@@ -436,27 +455,25 @@ label{font-weight:normal !important}
 							<div class="panel-body scroll">
 								<!-- PFAM Buttons-->
 								<!-- ################ Contact ##########################-->	
-
-						<button type="button" class="btn btn-danger" id="contacts-btn">Map contacts</button>
-									<p><strong>Mark Contacts</strong>[Under Constructions]</p>
+									<p><strong>Mark Contacts</strong></p>
 									<ul class="list-unstyled">
 										<li><label class="checkbox">
 											<input type='checkbox' data-color="black" name = "contacts-all" id="ALL-btn" style="vertical-align:middle;"><code style="background-color: black; color:white;"><strong>C</strong></code> All Bonds
 										</label></li>
 										<li><label class="checkbox">
-											<input type='checkbox' data-color="red" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: red; color:white;"><strong>C</strong></code> [DSB] Disulfide Bond
+											<input type='checkbox' data-type="DSB" data-color="red" name = "contacts" id="DSB-btn" style="vertical-align:middle;"><code style="background-color: red; color:white;"><strong>C</strong></code> [DSB] Disulfide Bond
 										</label></li>
 										<li><label class="checkbox">
-											<input type='checkbox' data-color="blue" name = "contacts" id="HYB-btn" style="vertical-align:middle;"><code style="background-color: blue; color:white;"><strong>C</strong></code> [HYB] Hydrogen Bond
+											<input type='checkbox' data-type="HYB" data-color="blue" name = "contacts" id="HYB-btn" style="vertical-align:middle;"><code style="background-color: blue; color:white;"><strong>C</strong></code> [HYB] Hydrogen Bond
 										</label></li>
 										<li><label class="checkbox">
-											<input type='checkbox' data-color="green" name = "contacts" id="POL-btn" style="vertical-align:middle;"><code style="background-color: green; color:white;"><strong>C</strong></code> [POL] Polar Interaction
+											<input type='checkbox' data-type="POL" data-color="green" name = "contacts" id="POL-btn" style="vertical-align:middle;"><code style="background-color: green; color:white;"><strong>C</strong></code> [POL] Polar Interaction
 										</label></li>
 										<li><label class="checkbox">
-											<input type='checkbox' data-color="yellow" name = "contacts" id="PHO-btn" style="vertical-align:middle;"><code style="background-color: yellow; color:white;"><strong>C</strong></code> [PHO] Hydrophobic Interaction
+											<input type='checkbox' data-type="PHO" data-color="yellow" name = "contacts" id="PHO-btn" style="vertical-align:middle;"><code style="background-color: yellow; color:white;"><strong>C</strong></code> [PHO] Hydrophobic Interaction
 										</label></li>
 										<li><label class="checkbox">
-											<input type='checkbox' data-color="purple" name = "contacts" id="UNK-btn" style="vertical-align:middle;"><code style="background-color: purple; color:white;"><strong>C</strong></code> [UNK] Unknown Interaction
+											<input type='checkbox' data-type="UNK" data-color="purple" name = "contacts" id="UNK-btn" style="vertical-align:middle;"><code style="background-color: purple; color:white;"><strong>C</strong></code> [UNK] Unknown Interaction
 										</label></li>
 									</ul>
 							</div>
