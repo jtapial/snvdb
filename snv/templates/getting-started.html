@@ -299,7 +299,96 @@ h3 span{ position:absolute; top:-70px;}
 			<p><i>IN DEVELOPMENT</i></p>
 
 		<h1 class="page-header"><span id="interaction"></span>Understanding interaction entries</h1>
-			<p><i>IN DEVELOPMENT</i></p>
+			<p>An interaction entry displays information about the three-dimensional structure of a complex between two proteins (named <strong>"partners"</strong>), capable of interacting with each other.</p>
+
+			<p>These entries are divided in three parts:</p>
+			<ul>
+				<li>A <strong>header</strong>, displaying the Uniprot ID of the two partners, and the internal ID of the interaction in our database.</li>
+				<li>A <strong>summary</strong>, displaying general information about the interaction:</li>
+				<ul>
+					<li>The <strong>type</strong> reflects whether the interaction structure has been experimentally determined (<i>Structure</i>), computationally modelled from another structure with high sequence identity (<i>Model</i>), or <font color="red"><strong>Dom-dom model (explanation missing)</strong></font>.</li>
+					<li>The <strong>names and Uniprot IDs</strong> of the two partners make it possible to find their Uniprot entries on the database. The <strong>chain IDs</strong> are also included so that you can have an idea of how well the protein is represented on this structure.</li>
+					<li>The <strong>filename</strong> is the internal name of the PDB file representing the interaction, which you can also download from the Uniprot entry of any of the partners.</li>
+				</ul>
+				<li>The <strong>interaction structure viewer</strong>, where you can see the 3D structure of the complex, and map different features of the partners on it (see below)</li>
+			</ul>
+
+
+			<h3>Using the structure viewer and the feature mapping interface</h3>
+
+			<p>The interaction PDB file is displayed on a <strong>JSMol plugin</strong>. If you already know how to use this popular molecule viewer, you will be happy to know that all the features of JSMol are available on the plugin. Just right-click on the structure to see the available commands on JSMol GUI, including a console to use command-line instructions).</p>
+
+			<p>However, we have set up some <strong>quick buttons</strong> to allow you to map the features stored in the database onto the structure. You can find them right next to the plugin, and they are divided in <strong>four tabs: Basic, SNV, PFAM and Contact</strong>. Just click on each one to access its features.</p>
+
+			<h4>The Basic tab</h4>
+
+			<p>This tab includes some general options about the structure. Here you can:</p>
+			<ul>
+				<li>Choose between a <strong>cartoon</strong> representation (to have a general view of the secondary structure) or a <strong>wireframe</strong> representation (to get a detailed view of every atom in the complex).</li>
+				<li><strong>Hide or show each partner</strong>, to get a clear view of the interface residues of the other partner.</li>
+				<li><strong>Highlight the interface residues</strong>, which will be displayed as a <strong>spacefill</strong> model.</li>
+				<li><strong>Reset everything</strong>, and go back to the initial state of the structure.</li>
+			</ul>
+    
+    
+        	<h4>The SNV tab</h4>
+
+			<p>This tab includes the options to map SNVs onto the 3D structure. Here you can:</p>
+			<ul>
+				<li><strong>Map or unmap all</strong> the SNVs.</li>
+				<li><strong>Map or unmap a particular SNV.</strong>They are listed by partner, and sorted by the position on the PDB file of the interaction (so that the first residue of partner 2 is never #1, but the number after the position for the last residue of partner 1).</li>
+			</ul>
+        
+			<p>The <strong>SNVs color</strong> will be different according to their disease association:</p>
+			<ul>
+				<li>SNVs with at least one associated <strong>disease</strong> will be mapped in <strong>red</strong>.</li>
+				<li>SNVs classsified as <strong>polymorphisms</strong> will be mapped in <strong>green</strong>.</li>
+				<li><strong>Unclassified SNVs</strong> will be mapped in <strong>blue</strong>.</li>
+			</ul>
+
+			<h4>The PFAM tab</h4>
+
+			<p>This tab includes the options to map Pfam domains and families onto the 3D structure. Here you can:</p>
+			<ul>
+				<li><strong>Map or unmap all</strong> the Pfam domains for both partners.</li>
+				<li><strong>Map or unmap a particular domain</strong>. Again, they are listed by partner, and sorted by the first residue according to the PDB file.</li>
+			</ul>
+
+			<p>The different Pfam hits will be mapped in different <strong>colors</strong>:</p>
+			<ul>
+				<li><strong>Domains</strong> will be mapped in <strong>green</strong>.</li>
+				<li><strong>Families</strong> will be mapped in <strong>pink</strong>.</li>
+				<li><strong>Repeats</strong> will be mapped in <strong>range</strong>.</li>
+			</ul>
+
+			<h4>The contacts tab</h4>
+
+			<p>This tab includes all the options to map the bonds that keep the complex together. Here you can:</p>
+			<ul>
+				<li><strong>Map or unmap all</strong> the bonds.</li>
+				<li>Map or unmap all the bonds of a <strong>certain type</strong>:</li>
+				<ul>
+					<li><strong>Disulfide bonds</strong> (in <strong>red</strong>).</li>
+					<li><strong>Hydrogen bonds</strong> (in <strong>blue</strong>).</li>
+					<li><strong>Polar interactions</strong> (in <strong>green</strong>).</li>
+					<li><strong>Hydrophobic interactions</strong> (in <strong>yellow</strong>).</li>
+					<li><strong>Unknown interactions</strong> (in <strong>purple</strong>).</li>
+				</ul>
+			</ul>
+
+			<div class="alert alert-warning">
+				<h3>Note on the contact mapping</h3>
+
+				<p><i>Please note that, to simplify the interaction and minimise loading times, <strong>only one bond per residue pair is displayed</strong>, and <strong>always between the alpha carbons of both residues</strong> (even though the atoms actually establishing the interaction might be others in the same residues).</i></p>
+
+				<p><i>The priority to choose from the different bond types for each residue pair is:</i></p>
+
+				<p align="center"><i><strong>Disulfide bond > Hydrogen bond > Polar interaction > Hydrophobic interaction > Unknown interaction</strong></i></p>
+
+				<p><i>This means, for example, that hydrogen bonds between two residues that also share a disulfide bond, or hydrophobic interactions between two residues that also establish polar interactions with each other, will not be displayed.</i></p>
+
+			</div>
+
 
 <!--########################### COMPATIBILITY ############################-->
 <div>
