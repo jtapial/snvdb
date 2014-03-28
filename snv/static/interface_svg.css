@@ -17,7 +17,7 @@ svg rect.aa3 {
 }
 /* Sulphur-containing */
 svg rect.aa4 {
-	fill:yellow;
+	fill:gold;
 }
 /* Hydroxylic */
 svg rect.aa5 {
@@ -30,6 +30,11 @@ svg rect.aa6 {
 /* Selenium-containing */
 svg rect.aa8 {
 	stroke:pink;
+}
+/* Clicked rect */
+svg rect.clicked {
+    stroke:black;
+    stroke-width:2;
 }
 /* Line generic settings */
 svg line {
@@ -66,7 +71,7 @@ svg line.bt-UNK {
         pointer-events: none;
 }
 
-.tooltip2.hidden {
+.hidden {
         display: none;
 }
 
@@ -76,4 +81,15 @@ svg line.bt-UNK {
         font-size: 16px;
         line-height: 20px;
 }
-
+code .snvtype {
+    color:white;
+}
+code.snvtype.disease {
+    background-color:red; 
+}
+code.snvtype.polymorphism {
+    background-color:green;
+}
+code.snvtype.unclassified {
+    background-color:gray;
+}

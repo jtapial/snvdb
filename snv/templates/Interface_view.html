@@ -32,11 +32,11 @@
 					<svg id="interface-canvas"></svg>
 				</td>
                 <td>
-                    <h3>SNVs:</h3>
-                    <h4>Residue: <span id='residue_label'></span></h4>
-                    <div id='snv-list'>
+                    <h3>SNVs for residue: <span id='residue-label'><span></h3>
+                    <div id='snv-panes'>
 
                     </div>
+                    <p id="no-snv" class='hidden'>No snvs for this residue</p>
                 </td>
 				<td>
 					<ul class='list-unstyled'>
@@ -85,7 +85,7 @@
             {% for ir,snvs in ir2snvs.items %}
                 '{{ir.id}}' : [
                 {% for snv in snvs %}
-                    { 'ft_id' : '{{snv.ft_id}}', 'wt_aa' : '{{snv.wt_aa.one_letter_code}}', 'mutant_aa' : '{{snv.mutant_aa.one_letter_code}}', type : '{{snv.type}}' }
+                    { 'ft_id' : '{{snv.ft_id}}', 'wt_aa' : '{{snv.wt_aa.one_letter_code}}', 'mutant_aa' : '{{snv.mutant_aa.one_letter_code}}', type : '{{snv.type.type}}' },
                 {% endfor %}
                 ],
             {% endfor %}
@@ -97,6 +97,9 @@
             var h = rectHeight*maxLengthChain
             var fontSize = 11
             var strokeWidth = 2
+
+            // Populate snv div
+
 
             // Create svg
             svg = d3.select("#interface-canvas")
@@ -188,17 +191,73 @@
                         });
                 })
                 .on('click', function(d){
-                    d3.selectAll('line.'+residueClass)
-                        .filter(function(){
-                            if (d3.select(this).attr('active')=='true'){
-                                return this
-                            }
-                        })
-                        .transition()
-                        .attr({
-                            'stroke-width' : strokeWidth*2,
-                            'opacity' : 1.0
-                        });
+                    d3.selectAll('rect.clicked').classed('clicked',false);
+                    d3.select(this).classed('clicked',true);
+                    d3.select(this).each(function(d){
+                        d3.select('#residue-label')
+                        .text(d.aa+"-"+d.uniprot_pos+"("+d.chain_pos+")");
+                    });
+                    var snv_panes = d3.select('#snv-panes');
+                    var snv_list = ir2snvs[d.id];
+                    if (snv_list.length>0){
+                        d3.selectAll('div.snv')
+                            .remove();
+                        d3.select("#no-snv")
+                            .classed('hidden',true);
+
+                        var snv = snv_panes.selectAll('div')
+                                            .data(snv_list)
+                                            .enter()
+                                            .append('div')
+                                            .attr({
+                                                id : function(d){
+                                                    return "snv-"+d.ft_id
+                                                },
+                                                class : "snv"
+                                            });
+                        var para = snv.append('p')
+                            .attr({
+                                class : 'snv'
+                            });
+                        para.append('code')
+                            .attr({
+                                class : function(d){
+                                    if (d.type=="Disease"){
+                                        var type = 'disease'
+                                    } else if (d.type=="Polymorphism") {
+                                        var type = 'polymorphism'
+                                    } else {
+                                        var type = 'unclassified'
+                                    };
+                                    return "snvtype "+type
+                                }
+                            })
+                            .style({
+                                color:'white'
+                            })
+                            .html(function(d){
+                                return "<strong>"+d.type+"</strong>"
+                            });
+                        para.append('a')
+                            .attr({
+                                href: function(d){
+                                    return "{{BASE_URL}}/snv/"+d.ft_id
+                                }
+                            })
+                            .html(function(d){
+                                return " <strong>"+d.ft_id+"</strong> "
+                            });
+                        para.append('span')
+                            .html(function(d){
+                                return d.wt_aa+" <span class='glyphicon glyphicon-arrow-right'></span> "+d.mutant_aa
+                            });
+
+                    } else {
+                        d3.selectAll('div.snv')
+                            .remove();
+                        d3.select("#no-snv")
+                            .classed('hidden',false);
+                    };
                 });
 
             svg.selectAll('text')
