@@ -12,9 +12,9 @@ word-wrap:break-word;
 <!-- #######################################    INFO   ############################################################################-->
 <h1>SNV FT ID: {{ snv.ft_id }}</h1>
 <div class = "well">
-    <ul>
+    <ul class="list-unstyled">
     	{% if snv.uniprot_residue %}
-    		<li><strong>Related protein: </strong><a href="{% url 'uniprot-view' pk=snv.uniprot %}" target="_blank">{{snv.uniprot}}</a></li>
+    		<li><strong>Related protein: </strong><a data-toggle="popover" data-content="Go to this Uniprot View"  href="{% url 'uniprot-view' pk=snv.uniprot %}" target="_blank">{{snv.uniprot}}</a></li>
     	{% else %}
     		<li><strong>Related protein: </strong><a class="text-danger">{{snv.uniprot}}</a> <i>(Proteins with names in red cannot be displayed)</i></li>
     	{% endif %}
@@ -23,7 +23,7 @@ word-wrap:break-word;
     	<li><strong>Type: </strong><code style="background-color:{{snv.get_color}}; color:white;">{{snv.type.type}}</code></li>
 
     	{% if snv.db_snp %}
-    		<li><strong>dbSNP ID: </strong>{{snv.db_snp}} <a href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{snv.db_snp}}" target="_blank">(link)</a></li>
+    		<li><strong>dbSNP ID: </strong>{{snv.db_snp}} <a data-toggle="popover" data-content="External link to dbSNP"  href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{snv.db_snp}}" target="_blank">(link)</a></li>
     	{% else %}
     		<li><a class="text-danger">This SNV has no associated dbSNP id</a></li>
     	{% endif %}
@@ -35,7 +35,8 @@ word-wrap:break-word;
 
 <!-- #######################################    DISORDERS   ############################################################################-->
 <h3>Disorders associated to this SNV:</h3>
-{% if snv.type.type == "Disease" %}
+{% if snv.diseases.all %}
+	<div class="table-responsive">
 	<table class="table table-condensed table-hover">
 	<thead>
 		<tr>
@@ -47,13 +48,14 @@ word-wrap:break-word;
 		{% for item in snv.diseases.all %}
 	
 		<tr>
-			<td><a href="{% url 'disease-view' pk=item.mim %}" target="_blank">{{item.name}}</a></td>
-			<td>{{item.mim}} <a href="http://omim.org/entry/{{item.mim}}" target="_blank">(link)</a></td>
+			<td><a data-toggle="popover" data-content="Go to this Disease View"  href="{% url 'disease-view' pk=item.mim %}" target="_blank">{{item.name}}</a></td>
+			<td>{{item.mim}} <a data-toggle="popover" data-content="External link to OMIM"  href="http://omim.org/entry/{{item.mim}}" target="_blank">(link)</a></td>
 		</tr>
 
 		{% endfor %}
 	</tbody>
 	</table>
+	</div>
 {% else %}
 <p>No disorders found to be related to this SNV.</p>
 
@@ -72,6 +74,7 @@ word-wrap:break-word;
 <!-- #######################################    OTHER SNVS   ############################################################################-->
 <h3>Other SNVs sharing the same position</h3>
 {% if sim_snv %}
+		<div class="table-responsive">
 		<table class="table table-condensed table-hover">
 		<thead>
 			<tr>
@@ -87,49 +90,38 @@ word-wrap:break-word;
 		<tbody>		
 			{% for item in sim_snv %}
 			<tr>
-				<td><a href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</a></td>
-				<td>{{item.type.type}}</td>
-				<td>{{item.uniprot_position}}</td>
+				<td><a data-toggle="popover" data-content="Go to this Snv View"  href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</a></td>
+				<td></strong><code style="background-color:{{item.get_color}}; color:white;">{{item.type.type}}</code></td>
+				<td>{{item.uniprot_residue.position}}</td>
 				<td>{{item.wt_aa.one_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.one_letter_code}}</td>
 				{% if item.db_snp %}
-					<td><span title="External link to dbSNP"><a href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{item.db_snp}}" target='_blank'>{{item.db_snp}}</a></span></td>
+					<td><a  data-toggle="popover" data-content="External link to dbSNP"   href="http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs={{item.db_snp}}" target='_blank'>{{item.db_snp}}</a></td>
 				{% else %}
-					<td></td>
+					<td><span class="text-muted">N/A</span></td>
 				{% endif %}
 				{% if item.diseases.all %}
 					<td><table>
 						{% for element in item.diseases.all %}
-						<tr><td><a href="{% url 'disease-view' pk=element.mim %}" target='_blank'>{{element.name}}</a></td></tr>
+						<tr><td><a data-toggle="popover" data-content="Go to this Disease View"  href="{% url 'disease-view' pk=element.mim %}" target='_blank'>{{element.name}}</a></td></tr>
 						{% endfor %}
 					</table></td>
 					<td><table>
 						{% for element in item.diseases.all %}
-						<tr><td><span title="External link to OMIM"><a href="http://omim.org/entry/{{element.mim}}" target='_blank'>{{element.mim}}</a></span></td></tr>
+						<tr><td><a  data-toggle="popover" data-content="External link to OMIM"   href="http://omim.org/entry/{{element.mim}}" target='_blank'>{{element.mim}}</a></td></tr>
 						{% endfor %}
 					</table></td>
 					
 				{% else %}
-					<td></td>
-					<td></td>
+					<td><span class="text-muted">N/A</span></td>
+					<td><span class="text-muted">N/A</span></td>
 				{% endif %}
 			</tr>
 			{% endfor %}
 		</tbody>
 		</table>
+		</div>
 {% else %}
 <p>No other SNV sharing the same position found</p>
 {% endif %}
 
-{% endblock %}
-
-{% block extraplugin %}
-<script type="text/javascript">
-$('[data-toggle="tooltip"]').tooltip({
-    'placement': 'top'
-});
-$('[data-toggle="popover"]').popover({
-    trigger: 'hover',
-        'placement': 'top'
-});
-</script>
 {% endblock %}

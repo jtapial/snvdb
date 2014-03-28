@@ -10,6 +10,10 @@
 	$(window).resize(function () {
 		$('.interaction-2d').css({'height':($(window).height()-220).toString()+'px'});
 	});
+
+	$(window).ready(function () {
+		$('.interaction-2d').css({'height':($(window).height()-220).toString()+'px'});
+	});
 </script>
 
 {% endblock %}
@@ -21,7 +25,6 @@ body{
 }
 
 .interaction-2d{
-	height:570px;
 	overflow:auto;
 	overflow-x:hidden;
 }
