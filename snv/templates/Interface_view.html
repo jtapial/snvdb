@@ -3,6 +3,31 @@
 {% block javascript %}
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <link rel="stylesheet" href="{{BASE_URL}}{% static 'interface_svg.css' %}">
+
+
+<script type="text/javascript">
+
+	$(window).resize(function () {
+		$('.interaction-2d').css({'height':($(window).height()-220).toString()+'px'});
+	});
+</script>
+
+{% endblock %}
+
+{% block css %}
+
+body{
+  overflow:hidden
+}
+
+.interaction-2d{
+	height:570px;
+	overflow:auto;
+	overflow-x:hidden;
+}
+
+label{font-weight:normal !important}
+
 {% endblock %}
 
 {% block content %}
