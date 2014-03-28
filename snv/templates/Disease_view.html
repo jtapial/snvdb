@@ -19,8 +19,8 @@ h3 span{ position:absolute; top:-70px;}
 <h1><span id = "basic"></span>{{disease.name}}</h1>
 
 <div class = "well">
-	<h4>Disease ID: {{disease.mim}} [<a href = "http://www.omim.org/entry/{{disease.mim}}" target = "_blank">Link</a>]</h4>
-	<h4>Disease Name: {{disease.name}}</h4>
+	<p><strong>Disease ID:</strong> {{disease.mim}} [<a data-toggle="popover" data-content="External link to OMIM" href = "http://www.omim.org/entry/{{disease.mim}}" target = "_blank">Link</a>]<br>
+	<strong>Disease Name:</strong> {{disease.name}}</p>
 </div>
 
 <!-- ################## DISEASES  ##################################-->
@@ -29,9 +29,9 @@ h3 span{ position:absolute; top:-70px;}
 <div class = "well">
 	{% if diseases %}	
 	<p>Found {{ diseases|length }} disease{{ diseases|pluralize }} that share the same Uniprots taken from related SNVs</p>
-	{% for item in diseases %}
-		<p><a href = {{item.get_absolute_url}} target='_blank'>{{item.mim}} | {{item.name}}</a></p>
-	{% endfor %}
+	<p>{% for item in diseases %}
+		<a data-toggle="popover" data-content="Go to this Disease View"  href = {{item.get_absolute_url}} target='_blank'>{{item.mim}} | {{item.name}}</a><br>
+	{% endfor %}</p>
 	{% else %}	
 	<p>No related disease found.</p>
 
@@ -51,8 +51,8 @@ h3 span{ position:absolute; top:-70px;}
 	<tbody>
 		{% for uniprot in uniprots %}
 		<tr>
-			<td><a href={{BASE_URL}}/uniprot/{{uniprot.0}}>{{uniprot.0}}</a></td>
-			<td>{% for disease_item in uniprot.1 %}<a href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a><br>{% endfor %}</td>
+			<td><a data-toggle="popover" data-content="Go to this Uniprot View" href={{BASE_URL}}/uniprot/{{uniprot.0}} target = "_blank">{{uniprot.0}}</a></td>
+			<td>{% for disease_item in uniprot.1 %}<a data-toggle="popover" data-content="Go to this Disease View" href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a><br>{% endfor %}</td>
 		</tr>
 		{% endfor %}
 	</tbody>
@@ -66,10 +66,9 @@ h3 span{ position:absolute; top:-70px;}
 <div class="page-header"><h3><span id = "snvs"></span>Related SNVs, Uniprots, and Diseases</h3></div>
 
 	<p>Found {{ snv_list|length }} SNV{{ snv_list|pluralize }} that are associated with {{disease.name}}.</p>
-	<p>Uniprot Acc Numbers marked with <span class="text-danger">red colour</span> are not available to view in detail</p>
 
 	{% if snv_list %}
-	
+	<div class="table-responsive">
 	<table class="table table-condensed table-hover">
 	<thead>
 		<tr>
@@ -83,15 +82,16 @@ h3 span{ position:absolute; top:-70px;}
 	<tbody>
   	{% for item in snv_list %}
 		<tr>
-			<td><a href = {{item.obj.get_absolute_url}} target ='_blank'>{{item.obj.ft_id}}</a></td>
-			<td>{% if item.obj.uniprot_residue %}<a href = '{% url "uniprot-view" pk=item.obj.uniprot %}'>{{item.obj.uniprot}}</a>{% else %}<span class="text-danger">{{item.obj.uniprot}}</span>{% endif %}</td>
+			<td><code style="background-color:{{item.obj.get_color}}; color:white;"><strong>{{item.obj.get_short_code}}</strong></code> <a data-toggle="popover" data-content="Go to this Snv View" href = {{item.obj.get_absolute_url}} target ='_blank'>{{item.obj.ft_id}}</a></td>
+			<td>{% if item.obj.uniprot_residue %}<a data-toggle="popover" data-content="Go to this Uniprot View"  href = '{% url "uniprot-view" pk=item.obj.uniprot %}' target = "_blank">{{item.obj.uniprot}}</a>{% else %}<span class="text-danger">{{item.obj.uniprot}}</span>{% endif %}</td>
 			<td>{{item.obj.uniprot_residue.position}}</td>	
 			<td>{{item.obj.wt_aa.three_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.obj.mutant_aa.three_letter_code}}</td>			
-			<td>{% for disease_item in item.obj.diseases.all %}<a href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a><br>{% endfor %}</td>			
+			<td>{% for disease_item in item.obj.diseases.all %}<a data-toggle="popover" data-content="Go to this Disease View" href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a><br>{% endfor %}</td>			
 		</tr>
 	{% endfor %}
 	</tbody>
 	</table>
+	</div>
 	{% endif %}
 
 

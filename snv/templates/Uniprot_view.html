@@ -36,7 +36,16 @@ white-space: nowrap;
 {% endblock %}
 {% load staticfiles %}
 {% block javascript %}
-<link href="{{ STATIC_URL }}offcanvas.css" rel="stylesheet">
+
+<script>
+	<!-- POP UP JAVA SCRIPT--> 
+	function myFunction(url)
+	{
+		cuteLittleWindow = window.open(url, "_blank", "location=no,width=755,height=790");
+	}
+</script> 
+
+
 {% endblock %}
 
 {% block body %}data-spy="scroll" data-target=".navbar"{% endblock %}
@@ -46,6 +55,10 @@ white-space: nowrap;
 	<div class="col-xs-12 col-sm-9"><!-- Left Canvas-->
 
 <!-- ################## Uniprot BASIC VIEW ##################################-->
+
+
+
+
 		<h1><span id = "basic"></span>ID: {{uniprot.acc_number}} {% if uniprot.name %}[{{uniprot.name}}]{% endif %}</h1>
 		<div class="row">
 			<div class="col-md-4">
@@ -94,17 +107,18 @@ white-space: nowrap;
 
 			<div class="col-md-8">
 				<p><strong>Summary</strong></p>
-				<p>Uniprot ID: {{uniprot.acc_number}} [<a data-toggle="popover" data-content="External link to Uniprot"  href="http://www.uniprot.org/uniprot/{{uniprot.acc_number}}" target='_blank' >link</a>]</p>
-				{% if uniprot.gene_code %}<p>Gene Code ID: {{uniprot.gene_code}}</p> 	{% endif %}
-				{% if uniprot.genbank_id %}<p>GenBank ID: {{uniprot.genbank_id}} [<a data-toggle="popover" data-content="External link to GenBank"  href="http://www.ncbi.nlm.nih.gov/gene/?term={{uniprot.genbank_id}}" target='_blank' >link</a>]</p>	{% endif %}				
-				<p>{{uniprot.sequence | length}} amino acids <input type="button" class="btn btn-primary btn-xs" value = "FASTA" onclick="window.open('http://www.uniprot.org/uniprot/{{uniprot.acc_number}}.fasta','_blank','resizable=yes')"></p>
-				<p>{{uniprot.pfam_mappings.all | length}} Pfam domain{{ uniprot.pfam_mappings.all|pluralize}}</p>
-				<p>{{uniprot.chains.all | length}} chain{{ uniprot.chains.all|pluralize}} </p>
-				<p>{{interactions | length}} interaction{{ interactions|pluralize}} </p>
-
-				<p>{{snv_list|length}} SNVs </p>
+				<ul class="list-unstyled">
+				<li>Uniprot ID: {{uniprot.acc_number}} [<a data-toggle="popover" data-content="External link to Uniprot"  href="http://www.uniprot.org/uniprot/{{uniprot.acc_number}}" target='_blank' >link</a>]</li>
+				<li>Gene Code ID: {% if uniprot.gene_code %}{{uniprot.gene_code}}{% else %}<span class="text-muted">N/A</span>{% endif %}</li> 	
+				<li>GenBank ID: {% if uniprot.genbank_id %}{{uniprot.genbank_id}} [<a data-toggle="popover" data-content="External link to GenBank"  href="http://www.ncbi.nlm.nih.gov/gene/?term={{uniprot.genbank_id}}" target='_blank' >link</a>]{% else %}<span class="text-muted">N/A</span>{% endif %}	</li>				
+				<li>{{uniprot.sequence | length}} amino acids <input type="button" class="btn btn-primary btn-xs" data-toggle="popover" data-content="Get this sequence in FASTA format" value = "FASTA" onclick="window.open('http://www.uniprot.org/uniprot/{{uniprot.acc_number}}.fasta','_blank','resizable=yes')"></li>
+				<li>{{uniprot.pfam_mappings.all | length}} Pfam domain{{ uniprot.pfam_mappings.all|pluralize}}</li>
+				<li>{{uniprot.chains.all | length}} chain{{ uniprot.chains.all|pluralize}} {% if uniprot.chains.all|length > 1 %} <input type="button" class="btn btn-primary btn-xs" data-toggle="popover" data-content="See superposition of all related pdb chains" value = "Superposition View" onclick="myFunction('{% url 'superposition-view' uniprot_acc=uniprot.acc_number %}')">{% endif %}</li>
+				<li>{{interactions | length}} interaction{{ interactions|pluralize}} </li>
+				<li>{{snv_list|length}} SNVs </li>
 				{% if snv_list %}
-				<p>{{snv_statistic.1}}% <code style="background-color:red; color:white;">Disease</code>, {{snv_statistic.2}}% <code style="background-color:green; color:white;">Polymorphism</code>, {{snv_statistic.3}}% <code style="background-color:blue; color:white;">Unclassified</code></p>{% endif %}
+				<li>( {{snv_statistic.1}}% <code style="background-color:red; color:white;">Disease</code>, {{snv_statistic.2}}% <code style="background-color:green; color:white;">Polymorphism</code>, {{snv_statistic.3}}% <code style="background-color:blue; color:white;">Unclassified</code> )</li>{% endif %}
+				</ul>
 
 			</div> <!-- END col -->
 		  
@@ -293,7 +307,7 @@ white-space: nowrap;
 			<div class="page-header"><h3><span id = "chains"></span>Chains</h3></div>
 			
 			{% if uniprot.chains.all %}
-				<p>Found {{uniprot.chains.all | length}} chain entr{{ uniprot.chains.all|pluralize:"y,ies" }} for the protein {{uniprot.acc_number}}.</p>
+				<p>Found {{uniprot.chains.all | length}} chain entr{{ uniprot.chains.all|pluralize:"y,ies" }} for the protein {{uniprot.acc_number}}.  {% if uniprot.chains.all|length > 1 %} <input type="button" class="btn btn-primary btn-sm" data-toggle="popover" data-content="See superposition of all related pdb chains" value = "Superposition View" onclick="myFunction('{% url 'superposition-view' uniprot_acc=uniprot.acc_number %}')">{% endif %}</p>
 <div  class= "wrapper-div">
 				<div class="table-responsive">
 				<table class="table table-condensed">
@@ -369,15 +383,6 @@ white-space: nowrap;
 			<div class="page-header"><h3><span id = "interactions"></span>Interactions</h3></div>	
 			{% if interactions %}
 				<p>Found {{interactions | length}} interaction entr{{ interactions|pluralize:"y,ies" }} for the protein {{uniprot.acc_number}}.</p>
-				<!-- POP UP JAVA SCRIPT--> 
-				<script>
-					function myFunction(url)
-					{
-						cuteLittleWindow = window.open(url, "_blank", "location=no,width=755,height=780");
-					}
-				</script> 
-
-				<!-- END OF POP UP JAVA SCRIPT-->
 <div  class= "wrapper-div">
 				<div class="table-responsive">
 				<table class="table table-condensed table-hover">
@@ -394,10 +399,10 @@ white-space: nowrap;
 					{% for item in interactions %}
 						<tr>
 							<td>{{item.obj.id}}</td>
-							<td><a href="{% url 'uniprot-view' pk=item.obj.chain_1.uniprot.acc_number %}">{{item.obj.chain_1.uniprot.acc_number}}</a></td>
-							<td><a href="{% url 'uniprot-view' pk=item.obj.chain_2.uniprot.acc_number %}">{{item.obj.chain_2.uniprot.acc_number}}</a></td>
+							<td><a class = "link" data-toggle="popover" data-content="Go to this Uniprot View" href="{% url 'uniprot-view' pk=item.obj.chain_1.uniprot.acc_number %}">{{item.obj.chain_1.uniprot.acc_number}}</a></td>
+							<td><a class = "link"  data-toggle="popover" data-content="Go to this Uniprot View" href="{% url 'uniprot-view' pk=item.obj.chain_2.uniprot.acc_number %}">{{item.obj.chain_2.uniprot.acc_number}}</a></td>
 							<td>{{item.obj.inter_type.inter_type}}</td>
-							<td><button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interaction-view' pk=item.obj.id %}')">3D Interaction</button> <button class="btn btn-primary btn-sm" onclick="myFunction('{% url 'interface-view' pk=item.obj.id %}')">2D Interface</button> <button class="btn btn-success btn-sm" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')"><span class = "glyphicon glyphicon-download"></span> PDB</button></td>
+							<td><button class="btn btn-primary btn-sm" data-toggle="popover" data-content="See 3D interaction with SNVs, Pfam, and bonds on their structure" onclick="myFunction('{% url 'interaction-view' pk=item.obj.id %}')">3D Interaction</button> <button class="btn btn-primary btn-sm" data-toggle="popover" data-content="See 2D graph of their interacting residues" onclick="myFunction('{% url 'interface-view' pk=item.obj.id %}')">2D Interface</button> <button class="btn btn-success btn-sm" data-toggle="popover" data-content="Download PDB file" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')"><span class = "glyphicon glyphicon-download"></span> PDB</button></td>
 						</tr>
 						<tr>
 							<td colspan="5" class= "hidden-xs hidden-sm">
@@ -469,7 +474,7 @@ white-space: nowrap;
 				<tbody>		
 					{% for item in snv_list %}
 					<tr>
-						<td><a href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</a></td>
+						<td><a data-toggle="popover" data-content="Go to this SNV View"  href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</a></td>
 						<td><code style="background-color:{% if item.type.type == 'Disease' %}red{% elif item.type.type == 'Polymorphism'%} green {% else %} blue {% endif %}; color:white;">{{item.type.type}}</code></td>
 						<td>{{item.uniprot_residue.position}}</td>
 						<td>{{item.wt_aa.one_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.one_letter_code}}</td>
@@ -482,7 +487,7 @@ white-space: nowrap;
 						<td>
 							<table>
 							{% for element in item.diseases.all %}
-								<tr><td><a href="{% url 'disease-view' pk=element.mim %}" target='_blank'>{{element.name}}</a></td></tr>
+								<tr><td><a data-toggle="popover" data-content="Go to this Disease View"  href="{% url 'disease-view' pk=element.mim %}" target='_blank'>{{element.name}}</a></td></tr>
 							{% endfor %}
 							</table>
 						</td>
@@ -528,34 +533,7 @@ white-space: nowrap;
 
 {% block extraplugin %}
 <script type="text/javascript">
-			
-	$('[data-toggle="tooltip"]').tooltip({
-		'placement': 'top'
-	});
-	$('[data-toggle="popover"]').popover({
-		trigger: 'hover',
-		    'placement': 'top'
-	});
-/*
-	$('[data-toggle="modal"]').tooltip({
-		trigger: 'hover',
-		    'placement': 'bottom'
-	});
-*/
-	$('[data-toggle="collapse"]').popover({
-		trigger: 'hover',
-		    'placement': 'top'
-	});
-
-	$('#userNameField').tooltip({
-		'show': true,
-		    'placement': 'bottom',
-		    'title': "Please remember to..."
-	});
-
-	$('#userNameField').tooltip('show');
-
-
+	// For Multiple Variation
 	$(document).on("click", ".open-AddBookDialog", function () {
 		 var myBookId = $(this).data('id');
 		// 'Modern' browsers (IE8+, use CSS-style selectors)

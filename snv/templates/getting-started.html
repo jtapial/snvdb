@@ -2,18 +2,13 @@
 {% block pagetitle %}Getting Started{% endblock %}
 {% block css%}
 .jumbotron {
+background: #2E82D1;
 background: -webkit-linear-gradient(#2E82D1, #7CC1EC); /* For Safari */
 background: -o-linear-gradient(#2E82D1, #7CC1EC); /* For Opera 11.1 to 12.0 */
 background: -moz-linear-gradient(#2E82D1, #7CC1EC); /* For Firefox 3.6 to 15 */
 background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last) */	
 }
 
-.e{
-	background-color:#FFFFFF;
-}
-.e:hover{
-   //background-color:#99CCFF;
-}
 
 h1{ position:relative;}
 h1 span{ position:absolute; top:-70px;}
@@ -127,15 +122,15 @@ h3 span{ position:absolute; top:-70px;}
 				
 				  <!-- columns -->
 				  <div class="row">
-					<div class="col-md-4 e">
+					<div class="col-md-4">
 					  <img src="{{STATIC_URL}}search.jpeg"  class="img-thumbnail" data-toggle="modal" data-target="#myModalimg" data-head="Search" data-ref= "{{STATIC_URL}}search-l.jpg" alt="image">
 					  <p class="text-center">Search</p>
 					</div>
-					<div class="col-md-4 e">
+					<div class="col-md-4">
 					  <img src="{{STATIC_URL}}select.jpeg"  class="img-thumbnail" data-toggle="modal" data-target="#myModalimg" data-head="Select" data-ref= "{{STATIC_URL}}select-l.jpg" alt="image">
 					  <p class="text-center">Select</p>
 				   </div>
-					<div class="col-md-4 e">
+					<div class="col-md-4">
 					  <img src="{{STATIC_URL}}view.jpeg"  class="img-thumbnail"  data-toggle="modal" data-target="#myModalimg" data-head="Visualise" data-ref= "{{STATIC_URL}}view-l.jpg"  alt="image">
 					  <p class="text-center">Visualise</p>
 					</div>
