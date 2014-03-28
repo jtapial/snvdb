@@ -35,8 +35,8 @@
 			$('.jumbotron').css({'padding-top': '30px'});
 			$('.jumbotron').css({'padding-bottom': '30px'}); 
 		  }else{
-			$('.jumbotron').css({'padding-top': '130px' });
-			$('.jumbotron').css({'padding-bottom': '130px'});
+			$('.jumbotron').css({'padding-top': '110px' });
+			$('.jumbotron').css({'padding-bottom': '110px'});
 		}	 
 	});
 
@@ -46,8 +46,8 @@
 			$('.jumbotron').css({'padding-top': '30px'});
 			$('.jumbotron').css({'padding-bottom': '30px'}); 
 		  }else{
-			$('.jumbotron').css({'padding-top': '130px' });
-			$('.jumbotron').css({'padding-bottom': '130px'}); 
+			$('.jumbotron').css({'padding-top': '110px' });
+			$('.jumbotron').css({'padding-bottom': '110px'}); 
 		}
 	});
  
@@ -81,8 +81,14 @@
 <div class="cover-container">
     <div id = "mainjumb" class="jumbotron">
       <div class="container">
-        <h1 id = "headtext" style="font-size:600%;color: #fff; text-align:center;text-shadow:2px 2px #2963AF;">SNVdb</h1>
-        <h3 style="color: #fff; text-align:center"> Uncover protein interactions, SNVs, and associated diseases...    </h3>
+        <!--  <h1 id = "headtext" style="font-size:600%;color: #fff; text-align:center;text-shadow:2px 2px #2963AF;">SNVdb</h1> -->
+		<div class="row">
+		  <div class="span4"></div>
+		    <div class="span4"><img class="center-block img-responsive" src="{{STATIC_URL}}snvdblogo.png"/></div>
+		  <div class="span4"></div>
+		</div>
+
+        <h3 style="color: #fff; text-align:center; position:relative; top: -25px;"> Uncover protein interactions, SNVs, and associated diseases...    </h3>
 		<div id="browserInfo"> </div>
 
 
