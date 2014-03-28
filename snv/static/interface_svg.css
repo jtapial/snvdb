@@ -91,5 +91,20 @@ code.snvtype.polymorphism {
     background-color:green;
 }
 code.snvtype.unclassified {
-    background-color:gray;
+    background-color:blue;
+}
+code.snvtype.multiple {
+    background-color:purple;
+}
+div.key {
+    position:fixed;
+    top:20%;
+    left:2%;
+}
+svg text.ir {
+    font-family:sans-serif;
+    font-size:11px;
+    fill:white;
+    text-anchor:middle;
+    pointer-events:none;
 }

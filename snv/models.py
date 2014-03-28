@@ -780,7 +780,7 @@ class InterfaceResidue(models.Model):
     	return position
 
 
-    def get_interacting_residues(self):
+    def get_interacting_residues_old(self):
     	# return dictionary of interacting residue against bond type
     	interacting_residues = {}
 
@@ -798,7 +798,32 @@ class InterfaceResidue(models.Model):
     			except KeyError:
     				interacting_residues[partner_residue] = interaction.type
     	return interacting_residues
+    def get_interacting_residues(self):
+    	# return dictionary of interacting residue against bond type
+		interacting_residues = {}
 
+		# bond rank dictionary
+		bond_rank = {'DSB':1,'HYB':2,'POL':3,'PHO':4,'UNK':5}
+
+		for sc in self.stored_contacts_1.all():
+			partner_residue = sc.ir_2
+			try:
+				previous_bond_type = interacting_residues[partner_residue]
+				# If old bond type was greater value than new replace with new
+				if bond_rank[previous_bond_type] > bond_rank[sc.bond_type]:
+					interacting_residues[partner_residue] = sc.bond_type
+			except KeyError:
+				interacting_residues[partner_residue] = sc.bond_type
+		for sc in self.stored_contacts_2.all():
+			partner_residue = sc.ir_1
+			try:
+				previous_bond_type = interacting_residues[partner_residue]
+				# If old bond type was greater value than new replace with new
+				if bond_rank[previous_bond_type] > bond_rank[sc.bond_type]:
+					interacting_residues[partner_residue] = sc.bond_type
+			except KeyError:
+				interacting_residues[partner_residue] = sc.bond_type
+		return interacting_residues
 
 
 class SnvType(models.Model):
@@ -1028,9 +1053,11 @@ class InterfaceAtomInteraction(models.Model):
 
 class StoredContact(models.Model):
 	id = models.IntegerField(primary_key=True)
-	interaction = models.ForeignKey(Interaction,db_column='interaction_id',related_name="interactions")
-	ir_1 = models.ForeignKey(InterfaceResidue, db_column='ir_1_id',related_name="interface_residues_1")
-	ir_2 = models.ForeignKey(InterfaceResidue, db_column='ir_2_id',related_name="interface_residues_2")
+	interaction = models.ForeignKey(Interaction,db_column='interaction_id',related_name="stored_contacts")
+	# Ir_1 is chain A
+	ir_1 = models.ForeignKey(InterfaceResidue, db_column='ir_1_id',related_name="stored_contacts_1")
+	# IR_2 is chain B
+	ir_2 = models.ForeignKey(InterfaceResidue, db_column='ir_2_id',related_name="stored_contacts_2")
 	jsmol_str_1 = models.CharField(max_length=15L)
 	jsmol_str_2 = models.CharField(max_length=15L)
 	bond_type = models.CharField(db_column="type",max_length=3L)
