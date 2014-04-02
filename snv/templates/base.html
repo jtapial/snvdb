@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>{% block pagetitle%}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" type="image/png" href="{{STATIC_URL}}favicon2.png">
     <!-- Bootstrap -->
 	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 	<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:500' rel='stylesheet' type='text/css'>
@@ -99,12 +102,12 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-		  <a class="navbar-brand" href="{% url 'home' %}">SNVdb</a>
+		  <a class="navbar-brand" href="{% url 'snv:home' %}">SNVdb</a>
         </div>
         <div class="navbar-collapse collapse">
 		 <ul class="nav navbar-nav">
-		  <li><a href="{% url 'getting-started' %}">Getting Started</a> </li>
-		  <li><a href="{% url 'about' %}">About</a></li>
+		  <li><a href="{% url 'snv:getting-started' %}">Getting Started</a> </li>
+		  <li><a href="{% url 'snv:about' %}">About</a></li>
 		  </ul>
  
         </div><!--/.navbar-collapse -->
@@ -121,10 +124,24 @@
 
     <div id="footer">
       <div class="container">
-        <p class="text-muted text-center">Structural Bioinformatics Group, Centre for Integrative Systems Biology, Imperial College London<br><a href="{% url 'home' %}">Home</a> | <a href='{% url 'info' %}'>Info</a>  | <a href="{% url 'getting-started' %}">Getting Started</a> | <a href="{% url 'about' %}">About Us</a></p>
+        <p class="text-muted text-center">Structural Bioinformatics Group, Centre for Integrative Systems Biology, Imperial College London<br><a href="{% url 'snv:home' %}">Home</a> | <a href='{% url 'snv:info' %}'>Info</a>  | <a href="{% url 'snv:getting-started' %}">Getting Started</a> | <a href="{% url 'snv:about' %}">About Us</a></p>
       </div>
     </div>
+	<script type="text/javascript">
+		//Popover Script
+		$('[data-toggle="tooltip"]').tooltip({
+			'placement': 'top'
+		});
+		$('[data-toggle="popover"]').popover({
+			trigger: 'hover',
+				'placement': 'top'
+		});
 
+		$('[data-toggle="collapse"]').popover({
+			trigger: 'hover',
+				'placement': 'top'
+		});
+	</script>
 	{% block extraplugin %}{% endblock %}
 	</body>
 </html>

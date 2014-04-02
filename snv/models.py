@@ -8,6 +8,8 @@
 # into your database.
 from __future__ import unicode_literals
 from django.contrib.staticfiles import finders
+from snvproj.settings import STATIC_ROOT
+from os.path import isfile
 
 from django.db import models
 
@@ -100,7 +102,9 @@ class Uniprot(models.Model):
 		db_table = 'uniprot'
 		
 	def img_exists(self):
-		if finders.find('protein_previews_thumbnails/'+self.acc_number+'.jpeg'):
+		filename = self.acc_number+'.jpeg'
+		thumb_dir = 'protein_previews_thumbnails/'
+		if finders.find(thumb_dir+filename) or isfile(STATIC_ROOT+thumb_dir+filename):
 			return True
 		return False
 
@@ -141,23 +145,98 @@ class Uniprot(models.Model):
 		outset = []
 		for chain in self.chains.all():
 			length = len(self.sequence)
-
+			seqdata = self.sequence
 			stat = [0.0,0.0,0.0]
 			stat[0] = round((float(chain.seq_start)-1)*100/float(length),1)
 			stat[1] = round(float(chain.seq_end)*100/float(length),1) - stat[0]
 			stat[2] = 100.0-stat[0]-stat[1]
+			seqalign=['',''] # 1st are ... for sequence, 2nd are pdb sequence .. NEW METHOD
+			seqend =['',''] # 1st are ... for sequence, 2nd are pdb sequence .. NEW METHOD
 
 			#Alighment Method
-			chain_res_set = list(chain.residues.all().extra(order_by = ['id']))
-			res = None			
-			mapping = None
+			#chain_res_set = list(chain.residues.all().extra(order_by = ['id'])) #sorted by id (also position)
+			new_res_set = list(chain.residues.all().extra(order_by = ['id'])) #sorted by id (also position)
+			#res = None			
+			#mapping = None
 
+			'''
 			while chain_res_set: # pop until we find a residue that align within uniprot sequence			
 				res = chain_res_set.pop(0)
 				if res.uniprot_residue.all():
 					mapping = res.uniprot_residue.all()[0].position
 					break
+			'''
+			#NEW CODE
+			newres = None
+			newmap = None
+			pointerseq=0
+			if(new_res_set):
+				while new_res_set: # pop until we find a residue that align within uniprot sequence			
+					newres = new_res_set.pop(0)
 
+					if newres.uniprot_residue.all():
+						newmap = newres.uniprot_residue.all()[0].position #get position  where this residue is aligned on sequence
+						#lower gap
+						while(newmap -1 > pointerseq):
+							seqalign[0] += seqdata[pointerseq]
+							seqalign[1] += '.'
+							pointerseq +=1
+						#perfect position
+						seqalign[0] += seqdata[pointerseq]
+						seqalign[1] += newres.amino_acid.one_letter_code
+						pointerseq+=1					
+					
+					else: #upper gap
+						seqalign[0] += '.'
+						seqalign[1] += newres.amino_acid.one_letter_code
+
+				while pointerseq<length:
+					seqalign[0] += seqdata[pointerseq]
+					seqalign[1] += '.'
+					pointerseq+=1
+
+
+				#Align Them
+				cutoff = 50
+				allrange = len(seqalign[0])
+				current2 = 0
+				align_code = '<code style="background-color:#428bca ; color:white;">Seq 1:</code> '
+
+				for current1 in range(allrange):
+					#First line		
+					if(current1%10 == 0 and current1>0): 
+						align_code += ' '
+					align_code += seqalign[0][current1]	
+
+					#Second line	
+					if(((current1+1)%cutoff==0 and current1>0) or current1==allrange-1 ): 				
+						align_code+='<br><code style="background-color:#5bc0de ; color:white;">Seq 2:</code> '
+						#do until second line position == first line position						
+						while current2 <= current1:
+							if (current2%10==0 and current2 > 0):				
+								align_code += ' '
+
+							if(seqalign[0][current2] == '.' or seqalign[1][current2] == '.'):
+								align_code += seqalign[1][current2]
+							
+							else:
+								color = 'yellow'
+								if(seqalign[0][current2] != seqalign[1][current2]):
+									color='#FF6600'
+
+								align_code+= '<mark style="background-color:'+color+'">'+seqalign[1][current2]+'</mark>'
+							current2+=1
+						#end of second line
+						if(current2<allrange):
+							align_code+='<br><code style="background-color:#428bca ; color:white;">Seq 1:</code> '
+			else:
+				align_code = ''
+
+			#print 'done ...'
+			#print '>', seqalign[0]	
+			#print '>', seqalign[1]	
+			#END OF NEW CODE
+			'''
 			align_code = ''
 			#Do each line for 50 letters
 			cutoff = 50
@@ -183,19 +262,22 @@ class Uniprot(models.Model):
 								if(res.amino_acid.one_letter_code != self.sequence[mapping-1]):
 									color='#FF6600'
 								align_code+= '<mark style="background-color:'+color+'">'+res.amino_acid.one_letter_code+'</mark>'
-
+								#introducting gapd
+								
+								
 								while chain_res_set: # pop until we find a residue that align within uniprot sequence			
 									res = chain_res_set.pop(0)
 									if res.uniprot_residue.all():
 										mapping = res.uniprot_residue.all()[0].position
 										break
+								
 							else:
 								align_code +='.'
 												
 							second_line+=1						
 						if(second_line<length):
 							align_code+='<br><code style="background-color:#428bca ; color:white;">Seq 1:</code> '
-						
+				'''
 			outset.append({'obj':chain,'alignent':align_code,'stat':stat})	 	
 		return outset
 
@@ -462,7 +544,7 @@ class Uniprot(models.Model):
 		return [interactionset, mod_seq,interaction_reg_mark]
 	###########################################################
 	def get_absolute_url(self):
-		return reverse('uniprot-view', kwargs={'pk': self.acc_number})
+		return reverse('snv:uniprot-view', kwargs={'pk': self.acc_number})
 
 class AminoAcidGroup(models.Model):
 	id = models.IntegerField(primary_key=True)
@@ -704,7 +786,7 @@ class InterfaceResidue(models.Model):
     	return position
 
 
-    def get_interacting_residues(self):
+    def get_interacting_residues_old(self):
     	# return dictionary of interacting residue against bond type
     	interacting_residues = {}
 
@@ -722,7 +804,32 @@ class InterfaceResidue(models.Model):
     			except KeyError:
     				interacting_residues[partner_residue] = interaction.type
     	return interacting_residues
+    def get_interacting_residues(self):
+    	# return dictionary of interacting residue against bond type
+		interacting_residues = {}
 
+		# bond rank dictionary
+		bond_rank = {'DSB':1,'HYB':2,'POL':3,'PHO':4,'UNK':5}
+
+		for sc in self.stored_contacts_1.all():
+			partner_residue = sc.ir_2
+			try:
+				previous_bond_type = interacting_residues[partner_residue]
+				# If old bond type was greater value than new replace with new
+				if bond_rank[previous_bond_type] > bond_rank[sc.bond_type]:
+					interacting_residues[partner_residue] = sc.bond_type
+			except KeyError:
+				interacting_residues[partner_residue] = sc.bond_type
+		for sc in self.stored_contacts_2.all():
+			partner_residue = sc.ir_1
+			try:
+				previous_bond_type = interacting_residues[partner_residue]
+				# If old bond type was greater value than new replace with new
+				if bond_rank[previous_bond_type] > bond_rank[sc.bond_type]:
+					interacting_residues[partner_residue] = sc.bond_type
+			except KeyError:
+				interacting_residues[partner_residue] = sc.bond_type
+		return interacting_residues
 
 
 class SnvType(models.Model):
@@ -764,7 +871,7 @@ class Snv(models.Model):
 		return snvlist
 	
 	def get_absolute_url(self):
-		return reverse('snv-view', kwargs={'pk': self.ft_id})
+		return reverse('snv:snv-view', kwargs={'pk': self.ft_id})
 
 	def get_genbank_id(self):
 		handle = Entrez.esearch(db="gene", term="%s[Gene Name] AND homo sapiens[Organism]" % self.gene_code)
@@ -812,7 +919,7 @@ class Disease(models.Model):
 
 
 	def get_absolute_url(self):
-		return reverse('disease-view', kwargs={'pk': self.mim})
+		return reverse('snv:disease-view', kwargs={'pk': self.mim})
 
 
 class SnvDisease(models.Model):
@@ -952,9 +1059,11 @@ class InterfaceAtomInteraction(models.Model):
 
 class StoredContact(models.Model):
 	id = models.IntegerField(primary_key=True)
-	interaction = models.ForeignKey(Interaction,db_column='interaction_id',related_name="interactions")
-	ir_1 = models.ForeignKey(InterfaceResidue, db_column='ir_1_id',related_name="interface_residues_1")
-	ir_2 = models.ForeignKey(InterfaceResidue, db_column='ir_2_id',related_name="interface_residues_2")
+	interaction = models.ForeignKey(Interaction,db_column='interaction_id',related_name="stored_contacts")
+	# Ir_1 is chain A
+	ir_1 = models.ForeignKey(InterfaceResidue, db_column='ir_1_id',related_name="stored_contacts_1")
+	# IR_2 is chain B
+	ir_2 = models.ForeignKey(InterfaceResidue, db_column='ir_2_id',related_name="stored_contacts_2")
 	jsmol_str_1 = models.CharField(max_length=15L)
 	jsmol_str_2 = models.CharField(max_length=15L)
 	bond_type = models.CharField(db_column="type",max_length=3L)

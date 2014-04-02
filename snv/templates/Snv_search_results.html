@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block css%}
 .jumbotron {
+background: #2E82D1;
 background: -webkit-linear-gradient(#2E82D1, #7CC1EC); /* For Safari */
 background: -o-linear-gradient(#2E82D1, #7CC1EC); /* For Opera 11.1 to 12.0 */
 background: -moz-linear-gradient(#2E82D1, #7CC1EC); /* For Firefox 3.6 to 15 */
@@ -30,7 +31,7 @@ background: linear-gradient(#2E82D1, #7CC1EC); /* Standard syntax (must be last)
         {% endfor %}
     </ul>
 {% else %}
-    <p>No item matched your search criteria. <a href ='{% url 'home' %}'>Go back to the home page</a></p>
+    <p>No item matched your search criteria. <a href ='{% url 'snv:home' %}'>Go back to the home page</a></p>
 {% endif %}
 
 {% endblock %}

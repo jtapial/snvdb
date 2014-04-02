@@ -2,7 +2,7 @@
 
 {% block content %}#
 <h1>Search</h1>
-    <form action="/search/" method="get">
+    <form action="{% url 'snv:search-results' %}" method="get">
         <input type="text" name="q">
         <input type="submit" value="Search">
     </form>
