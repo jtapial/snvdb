@@ -208,7 +208,7 @@ h3 span{ position:absolute; top:-70px;}
 
 			<h3><span id="uniprot-interactions"></span>Interactions</h3>
 
-			<p>Here we include a list of binary interactions for the protein of interest. For each one, you can see its ID on our database, the two proteins taking part in the interaction, and whether the structure of the complex has been experimentally determined or computationally modelled.</p>
+			<p>Here we include a <strong>list of binary interactions for the protein</strong> of interest. For each one, you can see its <strong>ID on our database</strong>, the two proteins taking part in the interaction, and whether the structure of the complex has been experimentally determined or computationally modelled.</p>
 			<p>Under this information, the site displays a representation of the two proteins, with the interface residues marked in yellow.</p>
 			<p>There are also buttons that will lead you to the interaction entry (where you can see the 3D structure of the complex via JsMOL), the interface entry (where you can see the atom-atom interactions that hold the complex together) and the PDB file describing it.</p>
 			<p>If you prefer to have the PDB file to visualize it your preferred viewer (such as PyMOL), you can also download it from here.</p>
@@ -222,7 +222,7 @@ h3 span{ position:absolute; top:-70px;}
 
 			<p>Here you can find a list of SNVs that have an effect on the protein sequence. For each one, we show the position, the change on the sequence, the FT id and the rs id (so that you can find it in Uniprot and dbSNP).</p>
 			<p>If the SNV is associated with a disease, you can also see which disease it is, and the OMIM code describing it.</p>
-			<p>To find out more about each SNV, just click on the FT id link and we will take you to the SNV entry describing it on our database. We also provide some links to external databases (OMIM and dbSNP). If so many links seem a bit confusing, just hover on each link to see if it links to one of the entries in SNVdb, or it leads to an external database.</p>
+			<p>To find out more about each SNV, just click on the FT id link and we will take you to the <a href="#snv">SNV entry</a> describing it on our database. We also provide some links to external databases (OMIM and dbSNP). If so many links seem a bit confusing, just hover on each link to see if it links to one of the entries in SNVdb, or it leads to an external database.</p>
 
 			<div class="panel panel-default">
 			  <div class="panel-body">
@@ -234,7 +234,7 @@ h3 span{ position:absolute; top:-70px;}
 
 		<h1 class="page-header"><span id="snv"></span>Understanding SNV entries</h1>
 
-			<p>A SNV entry describes a single nucleotide variation affecting a particular protein. These entries are divided in four sections:</p>
+			<p>A SNV entry describes a single nucleotide variation affecting a particular protein. These entries are divided in <strong>four sections</strong>:</p>
 
 			<ul>
 				<li><a href="#snv-basic">Basic information</a></li>
@@ -252,19 +252,19 @@ h3 span{ position:absolute; top:-70px;}
 
 			<h3><span id="snv-basic"></span>Basic information</h3>
 
-			<p>Here we provide some data about the SNV, such as the protein and position that it maps to, the change in sequence that it causes, and whether it is associated to any disease. If the SNV has a dbSNP id (rs ID), you can also see it here, and find a link to the dbSNP entry.</p>
+			<p>Here we provide some data about the SNV, such as the <strong>protein and position</strong> that it maps to (according to the Uniprot numbering), the <strong>change in sequence</strong> that it causes, and whether it is <strong>associated to any disease</strong>. If the SNV has a <strong>dbSNP id</strong> (rs ID), you can also see it here, and find a <strong>link to the dbSNP entry</strong>.</p>
 
 			<h3><span id="snv-disorders"></span>Disorders associated to the SNV</h3>
 
-			<p>This is a list of the diseases directly associated to this variation. You can find the link to the SNVdb disease entry and the OMIM code and link for each disease.</p>
+			<p>This is a list of the <strong>diseases directly associated</strong> to this variation. You can find the <strong>link to the <a href="#disease">SNVdb disease entry</a></strong> and the <strong>OMIM code and link</strong> for each disease.</p>
 		
-			<h3><span id="snv-mapping"></span>Mapping mutated SNV to the sequence</h3>
+			<h3><span id="snv-mapping"></span>Protein sequence context of the SNV:</h3>
 
-			<p>Here you can see the SNV in the protein sequence context. The residue corresponding to the SNV is highlighted.</p>
+			<p>Here you can see the SNV mapped to the <strong>sequence of the protein</strong> that it is associated to. The residue corresponding to the SNV is highlighted.</p>
 
 			<h3><span id="snv-others"></span>Other SNVs sharing the same position</h3>
 
-			<p>If there are more SNVs mapping to this position in the protein, you can find a list here, along with some data and the link to the SNVdb entry for each SNV.</p>
+			<p>If there are <strong>more SNVs mapping to this position in the protein</strong>, you can find a list here, along with some data and the <strong>link to the SNVdb entry</strong> for each SNV.</p>
 
 <!--########################### Disease ############################-->
 
@@ -279,6 +279,12 @@ h3 span{ position:absolute; top:-70px;}
 				<li><a href="#disease-related-uniprots">Related Uniprots</a></li>
 			</ul>
 
+			<div class="panel panel-default">
+			  <div class="panel-body">
+				<img src="{{STATIC_URL}}disease.jpeg" class="img-responsive" alt="image">
+			  </div>
+			</div>
+
 			<h3><span id="disease-basic"></span>Basic information</h3>
 
 			<p>Here we display the disease ID (which is the same as the OMIM ID) and the name of the disease.</p>
@@ -287,7 +293,7 @@ h3 span{ position:absolute; top:-70px;}
 
 			<p>Here you can find diseases sharing some SNVs with the disease of interest. Just click on the links and see the disease entries for them.</p>
 
-			<h3><span id="disease-related-snvs"></span>Related Related SNVs list</h3>
+			<h3><span id="disease-related-snvs"></span>Related SNVs list</h3>
 
 			<p>This is a list of the SNVs associated with this disease. Click on the link on the "ID" column and see the SNV entries for them.</p>
 
@@ -295,18 +301,30 @@ h3 span{ position:absolute; top:-70px;}
 
 			<p>Some proteins are associated with more than one disease. If any of the proteins associated with the disease of interest are associated with other disorders, you will see them in this list.</p>
 
+<!--########################### INTERFACE ############################-->
+
 		<h1 class="page-header"><span id="interface"></span>Understanding interface entries</h1>
 			<p><i>IN DEVELOPMENT</i></p>
 
+
+
+<!--########################### INTERACTION ############################-->			
+
 		<h1 class="page-header"><span id="interaction"></span>Understanding interaction entries</h1>
 			<p>An interaction entry displays information about the three-dimensional structure of a complex between two proteins (named <strong>"partners"</strong>), capable of interacting with each other.</p>
+
+			<div class="panel panel-default">
+			  <div class="panel-body">
+				<img src="{{STATIC_URL}}interaction.jpg" class="img-responsive" alt="image">
+			  </div>
+			</div>
 
 			<p>These entries are divided in three parts:</p>
 			<ul>
 				<li>A <strong>header</strong>, displaying the Uniprot ID of the two partners, and the internal ID of the interaction in our database.</li>
 				<li>A <strong>summary</strong>, displaying general information about the interaction:</li>
 				<ul>
-					<li>The <strong>type</strong> reflects whether the interaction structure has been experimentally determined (<i>Structure</i>), computationally modelled from another structure with high sequence identity (<i>Model</i>), or <font color="red"><strong>Dom-dom model (explanation missing)</strong></font>.</li>
+					<li>The <strong>type</strong> reflects whether the interaction structure has been experimentally determined (<i>Structure</i>), computationally modelled from another complex whose partners have high sequence identity with the partners shown (<i>Model</i>), or computationally modelled knowing that two domains detected in the partners have been shown to interact in homologous proteins (<i>Dom-dom model</i>).</li>
 					<li>The <strong>names and Uniprot IDs</strong> of the two partners make it possible to find their Uniprot entries on the database. The <strong>chain IDs</strong> are also included so that you can have an idea of how well the protein is represented on this structure.</li>
 					<li>The <strong>filename</strong> is the internal name of the PDB file representing the interaction, which you can also download from the Uniprot entry of any of the partners.</li>
 				</ul>
@@ -316,65 +334,110 @@ h3 span{ position:absolute; top:-70px;}
 
 			<h3>Using the structure viewer and the feature mapping interface</h3>
 
-			<p>The interaction PDB file is displayed on a <strong>JSMol plugin</strong>. If you already know how to use this popular molecule viewer, you will be happy to know that all the features of JSMol are available on the plugin. Just right-click on the structure to see the available commands on JSMol GUI, including a console to use command-line instructions).</p>
+			<p>The interaction PDB file is displayed on a <strong>JSMol plugin</strong>. If you already know how to use this molecule viewer, you will be happy to know that all the features of JSMol are available on the plugin. Just right-click on the structure to see the available commands on JSMol GUI, including a console to use command-line instructions).</p>
+
+			<p>If this is your first time with JSMol, here are <strong>three basic actions</strong> that will help you explore the structure of the complex:</p>
+			<ul>
+				<li><strong>Hover</strong> on an atom of the structure to see the amino acid, position, chain and atom.</li>
+				<li><strong>Click and drag</strong> the mouse to rotate the structure.</li>
+				<li><strong>Scroll your mouse wheel</strong> up or down to zoom in and out the structure.</li>
+			</ul> 
 
 			<p>However, we have set up some <strong>quick buttons</strong> to allow you to map the features stored in the database onto the structure. You can find them right next to the plugin, and they are divided in <strong>four tabs: Basic, SNV, PFAM and Contact</strong>. Just click on each one to access its features.</p>
 
 			<h4>The Basic tab</h4>
 
-			<p>This tab includes some general options about the structure. Here you can:</p>
-			<ul>
-				<li>Choose between a <strong>cartoon</strong> representation (to have a general view of the secondary structure) or a <strong>wireframe</strong> representation (to get a detailed view of every atom in the complex).</li>
-				<li><strong>Hide or show each partner</strong>, to get a clear view of the interface residues of the other partner.</li>
-				<li><strong>Highlight the interface residues</strong>, which will be displayed as a <strong>spacefill</strong> model.</li>
-				<li><strong>Reset everything</strong>, and go back to the initial state of the structure.</li>
-			</ul>
-    
+			<div class="row">
+				<div class="col-md-6">
+					<p>This tab includes some general options about the structure. Here you can:</p>
+
+					<ul>
+						<li>Choose between a <strong>cartoon</strong> representation (to have a general view of the secondary structure) or a <strong>wireframe</strong> representation (to get a detailed view of every atom in the complex).</li>
+						<li><strong>Hide or show each partner</strong>, to get a clear view of the interface residues of the other partner.</li>
+						<li><strong>Highlight the interface residues</strong>, which will be displayed as a <strong>spacefill</strong> model.</li>
+						<li><strong>Reset everything</strong>, and go back to the initial state of the structure.</li>
+					</ul>
+				</div>
+
+				<div class="col-md-6">
+					<img align="center" src="{{STATIC_URL}}interaction-basic.jpeg"  class="img-thumbnail" data-toggle="modal" data-target="#myModalimg" data-head="The Basic tab" data-ref= "{{STATIC_URL}}interaction-basic.jpeg" alt="image">
+						<p class="text-center">The Basic tab</p>
+				</div>
+			</div>
+			 
     
         	<h4>The SNV tab</h4>
 
-			<p>This tab includes the options to map SNVs onto the 3D structure. Here you can:</p>
-			<ul>
-				<li><strong>Map or unmap all</strong> the SNVs.</li>
-				<li><strong>Map or unmap a particular SNV.</strong>They are listed by partner, and sorted by the position on the PDB file of the interaction (so that the first residue of partner 2 is never #1, but the number after the position for the last residue of partner 1).</li>
-			</ul>
-        
-			<p>The <strong>SNVs color</strong> will be different according to their disease association:</p>
-			<ul>
-				<li>SNVs with at least one associated <strong>disease</strong> will be mapped in <strong>red</strong>.</li>
-				<li>SNVs classsified as <strong>polymorphisms</strong> will be mapped in <strong>green</strong>.</li>
-				<li><strong>Unclassified SNVs</strong> will be mapped in <strong>blue</strong>.</li>
-			</ul>
+        	<div class="row">
+        		<div class="col-md-6">
+        			<p>This tab includes the options to map SNVs onto the 3D structure. Here you can:</p>
+					<ul>
+						<li><strong>Map or unmap all the SNVs</strong>.</li>
+						<li><strong>Map or unmap a particular SNV.</strong>They are listed by partner, and sorted by the position on the PDB file of the interaction (so that the first residue of partner 2 is never #1, but the number after the position for the last residue of partner 1).</li>
+					</ul>
+		        
+					<p>The <strong>SNVs color</strong> will be different according to their disease association:</p>
+					<ul>
+						<li>SNVs with at least one associated <strong>disease</strong> (according to Uniprot) will be mapped in <strong>red</strong>.</li>
+						<li>SNVs classsified as <strong>polymorphisms</strong> (those not included in OMIM) will be mapped in <strong>green</strong>.</li>
+						<li><strong>Unclassified SNVs (those detected in a pathological sample, but without statistically conclusive results to establish an association) </strong> will be mapped in <strong>blue</strong>.</li>
+					</ul>
+        		</div>
+
+        		<div class="col-md-6">
+        			<img align="center" src="{{STATIC_URL}}interaction-snv.jpeg"  class="img-thumbnail" data-toggle="modal" data-target="#myModalimg" data-head="The SNV tab" data-ref= "{{STATIC_URL}}interaction-snv.jpeg" alt="image">
+        				<p class="text-center">The SNV tab</p>
+        		</div>
+        	</div>
 
 			<h4>The PFAM tab</h4>
 
-			<p>This tab includes the options to map Pfam domains and families onto the 3D structure. Here you can:</p>
-			<ul>
-				<li><strong>Map or unmap all</strong> the Pfam domains for both partners.</li>
-				<li><strong>Map or unmap a particular domain</strong>. Again, they are listed by partner, and sorted by the first residue according to the PDB file.</li>
-			</ul>
+			<div class="row">
+        		<div class="col-md-6">
+        			<p>This tab includes the options to map Pfam domains and families onto the 3D structure. Here you can:</p>
+					<ul>
+						<li><strong>Map or unmap all the Pfam domains</strong> for both partners.</li>
+						<li><strong>Map or unmap a particular domain</strong>. Again, they are listed by partner, and sorted by the first residue according to the PDB file.</li>
+					</ul>
 
-			<p>The different Pfam hits will be mapped in different <strong>colors</strong>:</p>
-			<ul>
-				<li><strong>Domains</strong> will be mapped in <strong>green</strong>.</li>
-				<li><strong>Families</strong> will be mapped in <strong>pink</strong>.</li>
-				<li><strong>Repeats</strong> will be mapped in <strong>range</strong>.</li>
-			</ul>
+					<p>The different Pfam hits will be mapped in different <strong>colors</strong>:</p>
+					<ul>
+						<li><strong>Domains</strong> will be mapped in <strong>green</strong>.</li>
+						<li><strong>Families</strong> will be mapped in <strong>pink</strong>.</li>
+						<li><strong>Repeats</strong> will be mapped in <strong>range</strong>.</li>
+					</ul>
+        		</div>
 
+        		<div class="col-md-6">
+        			<img align="center" src="{{STATIC_URL}}interaction-pfam.jpeg"  class="img-thumbnail" data-toggle="modal" data-target="#myModalimg" data-head="The PFAM tab" data-ref= "{{STATIC_URL}}interaction-pfam.jpeg" alt="image">
+        				<p class="text-center">The Pfam tab</p>
+        		</div>
+        	</div>
+
+		
 			<h4>The contacts tab</h4>
 
-			<p>This tab includes all the options to map the bonds that keep the complex together. Here you can:</p>
-			<ul>
-				<li><strong>Map or unmap all</strong> the bonds.</li>
-				<li>Map or unmap all the bonds of a <strong>certain type</strong>:</li>
-				<ul>
-					<li><strong>Disulfide bonds</strong> (in <strong>red</strong>).</li>
-					<li><strong>Hydrogen bonds</strong> (in <strong>blue</strong>).</li>
-					<li><strong>Polar interactions</strong> (in <strong>green</strong>).</li>
-					<li><strong>Hydrophobic interactions</strong> (in <strong>yellow</strong>).</li>
-					<li><strong>Unknown interactions</strong> (in <strong>purple</strong>).</li>
-				</ul>
-			</ul>
+			<div class="row">
+        		<div class="col-md-6">
+        			<p>This tab includes all the options to map the bonds that keep the complex together. Here you can:</p>
+					<ul>
+						<li><strong>Map or unmap all</strong> the bonds.</li>
+						<li>Map or unmap all the bonds of a <strong>certain type</strong>:</li>
+						<ul>
+							<li><strong>Disulfide bonds</strong> (in <strong>red</strong>).</li>
+							<li><strong>Hydrogen bonds</strong> (in <strong>blue</strong>).</li>
+							<li><strong>Polar interactions</strong> (in <strong>green</strong>).</li>
+							<li><strong>Hydrophobic interactions</strong> (in <strong>yellow</strong>).</li>
+							<li><strong>Unknown interactions</strong> (in <strong>purple</strong>).</li>
+						</ul>
+					</ul>
+        		</div>
+
+        		<div class="col-md-6">
+        			<img align="center" src="{{STATIC_URL}}interaction-contacts.jpeg"  class="img-thumbnail" data-toggle="modal" data-target="#myModalimg" data-head="The Contacts tab" data-ref= "{{STATIC_URL}}interaction-contacts.jpeg" alt="image">
+        				<p class="text-center">The Contacts tab</p>
+        		</div>
+        	</div>
 
 			<div class="alert alert-warning">
 				<h3>Note on the contact mapping</h3>
@@ -389,10 +452,14 @@ h3 span{ position:absolute; top:-70px;}
 
 			</div>
 
+<!--########################### SUPERPOSED ############################-->
+
+<h1 class="page-header"><span id="superposed"></span>Understanding superposed structure entries</h1>
+	<p><i>IN DEVELOPMENT</i></p>
 
 <!--########################### COMPATIBILITY ############################-->
 <div>
- <h1 class="page-header"><span id="browser"></span>Browser and Device</h1>
+<h1 class="page-header"><span id="browser"></span>Browser and Device</h1>
   <p class="lead">This website is based on <a href = "http://getbootstrap.com" target="_blank">Bootstrap</a> framework which supports several desktop and mobile browsers. However, old browsers might not display our website correctly.</p>
 <div class="alert alert-info">
   <h3>Recommendation</h3>
@@ -465,8 +532,10 @@ h3 span{ position:absolute; top:-70px;}
 				<li><a href="#snv"><span class="glyphicon glyphicon-chevron-right"></span> SNV Entries</a></li>
 				<li><a href="#disease"><span class="glyphicon glyphicon-chevron-right"></span> Disease Entries</a></li>
 				<li><a href="#interface"><span class="glyphicon glyphicon-chevron-right"></span> Interface Entries</a></li>
-				<li><a href="#interact"><span class="glyphicon glyphicon-chevron-right"></span> Interaction Entries</a></li>
+				<li><a href="#interaction"><span class="glyphicon glyphicon-chevron-right"></span> Interaction Entries</a></li>
+				<li><a href="#superposed"><span class="glyphicon glyphicon-chevron-right"></span> Superposed Structure Entries</a></li>
 				<li><a href="#browser"><span class="glyphicon glyphicon-chevron-right"></span> Browser and Device</a></li>
+
 			</ul>
 		</div><!--/span-->
 	</div><!--/col-->

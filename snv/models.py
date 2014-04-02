@@ -597,6 +597,7 @@ class Interaction(models.Model):
 		return chain1_mapping2positions,chain2_mapping2positions
 
 	def get_contacts(self):
+		#This method gets all the atom-atom contacts
 		contacts = {}
 		for ir in self.chain_1.get_interface_residues(self):
 			cr = ir.chain_residue
@@ -612,6 +613,7 @@ class Interaction(models.Model):
 		return contacts
 
 	def get_contacts_alt(self):
+		#This method gets the ranked residue-residue contacts
 		residues_dict = {}
 		for ir in self.interface_residues.all():
 			residues_dict[ir] = ir.get_interacting_residues()
