@@ -3,7 +3,7 @@
 
 {% load staticfiles %}
 {% block javascript %}
-<script type="text/javascript" src="{{BASE_URL}}{% static 'jsmol/jsmol/JSmol.min.js'%}"></script> 
+<script type="text/javascript" src="{{BASE_URL}}{{STATIC_URL}}jsmol/jsmol/JSmol.min.js"></script> 
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 {% endblock %}
 
@@ -51,7 +51,7 @@ label{font-weight:normal !important}
 				  height: 450,      // pixels (but it may be in percent)
 				  width: 400,
 				  use: "HTML5",         // "HTML5" or "Java" (case-insensitive)
-				  j2sPath: "{{ BASE_URL }}/static/jsmol/jsmol/j2s",           // only used in the HTML5 modality
+				  j2sPath: "{{ BASE_URL }}{{STATIC_URL}}jsmol/jsmol/j2s",           // only used in the HTML5 modality
 				  defaultModel: "",
 				  script: null,
 				  src: null,

@@ -83,7 +83,7 @@ h3 span{ position:absolute; top:-70px;}
   	{% for item in snv_list %}
 		<tr>
 			<td><code style="background-color:{{item.obj.get_color}}; color:white;"><strong>{{item.obj.get_short_code}}</strong></code> <a data-toggle="popover" data-content="Go to this Snv View" href = {{item.obj.get_absolute_url}} target ='_blank'>{{item.obj.ft_id}}</a></td>
-			<td>{% if item.obj.uniprot_residue %}<a data-toggle="popover" data-content="Go to this Uniprot View"  href = '{% url "uniprot-view" pk=item.obj.uniprot %}' target = "_blank">{{item.obj.uniprot}}</a>{% else %}<span class="text-danger">{{item.obj.uniprot}}</span>{% endif %}</td>
+			<td>{% if item.obj.uniprot_residue %}<a data-toggle="popover" data-content="Go to this Uniprot View"  href = '{% url "snv:uniprot-view" pk=item.obj.uniprot %}' target = "_blank">{{item.obj.uniprot}}</a>{% else %}<span class="text-danger">{{item.obj.uniprot}}</span>{% endif %}</td>
 			<td>{{item.obj.uniprot_residue.position}}</td>	
 			<td>{{item.obj.wt_aa.three_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.obj.mutant_aa.three_letter_code}}</td>			
 			<td>{% for disease_item in item.obj.diseases.all %}<a data-toggle="popover" data-content="Go to this Disease View" href = {{disease_item.get_absolute_url}} target='_blank'>{{disease_item.mim}} | {{disease_item.name}}</a><br>{% endfor %}</td>			

@@ -110,7 +110,7 @@
 
 		<!-- ############  Search form ######################-->
         
-		<form class="form-horizontal"  role="form" action="/search/" method="GET" onSubmit="return checkbox();">
+		<form class="form-horizontal"  role="form" action="{% url 'snv:search-results' %}" method="GET" onSubmit="return checkbox();">
 			<div class="form-group">
 				<p for="inputtype" class="col-sm-2 control-label" style="color: #fff">Select type</p>
 
@@ -159,17 +159,17 @@
         <div class="col-md-4">
           <h2><span class="glyphicon glyphicon-question-sign"></span> What is SNVdb</h2>
           <p>About the aim of this site and the sources of information we use</p>
-          <p><a class="btn btn-default" href='{% url 'info' %}' role="button"> Find out more &raquo;</a></p>
+          <p><a class="btn btn-default" href='{% url 'snv:info' %}' role="button"> Find out more &raquo;</a></p>
         </div>
         <div class="col-md-4">
           <h2><span class="glyphicon glyphicon-book"></span> How to use </h2>
           <p>A short tutorial to show you how the site works and help you making the most of it</p>
-          <p><a class="btn btn-default" href='{% url 'getting-started' %}' role="button"> Go to the tutorial &raquo;</a></p>
+          <p><a class="btn btn-default" href='{% url 'snv:getting-started' %}' role="button"> Go to the tutorial &raquo;</a></p>
        </div>
         <div class="col-md-4">
           <h2><span class="glyphicon glyphicon-user"></span> About us</h2>
           <p>Meet our development team at Imperial College London. We would love to hear from you!</p>
-          <p><a class="btn btn-default" href='{% url 'about' %}' role="button">Find out more &raquo;</a></p>
+          <p><a class="btn btn-default" href='{% url 'snv:about' %}' role="button">Find out more &raquo;</a></p>
         </div>
       </div>
 {% endblock %}   

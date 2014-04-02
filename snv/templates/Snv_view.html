@@ -14,7 +14,7 @@ word-wrap:break-word;
 <div class = "well">
     <ul class="list-unstyled">
     	{% if snv.uniprot_residue %}
-    		<li><strong>Related protein: </strong><a data-toggle="popover" data-content="Go to this Uniprot View"  href="{% url 'uniprot-view' pk=snv.uniprot %}" target="_blank">{{snv.uniprot}}</a></li>
+    		<li><strong>Related protein: </strong><a data-toggle="popover" data-content="Go to this Uniprot View"  href="{% url 'snv:uniprot-view' pk=snv.uniprot %}" target="_blank">{{snv.uniprot}}</a></li>
     	{% else %}
     		<li><strong>Related protein: </strong><a class="text-danger">{{snv.uniprot}}</a> <i>(Proteins with names in red cannot be displayed)</i></li>
     	{% endif %}
@@ -48,7 +48,7 @@ word-wrap:break-word;
 		{% for item in snv.diseases.all %}
 	
 		<tr>
-			<td><a data-toggle="popover" data-content="Go to this Disease View"  href="{% url 'disease-view' pk=item.mim %}" target="_blank">{{item.name}}</a></td>
+			<td><a data-toggle="popover" data-content="Go to this Disease View"  href="{% url 'snv:disease-view' pk=item.mim %}" target="_blank">{{item.name}}</a></td>
 			<td>{{item.mim}} <a data-toggle="popover" data-content="External link to OMIM"  href="http://omim.org/entry/{{item.mim}}" target="_blank">(link)</a></td>
 		</tr>
 
@@ -90,7 +90,7 @@ word-wrap:break-word;
 		<tbody>		
 			{% for item in sim_snv %}
 			<tr>
-				<td><a data-toggle="popover" data-content="Go to this Snv View"  href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</a></td>
+				<td><a data-toggle="popover" data-content="Go to this Snv View"  href="{% url 'snv:snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</a></td>
 				<td></strong><code style="background-color:{{item.get_color}}; color:white;">{{item.type.type}}</code></td>
 				<td>{{item.uniprot_residue.position}}</td>
 				<td>{{item.wt_aa.one_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.one_letter_code}}</td>
@@ -102,7 +102,7 @@ word-wrap:break-word;
 				{% if item.diseases.all %}
 					<td><table>
 						{% for element in item.diseases.all %}
-						<tr><td><a data-toggle="popover" data-content="Go to this Disease View"  href="{% url 'disease-view' pk=element.mim %}" target='_blank'>{{element.name}}</a></td></tr>
+						<tr><td><a data-toggle="popover" data-content="Go to this Disease View"  href="{% url 'snv:disease-view' pk=element.mim %}" target='_blank'>{{element.name}}</a></td></tr>
 						{% endfor %}
 					</table></td>
 					<td><table>

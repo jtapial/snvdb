@@ -8,6 +8,8 @@
 # into your database.
 from __future__ import unicode_literals
 from django.contrib.staticfiles import finders
+from snvproj.settings import STATIC_ROOT
+from os.path import isfile
 
 from django.db import models
 
@@ -100,7 +102,9 @@ class Uniprot(models.Model):
 		db_table = 'uniprot'
 		
 	def img_exists(self):
-		if finders.find('protein_previews_thumbnails/'+self.acc_number+'.jpeg'):
+		filename = self.acc_number+'.jpeg'
+		thumb_dir = 'protein_previews_thumbnails/'
+		if finders.find(thumb_dir+filename) or isfile(STATIC_ROOT+thumb_dir+filename):
 			return True
 		return False
 
@@ -540,7 +544,7 @@ class Uniprot(models.Model):
 		return [interactionset, mod_seq,interaction_reg_mark]
 	###########################################################
 	def get_absolute_url(self):
-		return reverse('uniprot-view', kwargs={'pk': self.acc_number})
+		return reverse('snv:uniprot-view', kwargs={'pk': self.acc_number})
 
 class AminoAcidGroup(models.Model):
 	id = models.IntegerField(primary_key=True)
@@ -865,7 +869,7 @@ class Snv(models.Model):
 		return snvlist
 	
 	def get_absolute_url(self):
-		return reverse('snv-view', kwargs={'pk': self.ft_id})
+		return reverse('snv:snv-view', kwargs={'pk': self.ft_id})
 
 	def get_genbank_id(self):
 		handle = Entrez.esearch(db="gene", term="%s[Gene Name] AND homo sapiens[Organism]" % self.gene_code)
@@ -913,7 +917,7 @@ class Disease(models.Model):
 
 
 	def get_absolute_url(self):
-		return reverse('disease-view', kwargs={'pk': self.mim})
+		return reverse('snv:disease-view', kwargs={'pk': self.mim})
 
 
 class SnvDisease(models.Model):

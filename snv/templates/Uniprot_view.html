@@ -113,7 +113,7 @@ white-space: nowrap;
 				<li>GenBank ID: {% if uniprot.genbank_id %}{{uniprot.genbank_id}} [<a data-toggle="popover" data-content="External link to GenBank"  href="http://www.ncbi.nlm.nih.gov/gene/?term={{uniprot.genbank_id}}" target='_blank' >link</a>]{% else %}<span class="text-muted">N/A</span>{% endif %}	</li>				
 				<li>{{uniprot.sequence | length}} amino acids <input type="button" class="btn btn-primary btn-xs" data-toggle="popover" data-content="Get this sequence in FASTA format" value = "FASTA" onclick="window.open('http://www.uniprot.org/uniprot/{{uniprot.acc_number}}.fasta','_blank','resizable=yes')"></li>
 				<li>{{uniprot.pfam_mappings.all | length}} Pfam domain{{ uniprot.pfam_mappings.all|pluralize}}</li>
-				<li>{{uniprot.chains.all | length}} chain{{ uniprot.chains.all|pluralize}} {% if uniprot.chains.all|length > 1 %} <input type="button" class="btn btn-primary btn-xs" data-toggle="popover" data-content="See superposition of all related pdb chains" value = "Superposition View" onclick="myFunction('{% url 'superposition-view' uniprot_acc=uniprot.acc_number %}')">{% endif %}</li>
+				<li>{{uniprot.chains.all | length}} chain{{ uniprot.chains.all|pluralize}} {% if uniprot.chains.all|length > 1 %} <input type="button" class="btn btn-primary btn-xs" data-toggle="popover" data-content="See superposition of all related pdb chains" value = "Superposition View" onclick="myFunction('{% url 'snv:superposition-view' uniprot_acc=uniprot.acc_number %}')">{% endif %}</li>
 				<li>{{interactions | length}} interaction{{ interactions|pluralize}} </li>
 				<li>{{snv_list|length}} SNVs </li>
 				{% if snv_list %}
@@ -164,7 +164,7 @@ white-space: nowrap;
 			<div class="page-header"><h3><span id = "map"></span>Overall graphics</h3></div>
 			<div class="alert alert-warning fade in">
 				<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-	<p><span class = "glyphicon glyphicon-comment"></span> Don't know how to read these data? <a class="btn btn-warning btn-sm" href="{% url 'getting-started' %}" target="_blank" role="button"> Read our tutorial &raquo;</a></p>
+	<p><span class = "glyphicon glyphicon-comment"></span> Don't know how to read these data? <a class="btn btn-warning btn-sm" href="{% url 'snv:getting-started' %}" target="_blank" role="button"> Read our tutorial &raquo;</a></p>
 
 
 
@@ -307,7 +307,7 @@ white-space: nowrap;
 			<div class="page-header"><h3><span id = "chains"></span>Chains</h3></div>
 			
 			{% if uniprot.chains.all %}
-				<p>Found {{uniprot.chains.all | length}} chain entr{{ uniprot.chains.all|pluralize:"y,ies" }} for the protein {{uniprot.acc_number}}.  {% if uniprot.chains.all|length > 1 %} <input type="button" class="btn btn-primary btn-sm" data-toggle="popover" data-content="See superposition of all related pdb chains" value = "Superposition View" onclick="myFunction('{% url 'superposition-view' uniprot_acc=uniprot.acc_number %}')">{% endif %}</p>
+				<p>Found {{uniprot.chains.all | length}} chain entr{{ uniprot.chains.all|pluralize:"y,ies" }} for the protein {{uniprot.acc_number}}.  {% if uniprot.chains.all|length > 1 %} <input type="button" class="btn btn-primary btn-sm" data-toggle="popover" data-content="See superposition of all related pdb chains" value = "Superposition View" onclick="myFunction('{% url 'snv:superposition-view' uniprot_acc=uniprot.acc_number %}')">{% endif %}</p>
 <div  class= "wrapper-div">
 				<div class="table-responsive">
 				<table class="table table-condensed">
@@ -399,10 +399,10 @@ white-space: nowrap;
 					{% for item in interactions %}
 						<tr>
 							<td>{{item.obj.id}}</td>
-							<td><a class = "link" data-toggle="popover" data-content="Go to this Uniprot View" href="{% url 'uniprot-view' pk=item.obj.chain_1.uniprot.acc_number %}">{{item.obj.chain_1.uniprot.acc_number}}</a></td>
-							<td><a class = "link"  data-toggle="popover" data-content="Go to this Uniprot View" href="{% url 'uniprot-view' pk=item.obj.chain_2.uniprot.acc_number %}">{{item.obj.chain_2.uniprot.acc_number}}</a></td>
+							<td><a class = "link" data-toggle="popover" data-content="Go to this Uniprot View" href="{% url 'snv:uniprot-view' pk=item.obj.chain_1.uniprot.acc_number %}">{{item.obj.chain_1.uniprot.acc_number}}</a></td>
+							<td><a class = "link"  data-toggle="popover" data-content="Go to this Uniprot View" href="{% url 'snv:uniprot-view' pk=item.obj.chain_2.uniprot.acc_number %}">{{item.obj.chain_2.uniprot.acc_number}}</a></td>
 							<td>{{item.obj.inter_type.inter_type}}</td>
-							<td><button class="btn btn-primary btn-sm" data-toggle="popover" data-content="See 3D interaction with SNVs, Pfam, and bonds on their structure" onclick="myFunction('{% url 'interaction-view' pk=item.obj.id %}')">3D Interaction</button> <button class="btn btn-primary btn-sm" data-toggle="popover" data-content="See 2D graph of their interacting residues" onclick="myFunction('{% url 'interface-view' pk=item.obj.id %}')">2D Interface</button> <button class="btn btn-success btn-sm" data-toggle="popover" data-content="Download PDB file" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')"><span class = "glyphicon glyphicon-download"></span> PDB</button></td>
+							<td><button class="btn btn-primary btn-sm" data-toggle="popover" data-content="See 3D interaction with SNVs, Pfam, and bonds on their structure" onclick="myFunction('{% url 'snv:interaction-view' pk=item.obj.id %}')">3D Interaction</button> <button class="btn btn-primary btn-sm" data-toggle="popover" data-content="See 2D graph of their interacting residues" onclick="myFunction('{% url 'snv:interface-view' pk=item.obj.id %}')">2D Interface</button> <button class="btn btn-success btn-sm" data-toggle="popover" data-content="Download PDB file" onclick="window.open('{{BASE_URL}}{% static item.obj.filename %}')"><span class = "glyphicon glyphicon-download"></span> PDB</button></td>
 						</tr>
 						<tr>
 							<td colspan="5" class= "hidden-xs hidden-sm">
@@ -474,7 +474,7 @@ white-space: nowrap;
 				<tbody>		
 					{% for item in snv_list %}
 					<tr>
-						<td><a data-toggle="popover" data-content="Go to this SNV View"  href="{% url 'snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</a></td>
+						<td><a data-toggle="popover" data-content="Go to this SNV View"  href="{% url 'snv:snv-view' pk=item.ft_id %}" target='_blank'>{{item.ft_id}}</a></td>
 						<td><code style="background-color:{% if item.type.type == 'Disease' %}red{% elif item.type.type == 'Polymorphism'%} green {% else %} blue {% endif %}; color:white;">{{item.type.type}}</code></td>
 						<td>{{item.uniprot_residue.position}}</td>
 						<td>{{item.wt_aa.one_letter_code}} <span class="glyphicon glyphicon-arrow-right"></span> {{item.mutant_aa.one_letter_code}}</td>
@@ -487,7 +487,7 @@ white-space: nowrap;
 						<td>
 							<table>
 							{% for element in item.diseases.all %}
-								<tr><td><a data-toggle="popover" data-content="Go to this Disease View"  href="{% url 'disease-view' pk=element.mim %}" target='_blank'>{{element.name}}</a></td></tr>
+								<tr><td><a data-toggle="popover" data-content="Go to this Disease View"  href="{% url 'snv:disease-view' pk=element.mim %}" target='_blank'>{{element.name}}</a></td></tr>
 							{% endfor %}
 							</table>
 						</td>
